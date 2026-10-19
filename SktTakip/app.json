@@ -1,0 +1,103 @@
+{
+  "expo": {
+    "name": "Expira",
+    "slug": "expira",
+    "version": "1.0.0",
+    "description": "Ürünlerin son kullanma tarihlerini takip edin, envanterinizi düzenleyin ve hatırlatmalar alın.",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.expira.app",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Expira, ürünlerine fotoğraf eklemek için galerine erişir.",
+        "NSCameraUsageDescription": "Expira, ürün fotoğrafı çekmek için kameranı kullanır.",
+        "NSFaceIDUsageDescription": "Expira, uygulamayı güvenli tutmak için Face ID kullanır.",
+        "NSCalendarsUsageDescription": "Expira, SKT hatırlatıcılarını takvimine eklemek için izin ister."
+      }
+    },
+    "android": {
+      "package": "com.expira.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png",
+        "backgroundImage": "./assets/images/android-icon-background.png"
+      },
+      "permissions": [
+        "CAMERA",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "VIBRATE",
+        "READ_CALENDAR",
+        "WRITE_CALENDAR",
+        "POST_NOTIFICATIONS",
+        "INTERNET"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.USE_EXACT_ALARM",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.WRITE_SETTINGS"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "jsEngine": "jsc",
+            "newArchEnabled": false,
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36
+          },
+          "ios": {
+            "jsEngine": "jsc",
+            "newArchEnabled": false
+          }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Expira, ürünlerine fotoğraf eklemek için galerine erişir.",
+          "cameraPermission": "Expira, ürün fotoğrafı çekmek için kameranı kullanır.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Expira, uygulamayı güvenli tutmak için Face ID kullanır."
+        }
+      ],
+      "expo-localization",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Expira, SKT hatırlatıcılarını takvimine eklemek için izin ister."
+        }
+      ]
+    ],
+    "updates": {
+      "url": "https://u.expo.dev/a6d69b5f-6d35-4054-aab0-41eb1885ebb3",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a6d69b5f-6d35-4054-aab0-41eb1885ebb3"
+      }
+    }
+  }
+}
