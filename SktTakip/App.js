@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { useContext, useEffect } from 'react';
-import { View, StyleSheet, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -45,7 +45,7 @@ function MainTabs() {
 }
 
 function AppContent() {
-  const { isLoading, toast, userProfile, isLocked, lockApp, hideToast } = useContext(AppContext);
+  const { isLoading, loadError, retryLoadData, toast, userProfile, isLocked, lockApp, hideToast } = useContext(AppContext);
   const { colors, isDark } = useTheme();
 
   useEffect(() => {
@@ -55,6 +55,25 @@ function AppContent() {
   }, [isLoading, userProfile.biometricsEnabled]);
 
   if (isLoading) return <LoadingScreen />;
+  if (loadError) {
+    return (
+      <SafeAreaView edges={['top']} style={[styles.loadErrorContainer, { backgroundColor: colors.background }]}>
+        <View style={styles.loadErrorContent}>
+          <Text style={[styles.loadErrorTitle, { color: colors.text }]}>Kayıtlı veriler açılamadı</Text>
+          <Text style={[styles.loadErrorMessage, { color: colors.textLight }]}>
+            Verilerin korunması için uygulama boş kayıtlarla açılmadı. İnternet gerekmez; tekrar deneyin. Sorun sürerse uygulamayı silmeyin.
+          </Text>
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={[styles.retryButton, { backgroundColor: colors.primary }]}
+            onPress={retryLoadData}
+          >
+            <Text style={[styles.retryButtonText, { color: colors.onPrimary }]}>Tekrar Dene</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
   if (isLocked) return <BiometricLockScreen />;
 
   return (
@@ -103,4 +122,10 @@ export default function App() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   navigatorArea: { flex: 1 },
+  loadErrorContainer: { flex: 1, justifyContent: 'center', padding: 24 },
+  loadErrorContent: { alignItems: 'center' },
+  loadErrorTitle: { fontSize: 22, fontWeight: '800', textAlign: 'center', marginBottom: 12 },
+  loadErrorMessage: { fontSize: 16, lineHeight: 24, textAlign: 'center', marginBottom: 24 },
+  retryButton: { minHeight: 48, paddingHorizontal: 24, borderRadius: 24, justifyContent: 'center' },
+  retryButtonText: { fontSize: 16, fontWeight: '700' },
 });

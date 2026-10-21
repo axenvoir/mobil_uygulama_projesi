@@ -13,7 +13,7 @@ export default function NotesScreen({ navigation }) {
   const { notes, deleteNote, togglePin, showToast, settings } = useContext(AppContext);
   const { colors } = useTheme();
   const responsive = useResponsive();
-  const { isTablet, scale } = responsive;
+  const { isTablet, scale, itemColumns, itemGap } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
 
   const [search, setSearch] = useState('');
@@ -102,9 +102,9 @@ export default function NotesScreen({ navigation }) {
           <FlatList
             data={[...pinnedNotes, ...otherNotes]}
             keyExtractor={item => item.id}
-            key={isTablet ? 'tablet-2col' : 'phone-1col'}
-            numColumns={isTablet ? 2 : 1}
-            columnWrapperStyle={isTablet ? { justifyContent: 'space-between' } : undefined}
+            key={`columns-${itemColumns}`}
+            numColumns={itemColumns}
+            columnWrapperStyle={itemColumns > 1 ? { gap: itemGap } : undefined}
             contentContainerStyle={{ paddingBottom: scale(100) }}
             ListHeaderComponent={
               pinnedNotes.length > 0 ? (
@@ -141,7 +141,7 @@ export default function NotesScreen({ navigation }) {
 }
 
 const createStyles = (colors, responsive) => {
-  const { isTablet, horizontalPadding, contentMaxWidth, scale, moderateScale } = responsive;
+  const { horizontalPadding, contentMaxWidth, scale, moderateScale, itemColumns } = responsive;
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background, alignItems: 'center' },
     innerWrap: { flex: 1, width: '100%', maxWidth: contentMaxWidth, paddingHorizontal: horizontalPadding, paddingTop: scale(20) },
@@ -153,8 +153,8 @@ const createStyles = (colors, responsive) => {
     pinnedHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: scale(14) },
     pinnedTitle: { fontSize: moderateScale(TYPOGRAPHY.caption, 0.3), fontWeight: '800', color: colors.primary, marginLeft: scale(6) },
     sectionTitle: { fontSize: moderateScale(TYPOGRAPHY.h3, 0.3), fontWeight: '800', color: colors.text, marginVertical: scale(16) },
-    noteCard: { backgroundColor: colors.surface, borderRadius: scale(20), padding: scale(20), marginBottom: scale(14), borderLeftWidth: 5, ...SHADOWS.medium, flex: isTablet ? 1 : undefined },
-    noteCardTablet: { maxWidth: '48.5%' },
+    noteCard: { backgroundColor: colors.surface, borderRadius: scale(20), padding: scale(20), marginBottom: scale(14), borderLeftWidth: 5, ...SHADOWS.medium, flex: itemColumns > 1 ? 1 : undefined },
+    noteCardTablet: { maxWidth: itemColumns === 3 ? '32%' : '48.5%' },
     noteHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: scale(10), gap: scale(10) },
     noteTitle: { fontSize: moderateScale(TYPOGRAPHY.body, 0.3), fontWeight: '800', color: colors.text, flex: 1, textTransform: 'capitalize' },
     noteDesc: { fontSize: moderateScale(TYPOGRAPHY.caption, 0.3), color: colors.textLight, lineHeight: scale(22), marginBottom: scale(14), fontWeight: '500' },

@@ -2,13 +2,13 @@
 
 ## Build
 
-- [ ] Confirm the Play Console application ID is `com.expira.app`. It cannot be changed after the first release.
+- [ ] Confirm the Play Console application ID is `com.expira.app.tr` and that it is available. It cannot be changed after the first release.
 - [ ] Build a production Android App Bundle: `npx eas-cli@latest build --platform android --profile production`.
 - [ ] Review the generated AAB and install/test the signed release build on supported Android devices before upload.
 - [ ] Start with an internal testing track, then complete any additional testing requirements shown in Play Console before requesting production access.
 - [ ] Keep the EAS-managed Android signing key and Play App Signing enabled. Do not commit signing credentials.
 
-The production profile automatically increments the remote Android build number. Increase `expo.version` in `app.json` when publishing a user-visible release.
+The production profile automatically increments the local Android build number in `app.json`. Its current `android.versionCode` is `12`, above the previously used Play Console code `4`. Increase `expo.version` in `app.json` when publishing a user-visible release.
 
 ## Play Console listing and declarations
 
@@ -23,8 +23,8 @@ The production profile automatically increments the remote Android build number.
 
 ## Current app details
 
-- Application ID: `com.expira.app`
-- User-facing version: `1.0.0`
+- Application ID: `com.expira.app.tr`
+- User-facing version: `1.1.0`
 - Android target: API 36
 - Build artifact: Android App Bundle (`.aab`)
 - Product images are selected through Android's system picker; the app does not request broad media-storage or microphone access.

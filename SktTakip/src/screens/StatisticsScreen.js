@@ -2,15 +2,17 @@ import React, { useContext, useMemo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
-import { CATEGORIES, SHADOWS, TYPOGRAPHY } from '../theme';
+import { CATEGORIES, CATEGORY_TRANSLATION_KEYS, SHADOWS, TYPOGRAPHY } from '../theme';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useTranslation } from '../hooks/useTranslation';
 import { formatDate, getDaysLeft } from '../utils/formatters';
 import Skeleton from '../components/Skeleton';
 
 export default function StatisticsScreen({ navigation }) {
   const { products } = useContext(AppContext);
   const { colors } = useTheme();
+  const { t, locale } = useTranslation();
   const responsive = useResponsive();
   const { isTablet, scale } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
@@ -28,7 +30,7 @@ export default function StatisticsScreen({ navigation }) {
 
   const categoryStats = CATEGORIES.filter(c => c.id !== 'all').map(cat => {
     const count = products.filter(p => p.category === cat.name).length;
-    return { ...cat, count, percent: total > 1 ? Math.round((count / total) * 100) : 0 };
+    return { ...cat, count, percent: products.length > 0 ? Math.round((count / total) * 100) : 0 };
   }).sort((a, b) => b.count - a.count);
 
   const maxCount = Math.max(...categoryStats.map(c => c.count), 1);
@@ -49,9 +51,9 @@ export default function StatisticsScreen({ navigation }) {
   };
 
   const getScoreMessage = (score) => {
-    if (score >= 70) return 'Harika! İsrafı iyi önlüyorsun.';
-    if (score >= 40) return 'Fena değil, biraz daha dikkat.';
-    return 'Dikkat! Çok ürün bozuluyor.';
+    if (score >= 70) return t('statistics_score_great');
+    if (score >= 40) return t('statistics_score_ok');
+    return t('statistics_score_low');
   };
 
   if (isPageLoading) {
@@ -62,7 +64,7 @@ export default function StatisticsScreen({ navigation }) {
             <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
               <Ionicons name="arrow-back" size={scale(24)} color={colors.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>İstatistikler</Text>
+            <Text style={styles.headerTitle}>{t('statistics')}</Text>
             <View style={{ width: scale(24) }} />
           </View>
           <Skeleton height={scale(140)} borderRadius={scale(24)} style={{ marginBottom: scale(20) }} />
@@ -85,13 +87,13 @@ export default function StatisticsScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
             <Ionicons name="arrow-back" size={scale(24)} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>İstatistikler</Text>
+          <Text style={styles.headerTitle}>{t('statistics')}</Text>
           <View style={{ width: scale(24) }} />
         </View>
 
         <View style={styles.summaryCard}>
           <View style={styles.summaryLeft}>
-            <Text style={styles.summaryLabel}>Taze Ürün Skoru</Text>
+            <Text style={styles.summaryLabel}>{t('statistics_freshness_score')}</Text>
             <Text style={[styles.summaryScore, { color: getScoreColor(freshnessScore) }]}>{freshnessScore}%</Text>
             <Text style={styles.summaryMessage} numberOfLines={2}>{getScoreMessage(freshnessScore)}</Text>
           </View>
@@ -104,46 +106,46 @@ export default function StatisticsScreen({ navigation }) {
           <View style={[styles.statBox, { borderTopColor: colors.success }]}>
             <Ionicons name="checkmark-circle" size={scale(22)} color={colors.success} />
             <Text style={styles.statNumber}>{fresh.length}</Text>
-            <Text style={styles.statLabel}>Taze</Text>
+            <Text style={styles.statLabel}>{t('fresh')}</Text>
           </View>
           <View style={[styles.statBox, { borderTopColor: colors.warning }]}>
             <Ionicons name="time" size={scale(22)} color={colors.warning} />
             <Text style={styles.statNumber}>{approaching.length}</Text>
-            <Text style={styles.statLabel}>Yaklaşan</Text>
+            <Text style={styles.statLabel}>{t('approaching')}</Text>
           </View>
           <View style={[styles.statBox, { borderTopColor: colors.danger }]}>
             <Ionicons name="close-circle" size={scale(22)} color={colors.danger} />
             <Text style={styles.statNumber}>{overdue.length}</Text>
-            <Text style={styles.statLabel}>Geçmiş</Text>
+            <Text style={styles.statLabel}>{t('expired')}</Text>
           </View>
         </View>
 
         {products.length > 0 && (
           <View style={styles.progressCard}>
-            <Text style={styles.sectionTitle}>Genel Durum</Text>
+            <Text style={styles.sectionTitle}>{t('statistics_overview')}</Text>
             <View style={styles.progressBar}>
               {fresh.length > 0 && <View style={[styles.progressSegment, { flex: fresh.length, backgroundColor: colors.success }]} />}
               {approaching.length > 0 && <View style={[styles.progressSegment, { flex: approaching.length, backgroundColor: colors.warning }]} />}
               {overdue.length > 0 && <View style={[styles.progressSegment, { flex: overdue.length, backgroundColor: colors.danger }]} />}
             </View>
             <View style={styles.legendRow}>
-              <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.success }]} /><Text style={styles.legendText}>Taze ({fresh.length})</Text></View>
-              <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.warning }]} /><Text style={styles.legendText}>Yaklaşan ({approaching.length})</Text></View>
-              <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.danger }]} /><Text style={styles.legendText}>Geçmiş ({overdue.length})</Text></View>
+              <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.success }]} /><Text style={styles.legendText}>{t('fresh')} ({fresh.length})</Text></View>
+              <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.warning }]} /><Text style={styles.legendText}>{t('approaching')} ({approaching.length})</Text></View>
+              <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.danger }]} /><Text style={styles.legendText}>{t('expired')} ({overdue.length})</Text></View>
             </View>
           </View>
         )}
 
         <View style={styles.categoryCard}>
-          <Text style={styles.sectionTitle}>Kategori Dağılımı</Text>
+          <Text style={styles.sectionTitle}>{t('statistics_category_distribution')}</Text>
           {categoryStats.filter(c => c.count > 0).length === 0 ? (
-            <View style={styles.emptySmall}><Ionicons name="stats-chart-outline" size={scale(40)} color={colors.textLight} style={{ opacity: 0.5 }} /><Text style={styles.emptySmallText}>Henüz veri yok</Text></View>
+            <View style={styles.emptySmall}><Ionicons name="stats-chart-outline" size={scale(40)} color={colors.textLight} style={{ opacity: 0.5 }} /><Text style={styles.emptySmallText}>{t('statistics_no_data')}</Text></View>
           ) : (
             categoryStats.filter(c => c.count > 0).map(cat => (
               <View key={cat.id} style={styles.categoryRow}>
                 <View style={styles.categoryLeft}>
                   <View style={[styles.categoryIconBox, { backgroundColor: colors.primary + '15' }]}><Ionicons name={cat.icon} size={scale(16)} color={colors.primary} /></View>
-                  <Text style={styles.categoryName} numberOfLines={1}>{cat.name}</Text>
+                  <Text style={styles.categoryName} numberOfLines={1}>{t(CATEGORY_TRANSLATION_KEYS[cat.id])}</Text>
                 </View>
                 <View style={[styles.categoryBarContainer, { backgroundColor: colors.surfaceAlt }]}>
                   <View style={[styles.categoryBar, { width: `${(cat.count / maxCount) * 100}%`, backgroundColor: colors.primary }]} />
@@ -156,7 +158,7 @@ export default function StatisticsScreen({ navigation }) {
 
         {upcomingProducts.length > 0 && (
           <View style={styles.upcomingCard}>
-            <Text style={styles.sectionTitle}>En Yakın SKT&apos;liler</Text>
+            <Text style={styles.sectionTitle}>{t('statistics_upcoming_expiry')}</Text>
             {upcomingProducts.map(item => {
               const days = getDaysLeft(item.expDate);
               const isUrgent = days <= 7;
@@ -165,7 +167,7 @@ export default function StatisticsScreen({ navigation }) {
                   <View style={[styles.upcomingDot, { backgroundColor: isUrgent ? colors.danger : colors.primary }]} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.upcomingName} numberOfLines={1}>{item.name}</Text>
-                    <Text style={styles.upcomingDate} numberOfLines={1}>{formatDate(item.expDate)}</Text>
+                    <Text style={styles.upcomingDate} numberOfLines={1}>{formatDate(item.expDate, locale)}</Text>
                   </View>
                   <View style={[styles.upcomingBadge, { backgroundColor: isUrgent ? colors.danger + '15' : colors.primary + '15' }]}>
                     <Text style={[styles.upcomingDays, { color: isUrgent ? colors.danger : colors.primary }]}>{days === 0 ? 'Bugün' : days < 0 ? `${Math.abs(days)}g geçti` : `${days}g kaldı`}</Text>

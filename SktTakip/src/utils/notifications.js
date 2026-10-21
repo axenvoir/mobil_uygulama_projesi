@@ -48,7 +48,7 @@ export const requestPermissions = async () => {
   }
 };
 
-export const scheduleDailyReminder = async (hour, minute, customMessage = null) => {
+export const scheduleDailyReminder = async (hour, minute, customMessage = null, locale = 'tr') => {
   if (!Notifications) return null;
 
   try {
@@ -56,8 +56,12 @@ export const scheduleDailyReminder = async (hour, minute, customMessage = null) 
 
     const id = await Notifications.scheduleNotificationAsync({
       content: {
-        title: '⏰ Expira Hatırlatması',
-        body: customMessage || 'Buzdolabını kontrol etmeyi unutma! Son kullanma tarihi yaklaşan ürünlerin olabilir.',
+        title: locale === 'en' ? '⏰ Expira Reminder' : '⏰ Expira Hatırlatması',
+        body: customMessage || (
+          locale === 'en'
+            ? "Don't forget to check your fridge! Some products may be close to expiry."
+            : 'Buzdolabını kontrol etmeyi unutma! Son kullanma tarihi yaklaşan ürünlerin olabilir.'
+        ),
         sound: true,
       },
       trigger: {
@@ -83,14 +87,18 @@ export const cancelAllReminders = async () => {
   }
 };
 
-export const sendTestNotification = async (customMessage = null) => {
+export const sendTestNotification = async (customMessage = null, locale = 'tr') => {
   if (!Notifications) return false;
 
   try {
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: '🎉 Expira Test Bildirimi',
-        body: customMessage || 'Harika! Bildirimlerin çalışıyor. Artık ürünlerinin SKT\'sini takip edebilirsin.',
+        title: locale === 'en' ? '🎉 Expira Test Notification' : '🎉 Expira Test Bildirimi',
+        body: customMessage || (
+          locale === 'en'
+            ? 'Notifications are working! You can now keep track of your product expiry dates.'
+            : 'Harika! Bildirimlerin çalışıyor. Artık ürünlerinin SKT\'sini takip edebilirsin.'
+        ),
         sound: true,
       },
       trigger: null,

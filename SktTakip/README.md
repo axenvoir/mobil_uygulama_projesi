@@ -32,7 +32,7 @@ Production EAS builds are configured to target Android 16 (API 36) and produce a
 npx eas-cli@latest build --platform android --profile production
 ```
 
-Before uploading the bundle, complete the Play Console store listing, privacy policy URL, Data safety form, content rating, and any testing requirements shown for your developer account. See [PLAY_STORE_RELEASE.md](./PLAY_STORE_RELEASE.md) for the release checklist. Keep the Android application ID `com.expira.app` unchanged after the first Play release.
+Before uploading the bundle, complete the Play Console store listing, privacy policy URL, Data safety form, content rating, and any testing requirements shown for your developer account. See [PLAY_STORE_RELEASE.md](./PLAY_STORE_RELEASE.md) for the release checklist. Confirm the Android application ID `com.expira.app.tr` is available in Play Console; keep it unchanged after the first Play release.
 
 ## Data and backups
 

@@ -5,27 +5,29 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as SMS from 'expo-sms';
 import { AppContext } from '../context/AppContext';
-import { CATEGORIES, SHADOWS, TYPOGRAPHY } from '../theme';
+import { CATEGORIES, CATEGORY_TRANSLATION_KEYS, SHADOWS, TYPOGRAPHY } from '../theme';
 import { shareProductList } from '../utils/shareUtils';
 import { generateInventoryPDF } from '../utils/pdfExport';
 import { notifySuccess } from '../utils/haptics';
 import { getSearchHistory, addSearchTerm, removeSearchTerm, clearSearchHistory } from '../utils/searchHistory';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useTranslation } from '../hooks/useTranslation';
 import { formatDate, getDaysLeft } from '../utils/formatters';
 import ConfirmModal from '../components/ConfirmModal';
 import Skeleton from '../components/Skeleton';
 import EmptyState from '../components/EmptyState';
 
-export default function ProductsScreen({ navigation }) {
+export default function ProductsScreen({ route, navigation }) {
   const { products, deleteProduct, updateProduct, showToast, userProfile, settings, selectedCategory, setSelectedCategory } = useContext(AppContext);
   const { colors } = useTheme();
+  const { t, locale } = useTranslation();
   const responsive = useResponsive();
-  const { isTablet, isSmall, scale } = responsive;
+  const { isTablet, isSmall, scale, itemColumns, itemGap } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
 
   const [isPageLoading, setIsPageLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('Tümü');
+  const [activeTab, setActiveTab] = useState('all');
   const [searchText, setSearchText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortBy, setSortBy] = useState('date');
@@ -51,6 +53,16 @@ export default function ProductsScreen({ navigation }) {
     const timer = setTimeout(() => { setDebouncedSearch(searchText); }, 500);
     return () => clearTimeout(timer);
   }, [searchText]);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    const filter = route.params?.filter;
+    if (['all', 'today', 'approaching', 'expired'].includes(filter)) {
+      setActiveTab(filter);
+      navigation.setParams({ filter: undefined });
+    }
+  }, [navigation, route.params?.filter]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const loadSearchHistory = useCallback(async () => {
     const h = await getSearchHistory();
@@ -101,8 +113,9 @@ export default function ProductsScreen({ navigation }) {
     const daysLeft = getDaysLeft(p.expDate);
     const matchesSearch = p.name.toLowerCase().includes(debouncedSearch.toLowerCase()) || (p.productCode && p.productCode.toLowerCase().includes(debouncedSearch.toLowerCase()));
     const matchesCategory = selectedCategory === 'Tümü' || p.category === selectedCategory;
-    if (activeTab === 'Yaklaşıyor') return daysLeft >= 0 && daysLeft <= 7 && matchesSearch && matchesCategory;
-    if (activeTab === 'Geçmiş') return daysLeft < 0 && matchesSearch && matchesCategory;
+    if (activeTab === 'today') return daysLeft === 0 && matchesSearch && matchesCategory;
+    if (activeTab === 'approaching') return daysLeft >= 0 && daysLeft <= 7 && matchesSearch && matchesCategory;
+    if (activeTab === 'expired') return daysLeft < 0 && matchesSearch && matchesCategory;
     return matchesSearch && matchesCategory;
   }).sort((a, b) => {
     if (sortBy === 'name') return a.name.localeCompare(b.name);
@@ -112,9 +125,9 @@ export default function ProductsScreen({ navigation }) {
   });
 
   const getStatus = (daysLeft) => {
-    if (daysLeft < 0) return { text: 'Geçmiş', color: colors.danger, bg: colors.danger + '15' };
-    if (daysLeft <= 7) return { text: 'Yaklaşıyor', color: colors.warning, bg: colors.warning + '15' };
-    return { text: 'Taze', color: colors.success, bg: colors.success + '15' };
+    if (daysLeft < 0) return { text: t('status_expired'), color: colors.danger, bg: colors.danger + '15' };
+    if (daysLeft <= 7) return { text: t('status_approaching'), color: colors.warning, bg: colors.warning + '15' };
+    return { text: t('status_fresh'), color: colors.success, bg: colors.success + '15' };
   };
 
   // SİLME FONKSİYONU DÜZELTİLDİ
@@ -158,7 +171,7 @@ export default function ProductsScreen({ navigation }) {
     if (products.length === 0) { showToast('Paylaşacak ürün yok.', 'error'); return; }
     const isAvailable = await SMS.isAvailableAsync();
     if (!isAvailable) { showToast('SMS bu cihazda kullanılamıyor.', 'error'); return; }
-    const lines = products.map((p, i) => `${i + 1}. ${p.name} - SKT: ${formatDate(p.expDate)}`).join('\n');
+    const lines = products.map((p, i) => `${i + 1}. ${p.name} - ${t('expiry_date_short')}: ${formatDate(p.expDate, locale)}`).join('\n');
     try { await SMS.sendSMSAsync([], `🧊 Expira Envanteri\n${lines}`); } catch (error) { console.error('SMS gönderilemedi:', error); showToast('SMS gönderilemedi.', 'error'); }
   };
 
@@ -177,7 +190,7 @@ export default function ProductsScreen({ navigation }) {
   const handleBulkCopy = async () => {
     if (selectedIds.length === 0) return;
     const selected = products.filter(p => selectedIds.includes(p.id));
-    const text = selected.map(p => `${p.name}${p.productCode ? ` [${p.productCode}]` : ''} - SKT: ${formatDate(p.expDate)}`).join('\n');
+    const text = selected.map(p => `${p.name}${p.productCode ? ` [${p.productCode}]` : ''} - ${t('expiry_date_short')}: ${formatDate(p.expDate, locale)}`).join('\n');
     await Clipboard.setStringAsync(text);
     showToast(`${selectedIds.length} ürün kopyalandı!`, 'success');
     setSelectionMode(false);
@@ -279,11 +292,11 @@ export default function ProductsScreen({ navigation }) {
                 <Text style={styles.codeText} numberOfLines={1} adjustsFontSizeToFit>{item.productCode}</Text>
               </View>
             ) : null}
-            <Text style={styles.productCategory} numberOfLines={1} adjustsFontSizeToFit>{item.category || 'Kategorisiz'}</Text>
+            <Text style={styles.productCategory} numberOfLines={1} adjustsFontSizeToFit>{t(CATEGORY_TRANSLATION_KEYS[cat?.id] || 'category_other')}</Text>
           </View>
         </View>
         <View style={styles.dateContainer}>
-          <Text style={styles.dateText} numberOfLines={1} adjustsFontSizeToFit>{formatDate(item.expDate)}</Text>
+          <Text style={styles.dateText} numberOfLines={1} adjustsFontSizeToFit>{formatDate(item.expDate, locale)}</Text>
           <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
             <Text style={[styles.statusText, { color: status.color }]} numberOfLines={1} adjustsFontSizeToFit>{status.text}</Text>
           </View>
@@ -330,14 +343,25 @@ export default function ProductsScreen({ navigation }) {
     </View>
   );
 
-  const sortLabels = { date: 'SKT', name: 'İsim', category: 'Kategori', added: 'Yeni' };
+  const sortLabels = {
+    date: t('products_sort_date'),
+    name: t('products_sort_name'),
+    category: t('products_sort_category'),
+    added: t('products_sort_added'),
+  };
+  const tabs = [
+    { value: 'all', label: t('all') },
+    { value: 'today', label: t('today') },
+    { value: 'approaching', label: t('approaching') },
+    { value: 'expired', label: t('expired') },
+  ];
 
   return (
     <View style={styles.container}>
       <View style={styles.innerWrap}>
         <View style={styles.header}>
           <Text style={styles.headerTitle} numberOfLines={1} adjustsFontSizeToFit>
-            {selectionMode ? `${selectedIds.length} seçildi` : 'Ürünlerim'}
+            {selectionMode ? t('products_selected', { count: selectedIds.length }) : t('my_products')}
           </Text>
           <View style={styles.headerActions}>
             {selectionMode ? (
@@ -384,7 +408,7 @@ export default function ProductsScreen({ navigation }) {
             <TextInput
               ref={searchRef}
               style={styles.searchInput}
-              placeholder="Ürün adı veya kısa kod ara..."
+              placeholder={t('products_search_placeholder')}
               placeholderTextColor={colors.textLight}
               value={searchText}
               onChangeText={setSearchText}
@@ -403,9 +427,9 @@ export default function ProductsScreen({ navigation }) {
           {showHistory && searchHistory.length > 0 && (
             <View style={styles.historyDropdown}>
               <View style={styles.historyDropdownHeader}>
-                <Text style={styles.historyDropdownTitle}>Son Aramalar</Text>
+                <Text style={styles.historyDropdownTitle}>{t('products_recent_searches')}</Text>
                 <TouchableOpacity onPress={handleClearHistory}>
-                  <Text style={styles.historyClear}>Temizle</Text>
+                  <Text style={styles.historyClear}>{t('products_clear')}</Text>
                 </TouchableOpacity>
               </View>
               {searchHistory.map((term, i) => (
@@ -422,9 +446,9 @@ export default function ProductsScreen({ navigation }) {
         </View>
 
         <View style={styles.tabContainer}>
-          {['Tümü', 'Yaklaşıyor', 'Geçmiş'].map(tab => (
-            <TouchableOpacity key={tab} style={[styles.tab, activeTab === tab && { borderBottomColor: colors.primary }]} onPress={() => setActiveTab(tab)}>
-              <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.tabText, activeTab === tab && { color: colors.primary }]}>{tab}</Text>
+          {tabs.map(tab => (
+            <TouchableOpacity key={tab.value} style={[styles.tab, activeTab === tab.value && { borderBottomColor: colors.primary }]} onPress={() => setActiveTab(tab.value)}>
+              <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.tabText, activeTab === tab.value && { color: colors.primary }]}>{tab.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -433,17 +457,17 @@ export default function ProductsScreen({ navigation }) {
           {CATEGORIES.map((cat) => (
             <TouchableOpacity key={cat.id} style={[styles.categoryChip, selectedCategory === cat.name && { backgroundColor: colors.primary, borderColor: colors.primary }]} onPress={() => setSelectedCategory(cat.name)} activeOpacity={0.7}>
               <Ionicons name={cat.icon} size={scale(13)} color={selectedCategory === cat.name ? colors.onPrimary : colors.primary} />
-              <Text style={[styles.categoryText, selectedCategory === cat.name && { color: colors.onPrimary }]} numberOfLines={1} adjustsFontSizeToFit>{cat.name}</Text>
+              <Text style={[styles.categoryText, selectedCategory === cat.name && { color: colors.onPrimary }]} numberOfLines={1} adjustsFontSizeToFit>{t(CATEGORY_TRANSLATION_KEYS[cat.id])}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
         <View style={styles.sortRow}>
-          <Text style={styles.resultCount}>{isPageLoading ? '...' : `${filteredProducts.length} ürün`}</Text>
+          <Text style={styles.resultCount}>{isPageLoading ? '...' : `${filteredProducts.length} ${t('products')}`}</Text>
           <View style={{ flexDirection: 'row' }}>
             <TouchableOpacity style={styles.sortBtn} onPress={() => { setSelectionMode(!selectionMode); setSelectedIds([]); }}>
               <Ionicons name="checkmark-done-outline" size={scale(16)} color={colors.primary} />
-              <Text style={styles.sortText}>{selectionMode ? 'Vazgeç' : 'Seç'}</Text>
+              <Text style={styles.sortText}>{selectionMode ? t('cancel') : t('select')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.sortBtn} onPress={() => {
                 const order = ['date', 'name', 'category', 'added'];
@@ -460,9 +484,9 @@ export default function ProductsScreen({ navigation }) {
           <FlatList
             data={filteredProducts}
             keyExtractor={item => item.id}
-            key={isTablet ? 'tablet-2col' : 'phone-1col'}
-            numColumns={isTablet ? 2 : 1}
-            columnWrapperStyle={isTablet ? { justifyContent: 'space-between' } : undefined}
+            key={`columns-${itemColumns}`}
+            numColumns={itemColumns}
+            columnWrapperStyle={itemColumns > 1 ? { gap: itemGap } : undefined}
             contentContainerStyle={{ paddingBottom: scale(100), flexGrow: 1 }}
             ListEmptyComponent={renderEmpty}
             renderItem={renderProduct}
@@ -483,7 +507,7 @@ export default function ProductsScreen({ navigation }) {
               {CATEGORIES.filter(c => c.id !== 'all').map((cat) => (
                 <TouchableOpacity key={cat.id} style={styles.modalCategoryRow} onPress={() => handleBulkCategoryChange(cat.name)} activeOpacity={0.7}>
                   <View style={[styles.modalCategoryIcon, { backgroundColor: colors.primary + '15' }]}><Ionicons name={cat.icon} size={scale(20)} color={colors.primary} /></View>
-                  <Text style={styles.modalCategoryText} numberOfLines={1}>{cat.name}</Text>
+                  <Text style={styles.modalCategoryText} numberOfLines={1}>{t(CATEGORY_TRANSLATION_KEYS[cat.id])}</Text>
                   <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />
                 </TouchableOpacity>
               ))}
@@ -498,7 +522,7 @@ export default function ProductsScreen({ navigation }) {
 }
 
 const createStyles = (colors, responsive) => {
-  const { isTablet, horizontalPadding, contentMaxWidth, scale, moderateScale } = responsive;
+  const { horizontalPadding, contentMaxWidth, scale, moderateScale, itemColumns } = responsive;
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background, alignItems: 'center' },
     innerWrap: { flex: 1, width: '100%', maxWidth: contentMaxWidth, paddingHorizontal: horizontalPadding, paddingTop: scale(20) },
@@ -526,7 +550,7 @@ const createStyles = (colors, responsive) => {
     resultCount: { fontSize: moderateScale(TYPOGRAPHY.caption, 0.3), color: colors.textLight, fontWeight: '700' },
     sortBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, paddingHorizontal: scale(12), paddingVertical: scale(7), borderRadius: scale(12), marginLeft: scale(8), ...SHADOWS.soft },
     sortText: { fontSize: moderateScale(TYPOGRAPHY.small, 0.3), color: colors.primary, fontWeight: '800', marginLeft: scale(5) },
-    productCard: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: scale(20), padding: scale(14), marginBottom: scale(12), alignItems: 'center', ...SHADOWS.medium, flex: isTablet ? 1 : undefined },
+    productCard: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: scale(20), padding: scale(14), marginBottom: scale(12), alignItems: 'center', ...SHADOWS.medium, flex: itemColumns > 1 ? 1 : undefined },
     colorStrip: { width: scale(5), height: '80%', borderRadius: scale(3), position: 'absolute', left: 0, top: scale(14), bottom: scale(14) },
     checkbox: { width: scale(24), height: scale(24), borderRadius: scale(8), borderWidth: 2, borderColor: colors.border, justifyContent: 'center', alignItems: 'center', marginLeft: scale(8), marginRight: scale(4) },
     productImage: { width: scale(50), height: scale(50), borderRadius: scale(14), marginLeft: scale(8) },

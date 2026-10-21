@@ -2,13 +2,15 @@ import React, { useContext, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
-import { CATEGORIES, SHADOWS, TYPOGRAPHY } from '../theme';
+import { CATEGORIES, CATEGORY_TRANSLATION_KEYS, SHADOWS, TYPOGRAPHY } from '../theme';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function CategoriesScreen({ navigation }) {
-  const { products } = useContext(AppContext);
+  const { products, setSelectedCategory } = useContext(AppContext);
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const responsive = useResponsive();
   const { scale } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
@@ -23,14 +25,14 @@ export default function CategoriesScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
             <Ionicons name="arrow-back" size={scale(24)} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Kategoriler</Text>
+          <Text style={styles.headerTitle}>{t('categories')}</Text>
           <View style={{ width: scale(24) }} />
         </View>
 
         <View style={[styles.infoBox, { backgroundColor: colors.primary + '15' }]}>
           <Ionicons name="information-circle-outline" size={scale(22)} color={colors.primary} />
           <Text style={styles.infoText}>
-            Toplam {totalProducts} ürün, {CATEGORIES.length - 1} kategori arasında dağıtıldı.
+            {t('categories_summary', { products: totalProducts, categories: CATEGORIES.length - 1 })}
           </Text>
         </View>
 
@@ -42,14 +44,17 @@ export default function CategoriesScreen({ navigation }) {
             <TouchableOpacity
               key={cat.id}
               style={styles.categoryCard}
-              onPress={() => navigation.navigate('Products')}
+              onPress={() => {
+                setSelectedCategory(cat.name);
+                navigation.navigate('MainTabs', { screen: 'Products', params: { filter: 'all' } });
+              }}
               activeOpacity={0.7}
             >
               <View style={[styles.categoryIconBox, { backgroundColor: colors.primary + '15' }]}>
                 <Ionicons name={cat.icon} size={scale(24)} color={colors.primary} />
               </View>
               <View style={{ flex: 1, marginLeft: scale(14), marginRight: scale(8) }}>
-                <Text style={styles.categoryName} numberOfLines={1} adjustsFontSizeToFit>{cat.name}</Text>
+                <Text style={styles.categoryName} numberOfLines={1} adjustsFontSizeToFit>{t(CATEGORY_TRANSLATION_KEYS[cat.id])}</Text>
                 <View style={[styles.barContainer, { backgroundColor: colors.surfaceAlt }]}>
                   <View style={[styles.barFill, { width: `${percent}%`, backgroundColor: colors.primary }]} />
                 </View>
@@ -65,7 +70,7 @@ export default function CategoriesScreen({ navigation }) {
         <View style={[styles.tipCard, { backgroundColor: colors.warning + '15' }]}>
           <Ionicons name="bulb-outline" size={scale(22)} color={colors.warning} />
           <Text style={styles.tipText} numberOfLines={4}>
-            Ürün eklerken doğru kategoriyi seçmek, istatistikleri daha doğru gösterir ve alışveriş listeni kolaylaştırır.
+            {t('categories_tip')}
           </Text>
         </View>
 

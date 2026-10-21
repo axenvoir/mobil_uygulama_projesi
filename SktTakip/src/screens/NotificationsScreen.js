@@ -6,12 +6,14 @@ import TimePickerModal from '../components/TimePickerModal';
 import { requestPermissions, scheduleDailyReminder, cancelAllReminders, sendTestNotification, getScheduledNotifications, isNotificationsAvailable } from '../utils/notifications';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useTranslation } from '../hooks/useTranslation';
 import { SHADOWS, TYPOGRAPHY } from '../theme';
 import { getDaysLeft } from '../utils/formatters';
 
 export default function NotificationsScreen({ navigation }) {
-  const { settings, updateSettings, products, showToast } = useContext(AppContext);
+  const { settings, updateSettings, products, showToast, setSelectedCategory } = useContext(AppContext);
   const { colors } = useTheme();
+  const { t, locale } = useTranslation();
   const responsive = useResponsive();
   const { scale } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
@@ -20,7 +22,7 @@ export default function NotificationsScreen({ navigation }) {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [scheduledCount, setScheduledCount] = useState(0);
   const [notificationMessage, setNotificationMessage] = useState(
-    settings.notificationMessage || 'Buzdolabını kontrol etmeyi unutma!'
+    settings.notificationMessage || t('notification_default_message')
   );
 
   const approaching = products.filter(p => {
@@ -42,18 +44,18 @@ export default function NotificationsScreen({ navigation }) {
   const handleToggleDailyReminder = async (value) => {
     if (value) {
       const granted = await requestPermissions();
-      if (!granted) { showToast('Bildirim izni verilmedi.', 'error'); return; }
+      if (!granted) { showToast(t('notification_permission_denied'), 'error'); return; }
       const [h, m] = settings.reminderTime.split(':').map(n => parseInt(n));
-      const id = await scheduleDailyReminder(h, m, notificationMessage);
+      const id = await scheduleDailyReminder(h, m, notificationMessage, locale);
       if (id) {
         updateSettings('dailyReminder', true);
-        showToast(`Günlük hatırlatma ${settings.reminderTime}'de aktif.`, 'success');
+        showToast(t('notification_daily_enabled', { time: settings.reminderTime }), 'success');
         loadScheduledCount();
-      } else { showToast('Bildirim planlanamadı.', 'error'); }
+      } else { showToast(t('notification_schedule_failed'), 'error'); }
     } else {
       await cancelAllReminders();
       updateSettings('dailyReminder', false);
-      showToast('Günlük hatırlatma kapatıldı.', 'info');
+      showToast(t('notification_daily_disabled'), 'info');
       loadScheduledCount();
     }
   };
@@ -62,26 +64,40 @@ export default function NotificationsScreen({ navigation }) {
     updateSettings('reminderTime', newTime);
     if (settings.dailyReminder) {
       const [h, m] = newTime.split(':').map(n => parseInt(n));
-      const id = await scheduleDailyReminder(h, m, notificationMessage);
-      if (id) { showToast(`Hatırlatma saat ${newTime} olarak güncellendi.`, 'success'); loadScheduledCount(); }
-    } else { showToast(`Saat ${newTime} kaydedildi.`, 'info'); }
+      const id = await scheduleDailyReminder(h, m, notificationMessage, locale);
+      if (id) { showToast(t('notification_time_updated', { time: newTime }), 'success'); loadScheduledCount(); }
+    } else { showToast(t('notification_time_saved', { time: newTime }), 'info'); }
   };
 
   const handleMessageBlur = async () => {
     updateSettings('notificationMessage', notificationMessage);
     if (settings.dailyReminder) {
       const [h, m] = settings.reminderTime.split(':').map(n => parseInt(n));
-      await scheduleDailyReminder(h, m, notificationMessage);
+      await scheduleDailyReminder(h, m, notificationMessage, locale);
     }
-    showToast('Hatırlatma metni kaydedildi.', 'success');
+    showToast(t('notification_message_saved'), 'success');
   };
 
   const handleTestNotification = async () => {
     const granted = await requestPermissions();
-    if (!granted) { showToast('Önce bildirim izni ver.', 'error'); return; }
-    const success = await sendTestNotification(notificationMessage);
-    if (success) showToast('Test bildirimi gönderildi!', 'success');
-    else showToast('Test bildirimi gönderilemedi.', 'error');
+    if (!granted) { showToast(t('notification_permission_needed'), 'error'); return; }
+    const success = await sendTestNotification(notificationMessage, locale);
+    if (success) showToast(t('notification_test_sent'), 'success');
+    else showToast(t('notification_test_failed'), 'error');
+  };
+
+  const openProducts = (filter) => {
+    setSelectedCategory('Tümü');
+    navigation.navigate('Products', { filter });
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await loadScheduledCount();
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   return (
@@ -89,45 +105,45 @@ export default function NotificationsScreen({ navigation }) {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
           contentContainerStyle={styles.content}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await loadScheduledCount(); setTimeout(() => setRefreshing(false), 600); }} colors={[colors.primary]} tintColor={colors.primary} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
         >
           <View style={styles.innerWrap}>
             <View style={styles.header}>
-              <Text style={styles.headerTitle}>Bildirimler</Text>
+              <Text style={styles.headerTitle}>{t('notifications')}</Text>
               <Ionicons name="settings-outline" size={scale(24)} color={colors.text} />
             </View>
 
-            <TouchableOpacity style={[styles.alertCard, { backgroundColor: colors.primary + '15' }]} onPress={() => navigation.navigate('Products')} activeOpacity={0.7}>
+            <TouchableOpacity style={[styles.alertCard, { backgroundColor: colors.primary + '15' }]} onPress={() => openProducts('approaching')} activeOpacity={0.7}>
               <View style={[styles.alertIcon, { backgroundColor: colors.primary + '25' }]}>
                 <Ionicons name="notifications" size={scale(24)} color={colors.primary} />
                 <View style={[styles.alertDot, { backgroundColor: colors.warning }]} />
               </View>
               <View style={{ flex: 1, marginHorizontal: scale(12) }}>
-                <Text numberOfLines={2} style={styles.alertTitle}>Yakın zamanda {approaching.length} ürünün SKT&apos;si dolacak</Text>
-                <Text style={styles.alertDesc}>Kontrol etmeni öneririz.</Text>
+                <Text numberOfLines={2} style={styles.alertTitle}>{t('notification_upcoming_count', { count: approaching.length })}</Text>
+                <Text style={styles.alertDesc}>{t('notification_check_recommendation')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={scale(20)} color={colors.primary} />
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.alertCard, { backgroundColor: colors.danger + '15' }]} onPress={() => navigation.navigate('Products')} activeOpacity={0.7}>
+            <TouchableOpacity style={[styles.alertCard, { backgroundColor: colors.danger + '15' }]} onPress={() => openProducts('expired')} activeOpacity={0.7}>
               <View style={[styles.alertIcon, { backgroundColor: colors.danger + '25' }]}>
                 <Ionicons name="calendar" size={scale(24)} color={colors.danger} />
                 <View style={[styles.alertDot, { backgroundColor: colors.danger }]} />
               </View>
               <View style={{ flex: 1, marginHorizontal: scale(12) }}>
-                <Text numberOfLines={2} style={[styles.alertTitle, { color: colors.danger }]}>{overdue.length} ürünün son kullanma tarihi geçti</Text>
-                <Text style={styles.alertDesc}>İncele ve güncelle</Text>
+                <Text numberOfLines={2} style={[styles.alertTitle, { color: colors.danger }]}>{t('notification_overdue_count', { count: overdue.length })}</Text>
+                <Text style={styles.alertDesc}>{t('notification_review')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={scale(20)} color={colors.danger} />
             </TouchableOpacity>
 
-            <Text style={styles.sectionTitle}>Bildirim tercihleri</Text>
+            <Text style={styles.sectionTitle}>{t('notification_preferences')}</Text>
 
             <View style={styles.settingItem}>
               <Ionicons name="notifications-outline" size={scale(22)} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: scale(12), marginRight: scale(8) }}>
-                <Text style={styles.settingTitle}>Günlük hatırlatma</Text>
-                <Text style={styles.settingDesc} numberOfLines={1}>{!isNotificationsAvailable ? 'Expo Go’da kullanılamaz; development build gerekir.' : settings.dailyReminder ? 'Aktif - Her gün bildirim' : 'Kapalı'}</Text>
+                <Text style={styles.settingTitle}>{t('notification_daily_reminder')}</Text>
+                <Text style={styles.settingDesc} numberOfLines={1}>{!isNotificationsAvailable ? t('notification_development_build_required') : settings.dailyReminder ? t('notification_active_daily') : t('notification_off')}</Text>
               </View>
               <Switch disabled={!isNotificationsAvailable} value={isNotificationsAvailable && settings.dailyReminder} onValueChange={handleToggleDailyReminder} trackColor={{ false: colors.border, true: colors.primary }} thumbColor={colors.white} />
             </View>
@@ -135,8 +151,8 @@ export default function NotificationsScreen({ navigation }) {
             <TouchableOpacity style={styles.settingItem} onPress={() => setShowTimePicker(true)} activeOpacity={0.7}>
               <Ionicons name="time-outline" size={scale(22)} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: scale(12) }}>
-                <Text style={styles.settingTitle}>Bildirim zamanı</Text>
-                <Text style={styles.settingDesc}>Her gün saat</Text>
+                <Text style={styles.settingTitle}>{t('notification_time')}</Text>
+                <Text style={styles.settingDesc}>{t('notification_time_daily')}</Text>
               </View>
               <View style={[styles.timeBadge, { backgroundColor: colors.primary + '15' }]}>
                 <Text style={[styles.timeText, { color: colors.primary }]}>{settings.reminderTime}</Text>
@@ -147,12 +163,12 @@ export default function NotificationsScreen({ navigation }) {
             <View style={styles.settingItem}>
               <Ionicons name="chatbubble-outline" size={scale(22)} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: scale(12), marginRight: scale(8) }}>
-                <Text style={styles.settingTitle}>Hatırlatma Metni</Text>
-                <Text style={styles.settingDesc}>Bildirimde görünecek mesaj</Text>
+                <Text style={styles.settingTitle}>{t('notification_message')}</Text>
+                <Text style={styles.settingDesc}>{t('notification_message_description')}</Text>
               </View>
             </View>
             <View style={styles.messageInputWrapper}>
-              <TextInput style={styles.messageInput} value={notificationMessage} onChangeText={setNotificationMessage} onBlur={handleMessageBlur} placeholder="Buzdolabını kontrol etmeyi unutma!" placeholderTextColor={colors.textLight} multiline maxLength={100} />
+              <TextInput style={styles.messageInput} value={notificationMessage} onChangeText={setNotificationMessage} onBlur={handleMessageBlur} placeholder={t('notification_default_message')} placeholderTextColor={colors.textLight} multiline maxLength={100} />
               <Text style={styles.charCount}>{notificationMessage.length}/100</Text>
             </View>
 
@@ -161,31 +177,31 @@ export default function NotificationsScreen({ navigation }) {
                 <Ionicons name={scheduledCount > 0 ? 'checkmark-circle' : 'information-circle'} size={scale(22)} color={scheduledCount > 0 ? colors.success : colors.textLight} />
               </View>
               <View style={{ flex: 1, marginLeft: scale(12), marginRight: scale(8) }}>
-                <Text style={styles.statusTitle} numberOfLines={2}>{scheduledCount > 0 ? `${scheduledCount} aktif bildirim planlandı` : 'Aktif planlanmış bildirim yok'}</Text>
-                <Text style={styles.statusDesc} numberOfLines={2}>{Platform.OS === 'android' && !settings.dailyReminder ? 'Günlük hatırlatmayı açarak başla.' : 'Bildirim ayarların kaydedildi.'}</Text>
+                <Text style={styles.statusTitle} numberOfLines={2}>{scheduledCount > 0 ? t('notification_scheduled_count', { count: scheduledCount }) : t('notification_none_scheduled')}</Text>
+                <Text style={styles.statusDesc} numberOfLines={2}>{Platform.OS === 'android' && !settings.dailyReminder ? t('notification_enable_to_start') : t('notification_settings_saved')}</Text>
               </View>
             </View>
 
             <TouchableOpacity style={[styles.testBtn, !isNotificationsAvailable && { opacity: 0.5 }]} onPress={handleTestNotification} activeOpacity={0.8} disabled={!isNotificationsAvailable}>
               <Ionicons name="paper-plane-outline" size={scale(20)} color={colors.onPrimary} />
-              <Text style={styles.testBtnText}>{isNotificationsAvailable ? 'Test Bildirimi Gönder' : 'Test Bildirimi (Development Build Gerekli)'}</Text>
+              <Text style={styles.testBtnText}>{isNotificationsAvailable ? t('notification_send_test') : t('notification_test_requires_build')}</Text>
             </TouchableOpacity>
 
-            <Text style={styles.sectionTitle}>Ayarlar</Text>
+            <Text style={styles.sectionTitle}>{t('settings')}</Text>
 
             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Profile')} activeOpacity={0.7}>
               <Ionicons name="person-outline" size={scale(20)} color={colors.text} />
-              <Text style={styles.menuText}>Profilim</Text>
+              <Text style={styles.menuText}>{t('profile')}</Text>
               <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} style={{ marginLeft: 'auto' }} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Categories')} activeOpacity={0.7}>
               <Ionicons name="folder-outline" size={scale(20)} color={colors.text} />
-              <Text style={styles.menuText}>Kategoriler</Text>
+              <Text style={styles.menuText}>{t('categories')}</Text>
               <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} style={{ marginLeft: 'auto' }} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Help')} activeOpacity={0.7}>
               <Ionicons name="help-circle-outline" size={scale(20)} color={colors.text} />
-              <Text style={styles.menuText}>Yardım ve Destek</Text>
+              <Text style={styles.menuText}>{t('help')}</Text>
               <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} style={{ marginLeft: 'auto' }} />
             </TouchableOpacity>
             <View style={{ height: scale(60) }} />

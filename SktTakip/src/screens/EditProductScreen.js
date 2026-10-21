@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
 import { AppContext } from '../context/AppContext';
-import { CATEGORIES, SHADOWS, TYPOGRAPHY } from '../theme';
+import { CATEGORIES, CATEGORY_TRANSLATION_KEYS, SHADOWS, TYPOGRAPHY } from '../theme';
 import DatePickerModal from '../components/DatePickerModal';
 import { notifySuccess, notifyError } from '../utils/haptics';
 import { shareSingleProduct } from '../utils/shareUtils';
@@ -12,11 +12,13 @@ import { addProductToCalendar } from '../utils/calendarUtils';
 import { isValidDateString, isValidQuantity, sanitizeInput } from '../utils/validators';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function EditProductScreen({ route, navigation }) {
   const { product } = route.params;
   const { updateProduct, deleteProduct, showToast, settings } = useContext(AppContext);
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const responsive = useResponsive();
   const { isTablet, scale } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
@@ -167,7 +169,7 @@ export default function EditProductScreen({ route, navigation }) {
               {CATEGORIES.filter(c => c.id !== 'all').map((cat) => (
                 <TouchableOpacity key={cat.id} style={[styles.categoryChip, category === cat.name && { backgroundColor: colors.primary, borderColor: colors.primary }]} onPress={() => setCategory(cat.name)} activeOpacity={0.7}>
                   <Ionicons name={cat.icon} size={scale(16)} color={category === cat.name ? colors.onPrimary : colors.primary} />
-                  <Text style={[styles.categoryText, category === cat.name && { color: colors.onPrimary }]}>{cat.name}</Text>
+                  <Text style={[styles.categoryText, category === cat.name && { color: colors.onPrimary }]}>{t(CATEGORY_TRANSLATION_KEYS[cat.id])}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>

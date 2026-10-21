@@ -8,6 +8,7 @@ import * as Clipboard from 'expo-clipboard';
 import { AppContext } from '../context/AppContext';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useTranslation } from '../hooks/useTranslation';
 import { generateInventoryPDF } from '../utils/pdfExport';
 import { SHADOWS, TYPOGRAPHY, getContrastingTextColor } from '../theme';
 import UpdateModal from '../components/UpdateModal'; // YENİ EKLENDİ
@@ -15,8 +16,9 @@ import UpdateModal from '../components/UpdateModal'; // YENİ EKLENDİ
 const AVATAR_COLORS = ['#14B8A6', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6', '#EC4899', '#10B981', '#0F172A'];
 
 export default function ProfileScreen({ navigation }) {
-  const { userProfile, updateProfile, products, notes, showToast, settings, updateSettings } = useContext(AppContext);
+  const { userProfile, updateProfile, products, notes, showToast, settings, updateSettings, changeLanguage, locale } = useContext(AppContext);
   const { colors, mode, changeMode } = useTheme();
+  const { t } = useTranslation();
   const responsive = useResponsive();
   const { scale } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
@@ -38,10 +40,10 @@ export default function ProfileScreen({ navigation }) {
   }, [userProfile.name, userProfile.avatarColor]);
 
   const handleSave = () => {
-    if (!name.trim()) { showToast('Kullanıcı adı boş bırakılamaz.', 'error'); return; }
+    if (!name.trim()) { showToast(t('profile_name_empty'), 'error'); return; }
     updateProfile('name', name.trim());
     updateProfile('avatarColor', color);
-    showToast('Profil güncellendi!', 'success');
+    showToast(t('profile_saved'), 'success');
   };
 
   const handleToggleBiometrics = async (value) => {
@@ -109,13 +111,11 @@ export default function ProfileScreen({ navigation }) {
     const order = ['system', 'light', 'dark'];
     const next = order[(order.indexOf(mode) + 1) % order.length];
     changeMode(next);
-    const labels = { system: 'Sistem teması', light: 'Açık tema', dark: 'Karanlık tema' };
-    showToast(labels[next] + ' aktif', 'info');
+    showToast(`${t(`settings_theme_${next}`)} ${t('settings_theme_active')}`, 'info');
   };
 
-  const themeLabel = mode === 'system' ? 'Sistem' : mode === 'light' ? 'Açık' : 'Karanlık';
   const themeIcon = mode === 'system' ? 'phone-portrait-outline' : mode === 'light' ? 'sunny-outline' : 'moon';
-  const themeBadge = mode === 'system' ? 'OTO' : mode === 'light' ? 'AÇIK' : 'KOYU';
+  const themeBadge = t(`settings_theme_${mode}`).toLocaleUpperCase(locale);
   const initial = name.charAt(0).toUpperCase() || '?';
   const avatarTextColor = getContrastingTextColor(color);
 
@@ -128,7 +128,7 @@ export default function ProfileScreen({ navigation }) {
               <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
                 <Ionicons name="arrow-back" size={scale(24)} color={colors.text} />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Profilim</Text>
+              <Text style={styles.headerTitle}>{t('profile_title')}</Text>
               <View style={{ width: scale(24) }} />
             </View>
 
@@ -137,31 +137,31 @@ export default function ProfileScreen({ navigation }) {
                 <Text style={[styles.avatarBigText, { color: avatarTextColor }]}>{initial}</Text>
               </View>
               <Text style={styles.avatarName} numberOfLines={1} adjustsFontSizeToFit>{name || 'İsimsiz'}</Text>
-              <Text style={styles.avatarSub}>Expira kullanıcısı</Text>
+              <Text style={styles.avatarSub}>{t('profile_member')}</Text>
             </View>
 
             <View style={styles.statsRow}>
               <View style={styles.statBox}>
                 <Text style={styles.statNumber}>{products.length}</Text>
-                <Text style={styles.statLabel}>Ürün</Text>
+                <Text style={styles.statLabel}>{t('products')}</Text>
               </View>
               <View style={styles.statBox}>
                 <Text style={styles.statNumber}>{notes.length}</Text>
-                <Text style={styles.statLabel}>Not</Text>
+                <Text style={styles.statLabel}>{t('notes')}</Text>
               </View>
               <View style={styles.statBox}>
                 <Text style={styles.statNumber}>{products.length + notes.length}</Text>
-                <Text style={styles.statLabel}>Toplam</Text>
+                <Text style={styles.statLabel}>{t('profile_total')}</Text>
               </View>
             </View>
 
-            <Text style={styles.label}>Kullanıcı Adı</Text>
+            <Text style={styles.label}>{t('profile_user_name')}</Text>
             <View style={styles.inputContainer}>
-              <TextInput style={styles.input} placeholder="Adınızı girin" placeholderTextColor={colors.textLight} value={name} onChangeText={setName} maxLength={20} />
+              <TextInput style={styles.input} placeholder={t('profile_name_placeholder')} placeholderTextColor={colors.textLight} value={name} onChangeText={setName} maxLength={20} />
               <Ionicons name="person-outline" size={scale(20)} color={colors.textLight} />
             </View>
 
-            <Text style={styles.label}>Avatar Rengi</Text>
+            <Text style={styles.label}>{t('profile_avatar_color')}</Text>
             <View style={styles.colorRow}>
               {AVATAR_COLORS.map((c) => (
                 <TouchableOpacity key={c} style={[styles.colorCircle, { backgroundColor: c, borderWidth: color === c ? 3 : 0, borderColor: colors.text }]} onPress={() => setColor(c)} activeOpacity={0.8}>
@@ -170,13 +170,41 @@ export default function ProfileScreen({ navigation }) {
               ))}
             </View>
 
-            <Text style={styles.sectionTitle}>Görünüm</Text>
+            <Text style={styles.sectionTitle}>{t('settings_appearance')}</Text>
+
+            <View style={styles.languageCard}>
+              <View style={styles.languageHeading}>
+                <Ionicons name="globe-outline" size={scale(22)} color={colors.primary} />
+                <View style={{ flex: 1, marginLeft: scale(12) }}>
+                  <Text style={styles.settingTitle}>{t('settings_language')}</Text>
+                  <Text style={styles.settingDesc}>{t('language_desc')}</Text>
+                </View>
+              </View>
+              <View style={styles.languageOptions}>
+                {['en', 'tr'].map((language) => {
+                  const selected = locale === language;
+                  return (
+                    <TouchableOpacity
+                      key={language}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      onPress={() => changeLanguage(language)}
+                      style={[styles.languageOption, selected && { backgroundColor: colors.primary, borderColor: colors.primary }]}
+                    >
+                      <Text style={[styles.languageOptionText, selected && { color: colors.onPrimary }]}>
+                        {language === 'en' ? t('english') : t('turkish')}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
 
             <TouchableOpacity style={styles.settingItem} onPress={cycleTheme} activeOpacity={0.7}>
               <Ionicons name={themeIcon} size={scale(22)} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: scale(12), marginRight: scale(8) }}>
-                <Text style={styles.settingTitle}>Tema</Text>
-                <Text style={styles.settingDesc} numberOfLines={1}>{themeLabel} — dokunarak değiştir</Text>
+                <Text style={styles.settingTitle}>{t('settings_theme')}</Text>
+                <Text style={styles.settingDesc} numberOfLines={1}>{t(`settings_theme_${mode === 'system' ? 'system' : mode}`)} — {t('settings_theme_hint')}</Text>
               </View>
               <View style={[styles.themeBadge, { backgroundColor: colors.primary + '15' }]}>
                 <Text style={[styles.themeBadgeText, { color: colors.primary }]}>{themeBadge}</Text>
@@ -186,8 +214,8 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.settingItem}>
               <Ionicons name="phone-portrait-outline" size={scale(22)} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: scale(12) }}>
-                <Text style={styles.settingTitle}>Titreşim</Text>
-                <Text style={styles.settingDesc}>Butonlara basınca titret</Text>
+                <Text style={styles.settingTitle}>{t('settings_haptics')}</Text>
+                <Text style={styles.settingDesc}>{t('settings_haptics_desc')}</Text>
               </View>
               <Switch value={settings.hapticsEnabled} onValueChange={(val) => updateSettings('hapticsEnabled', val)} trackColor={{ false: colors.border, true: colors.primary }} thumbColor={colors.white} />
             </View>
@@ -195,19 +223,19 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.settingItem}>
               <Ionicons name="finger-print-outline" size={scale(22)} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: scale(12) }}>
-                <Text style={styles.settingTitle}>Biyometrik Kilit</Text>
-                <Text style={styles.settingDesc}>Parmak izi veya yüz ile kilitle</Text>
+                <Text style={styles.settingTitle}>{t('settings_biometrics')}</Text>
+                <Text style={styles.settingDesc}>{t('settings_biometrics_desc')}</Text>
               </View>
               <Switch value={userProfile.biometricsEnabled} onValueChange={handleToggleBiometrics} trackColor={{ false: colors.border, true: colors.primary }} thumbColor={colors.white} />
             </View>
 
-            <Text style={styles.sectionTitle}>Veri ve Güncelleme</Text>
+            <Text style={styles.sectionTitle}>{t('settings_data')}</Text>
 
             <TouchableOpacity style={styles.settingItem} onPress={checkForUpdates} activeOpacity={0.7}>
               <Ionicons name="cloud-download-outline" size={scale(22)} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: scale(12) }}>
-                <Text style={styles.settingTitle}>Güncellemeleri Denetle</Text>
-                <Text style={styles.settingDesc}>Yeni sürüm var mı kontrol et</Text>
+                <Text style={styles.settingTitle}>{t('settings_check_updates')}</Text>
+                <Text style={styles.settingDesc}>{t('settings_check_updates_desc')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />
             </TouchableOpacity>
@@ -215,8 +243,8 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate('Backup')} activeOpacity={0.7}>
               <Ionicons name="archive-outline" size={scale(22)} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: scale(12) }}>
-                <Text style={styles.settingTitle}>Yedekleme ve Geri Yükleme</Text>
-                <Text style={styles.settingDesc}>Verilerini yedekle veya geri yükle</Text>
+                <Text style={styles.settingTitle}>{t('settings_backup')}</Text>
+                <Text style={styles.settingDesc}>{t('settings_backup_desc')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />
             </TouchableOpacity>
@@ -224,8 +252,8 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity style={styles.settingItem} onPress={handleExportPDF} activeOpacity={0.7}>
               <Ionicons name="document-text-outline" size={scale(22)} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: scale(12) }}>
-                <Text style={styles.settingTitle}>PDF Rapor</Text>
-                <Text style={styles.settingDesc}>Envanter raporunu paylaş</Text>
+                <Text style={styles.settingTitle}>{t('settings_pdf')}</Text>
+                <Text style={styles.settingDesc}>{t('settings_pdf_desc')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />
             </TouchableOpacity>
@@ -233,8 +261,8 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity style={styles.settingItem} onPress={() => setShowAbout(!showAbout)} activeOpacity={0.7}>
               <Ionicons name="information-circle-outline" size={scale(22)} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: scale(12) }}>
-                <Text style={styles.settingTitle}>Hakkında</Text>
-                <Text style={styles.settingDesc}>Uygulama bilgileri</Text>
+                <Text style={styles.settingTitle}>{t('settings_about')}</Text>
+                <Text style={styles.settingDesc}>{t('settings_about_desc')}</Text>
               </View>
               <Ionicons name={showAbout ? 'chevron-up' : 'chevron-down'} size={scale(20)} color={colors.textLight} />
             </TouchableOpacity>
@@ -262,7 +290,7 @@ export default function ProfileScreen({ navigation }) {
 
             <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
               <Ionicons name="checkmark-circle-outline" size={scale(24)} color={colors.onPrimary} />
-              <Text style={styles.saveButtonText}>Kaydet</Text>
+              <Text style={styles.saveButtonText}>{t('settings_save')}</Text>
             </TouchableOpacity>
 
             <Text style={styles.version}>Expira v1.0.0</Text>
@@ -287,7 +315,7 @@ const createStyles = (colors, responsive) => {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     content: { paddingBottom: scale(60), alignItems: 'center' },
-    innerWrap: { width: '100%', maxWidth: contentMaxWidth, paddingHorizontal: horizontalPadding, paddingTop: scale(20) },
+    innerWrap: { width: '100%', maxWidth: Math.min(contentMaxWidth, 760), paddingHorizontal: horizontalPadding, paddingTop: scale(20) },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: scale(24) },
     headerTitle: { fontSize: moderateScale(TYPOGRAPHY.h2, 0.3), fontWeight: '900', color: colors.text },
     avatarSection: { alignItems: 'center', marginBottom: scale(24) },
@@ -305,6 +333,11 @@ const createStyles = (colors, responsive) => {
     colorRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: scale(24) },
     colorCircle: { width: scale(48), height: scale(48), borderRadius: scale(24), justifyContent: 'center', alignItems: 'center', marginRight: scale(12), marginBottom: scale(12) },
     sectionTitle: { fontSize: moderateScale(TYPOGRAPHY.h3, 0.3), fontWeight: '800', color: colors.text, marginTop: scale(8), marginBottom: scale(14) },
+    languageCard: { backgroundColor: colors.surface, borderRadius: scale(18), borderWidth: 1, borderColor: colors.border, padding: scale(16), marginBottom: scale(12) },
+    languageHeading: { flexDirection: 'row', alignItems: 'center', marginBottom: scale(14) },
+    languageOptions: { flexDirection: 'row', gap: scale(10) },
+    languageOption: { flex: 1, minHeight: scale(42), justifyContent: 'center', alignItems: 'center', borderRadius: scale(12), borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceAlt },
+    languageOptionText: { color: colors.text, fontWeight: '700', fontSize: moderateScale(TYPOGRAPHY.caption, 0.3) },
     settingItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, padding: scale(18), borderRadius: scale(16), marginBottom: scale(10), ...SHADOWS.soft },
     settingTitle: { fontSize: moderateScale(TYPOGRAPHY.body, 0.3), fontWeight: '800', color: colors.text },
     settingDesc: { fontSize: moderateScale(TYPOGRAPHY.small, 0.3), color: colors.textLight, marginTop: scale(2), fontWeight: '500' },

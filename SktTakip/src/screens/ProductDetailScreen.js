@@ -2,9 +2,10 @@ import React, { useMemo, useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
-import { CATEGORIES, SHADOWS, TYPOGRAPHY } from '../theme';
+import { CATEGORIES, CATEGORY_TRANSLATION_KEYS, SHADOWS, TYPOGRAPHY } from '../theme';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useTranslation } from '../hooks/useTranslation';
 import { shareSingleProduct } from '../utils/shareUtils';
 import { formatDate, getDaysLeft } from '../utils/formatters';
 import * as Clipboard from 'expo-clipboard';
@@ -13,6 +14,7 @@ export default function ProductDetailScreen({ route, navigation }) {
   const { product } = route.params;
   const { showToast } = useContext(AppContext);
   const { colors } = useTheme();
+  const { t, locale } = useTranslation();
   const responsive = useResponsive();
   const { isTablet, scale } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
@@ -20,28 +22,28 @@ export default function ProductDetailScreen({ route, navigation }) {
   const daysLeft = getDaysLeft(product.expDate);
 
   const getStatus = () => {
-    if (daysLeft < 0) return { text: 'Son kullanma tarihi geçmiş', color: colors.danger, bg: colors.danger + '15', icon: 'alert-circle' };
-    if (daysLeft === 0) return { text: 'Bugün son gün', color: colors.danger, bg: colors.danger + '15', icon: 'warning' };
-    if (daysLeft <= 3) return { text: `Sadece ${daysLeft} gün kaldı`, color: colors.danger, bg: colors.danger + '15', icon: 'time' };
-    if (daysLeft <= 7) return { text: `${daysLeft} gün kaldı`, color: colors.warning, bg: colors.warning + '15', icon: 'time' };
-    if (daysLeft <= 30) return { text: `${daysLeft} gün kaldı`, color: colors.success, bg: colors.success + '15', icon: 'checkmark-circle' };
-    return { text: 'Uzun süre dayanır', color: colors.success, bg: colors.success + '15', icon: 'checkmark-circle' };
+    if (daysLeft < 0) return { text: t('product_status_expired'), color: colors.danger, bg: colors.danger + '15', icon: 'alert-circle' };
+    if (daysLeft === 0) return { text: t('product_status_today'), color: colors.danger, bg: colors.danger + '15', icon: 'warning' };
+    if (daysLeft <= 3) return { text: t('product_status_days', { count: daysLeft }), color: colors.danger, bg: colors.danger + '15', icon: 'time' };
+    if (daysLeft <= 7) return { text: t('product_status_days', { count: daysLeft }), color: colors.warning, bg: colors.warning + '15', icon: 'time' };
+    if (daysLeft <= 30) return { text: t('product_status_days', { count: daysLeft }), color: colors.success, bg: colors.success + '15', icon: 'checkmark-circle' };
+    return { text: t('product_status_fresh'), color: colors.success, bg: colors.success + '15', icon: 'checkmark-circle' };
   };
 
   const status = getStatus();
   const cat = CATEGORIES.find(c => c.name === product.category);
   const catIcon = cat?.icon || 'cube-outline';
-  const formattedDate = formatDate(product.expDate);
+  const formattedDate = formatDate(product.expDate, locale);
 
   const handleShare = async () => {
     const result = await shareSingleProduct({ ...product, expDate: formattedDate });
-    if (!result.success) showToast('Paylaşım başarısız.', 'error');
+    if (!result.success) showToast(t('share_failed'), 'error');
   };
 
   const handleCopyCode = async () => {
     if (!product.productCode) return;
     await Clipboard.setStringAsync(product.productCode);
-    showToast('Ürün kodu kopyalandı!', 'success');
+    showToast(t('product_code_copied'), 'success');
   };
 
   const handleEdit = () => {
@@ -55,7 +57,7 @@ export default function ProductDetailScreen({ route, navigation }) {
           <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
             <Ionicons name="arrow-back" size={scale(24)} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle} numberOfLines={1}>Ürün Detayı</Text>
+          <Text style={styles.headerTitle} numberOfLines={1}>{t('product_detail_title')}</Text>
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.headerBtn} onPress={handleShare} activeOpacity={0.7}>
               <Ionicons name="share-social-outline" size={scale(22)} color={colors.primary} />
@@ -79,14 +81,14 @@ export default function ProductDetailScreen({ route, navigation }) {
         <Text style={styles.productName}>{product.name}</Text>
         <View style={styles.categoryRow}>
           <Ionicons name={catIcon} size={scale(16)} color={colors.textLight} />
-          <Text style={styles.categoryText}>{product.category || 'Kategorisiz'}</Text>
+          <Text style={styles.categoryText}>{t(CATEGORY_TRANSLATION_KEYS[cat?.id] || 'category_other')}</Text>
         </View>
 
         <View style={[styles.statusCard, { backgroundColor: status.bg, borderLeftColor: status.color }]}>
           <Ionicons name={status.icon} size={scale(32)} color={status.color} />
           <View style={{ flex: 1, marginLeft: scale(12) }}>
             <Text style={[styles.statusText, { color: status.color }]}>{status.text}</Text>
-            <Text style={styles.statusDate}>SKT: {formattedDate}</Text>
+            <Text style={styles.statusDate}>{t('expiry_date_short')}: {formattedDate}</Text>
           </View>
         </View>
 
@@ -96,7 +98,7 @@ export default function ProductDetailScreen({ route, navigation }) {
               <View style={[styles.infoIconBox, { backgroundColor: colors.primary + '15' }]}>
                 <Ionicons name="pricetags-outline" size={scale(20)} color={colors.primary} />
               </View>
-              <Text style={styles.infoLabel}>Kısa Kod</Text>
+              <Text style={styles.infoLabel}>{t('product_code')}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
                 <Text style={styles.infoValue} numberOfLines={1} ellipsizeMode="tail">{product.productCode}</Text>
                 <Ionicons name="copy-outline" size={scale(14)} color={colors.textLight} style={{ marginLeft: scale(6) }} />
@@ -109,8 +111,8 @@ export default function ProductDetailScreen({ route, navigation }) {
               <View style={[styles.infoIconBox, { backgroundColor: colors.info + '15' }]}>
                 <Ionicons name="flask-outline" size={scale(20)} color={colors.info} />
               </View>
-              <Text style={styles.infoLabel}>Miktar</Text>
-              <Text style={styles.infoValue} numberOfLines={1} ellipsizeMode="tail">{product.quantity} adet</Text>
+              <Text style={styles.infoLabel}>{t('quantity')}</Text>
+              <Text style={styles.infoValue} numberOfLines={1} ellipsizeMode="tail">{t('product_quantity', { quantity: product.quantity })}</Text>
             </View>
           ) : null}
 
@@ -118,7 +120,7 @@ export default function ProductDetailScreen({ route, navigation }) {
             <View style={[styles.infoIconBox, { backgroundColor: colors.warning + '15' }]}>
               <Ionicons name="calendar-outline" size={scale(20)} color={colors.warning} />
             </View>
-            <Text style={styles.infoLabel}>SKT</Text>
+            <Text style={styles.infoLabel}>{t('expiry_date_short')}</Text>
             <Text style={styles.infoValue} numberOfLines={1} ellipsizeMode="tail">{formattedDate}</Text>
           </View>
         </View>
@@ -127,7 +129,7 @@ export default function ProductDetailScreen({ route, navigation }) {
           <View style={styles.noteCard}>
             <View style={styles.noteHeader}>
               <Ionicons name="document-text-outline" size={scale(18)} color={colors.primary} />
-              <Text style={styles.noteLabel}>Not</Text>
+              <Text style={styles.noteLabel}>{t('note')}</Text>
             </View>
             <Text style={styles.noteText}>{product.note}</Text>
           </View>
@@ -135,12 +137,12 @@ export default function ProductDetailScreen({ route, navigation }) {
 
         <TouchableOpacity style={styles.editButton} onPress={handleEdit} activeOpacity={0.8}>
           <Ionicons name="create-outline" size={scale(22)} color={colors.onPrimary} />
-          <Text style={styles.editButtonText}>Düzenle</Text>
+          <Text style={styles.editButtonText}>{t('edit')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.deleteButton, { backgroundColor: colors.danger + '15', borderColor: colors.danger + '30' }]} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Ionicons name="close-outline" size={scale(20)} color={colors.danger} />
-          <Text style={[styles.deleteButtonText, { color: colors.danger }]}>Kapat</Text>
+          <Text style={[styles.deleteButtonText, { color: colors.danger }]}>{t('close')}</Text>
         </TouchableOpacity>
         <View style={{ height: scale(60) }} />
       </View>

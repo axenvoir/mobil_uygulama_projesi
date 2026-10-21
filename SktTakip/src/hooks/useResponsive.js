@@ -1,36 +1,40 @@
 import { useMemo } from 'react';
 import { useWindowDimensions } from 'react-native';
 
-const BASE_WIDTH = 375;
-const BASE_HEIGHT = 812;
+const BASE_WIDTH = 390;
 
 export const useResponsive = () => {
-  const { width, height } = useWindowDimensions();
+  const { width, height, fontScale } = useWindowDimensions();
 
   return useMemo(() => {
     const isSmall = width < 360;
-    const isMedium = width >= 360 && width < 414;
-    const isLarge = width >= 414;
+    const isMedium = width >= 360 && width < 600;
+    const isLarge = width >= 600;
     const isTablet = width >= 768;
+    const isWideScreen = width >= 1200;
     const isLandscape = width > height;
     const isCompactHeight = height < 480;
-    const widthScale = Math.min(Math.max(width / BASE_WIDTH, 0.88), 1.12);
-    const heightScale = Math.min(Math.max(height / BASE_HEIGHT, 0.85), 1.1);
+    const widthScale = Math.min(Math.max(Math.min(width, 600) / BASE_WIDTH, 0.88), 1.12);
+    const heightScale = Math.min(Math.max(height / 812, 0.85), 1.1);
 
     const scale = (size) => widthScale * size;
     const verticalScale = (size) => heightScale * size;
     const moderateScale = (size, factor = 0.5) => size + (scale(size) - size) * factor;
-    const fontSize = (base) => Math.max(12, Math.round(moderateScale(base, 0.4)));
+    const fontSize = (base) => Math.max(12, Math.round(moderateScale(base, 0.35)));
     const icon = (base) => Math.max(18, Math.round(moderateScale(base, 0.4)));
     const spacing = (base) => Math.round(moderateScale(base, 0.5));
+    const contentMaxWidth = isWideScreen ? 1080 : isTablet ? 840 : width;
+    const itemColumns = width >= 1200 ? 3 : isTablet ? 2 : 1;
 
     return {
       width,
       height,
+      fontScale,
       isSmall,
       isMedium,
       isLarge,
       isTablet,
+      isWideScreen,
       isLandscape,
       isCompactHeight,
       scale,
@@ -39,12 +43,12 @@ export const useResponsive = () => {
       fontSize,
       icon,
       spacing,
-      horizontalPadding: isTablet ? scale(32) : isSmall ? scale(16) : scale(22),
-      contentMaxWidth: isTablet ? Math.min(760, width) : width,
-      itemColumns: isTablet ? 2 : 1,
-      itemGap: isTablet ? scale(16) : scale(10),
-      cardPadding: isTablet ? scale(20) : scale(16),
-      sectionSpacing: isTablet ? scale(32) : scale(20),
+      horizontalPadding: isWideScreen ? scale(40) : isTablet ? scale(32) : isSmall ? scale(16) : scale(20),
+      contentMaxWidth,
+      itemColumns,
+      itemGap: isTablet ? scale(18) : scale(12),
+      cardPadding: isTablet ? scale(24) : scale(16),
+      sectionSpacing: isTablet ? scale(32) : scale(24),
     };
-  }, [width, height]);
+  }, [width, height, fontScale]);
 };

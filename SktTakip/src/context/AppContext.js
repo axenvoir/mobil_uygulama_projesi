@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useState, useEffect, useRef, useCallback } from 'react';
 import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from '../utils/i18n';
@@ -13,7 +13,7 @@ const DEFAULT_SETTINGS = {
 const DEFAULT_PROFILE = {
   name: 'Merve',
   avatarColor: '#14B8A6',
-  language: 'tr',
+  language: i18n.locale,
   biometricsEnabled: false,
 };
 
@@ -26,7 +26,7 @@ const parseStoredValue = (value, key, fallback) => {
     return JSON.parse(value);
   } catch (error) {
     console.error(`Yerel veri okunamadı (${key}):`, error);
-    return fallback;
+    throw error;
   }
 };
 
@@ -37,7 +37,10 @@ export const AppProvider = ({ children }) => {
   const [notes, setNotes] = useState([]);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [userProfile, setUserProfile] = useState(DEFAULT_PROFILE);
+  const [locale, setLocale] = useState(i18n.locale);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [toast, setToast] = useState(null);
   const [isLocked, setIsLocked] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Tümü');
@@ -48,6 +51,22 @@ export const AppProvider = ({ children }) => {
   const saveQueue = useRef(Promise.resolve());
   const appState = useRef(AppState.currentState);
   const backgroundTime = useRef(null);
+
+  const showToast = useCallback((message, type = 'success', duration = 2500, action = null) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    const id = createId();
+    setToast({ message, type, id, action });
+    if (!action) {
+      toastTimer.current = setTimeout(() => {
+        setToast(current => current?.id === id ? null : current);
+      }, duration);
+    }
+  }, []);
+
+  const hideToast = useCallback(() => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast(null);
+  }, []);
 
   const queueSave = (data) => {
     const entries = [
@@ -65,6 +84,8 @@ export const AppProvider = ({ children }) => {
     let mounted = true;
 
     const loadData = async () => {
+      setIsLoading(true);
+      setLoadError(null);
       try {
         const storedValues = await AsyncStorage.multiGet(DATA_KEYS);
         if (!mounted) return;
@@ -75,15 +96,28 @@ export const AppProvider = ({ children }) => {
         const loadedSettings = parseStoredValue(stored['@settings'], '@settings', {});
         const loadedProfile = parseStoredValue(stored['@userProfile'], '@userProfile', {});
 
-        setProducts(Array.isArray(loadedProducts) ? loadedProducts : []);
-        setNotes(Array.isArray(loadedNotes) ? loadedNotes : []);
-        setSettings({ ...DEFAULT_SETTINGS, ...(loadedSettings && typeof loadedSettings === 'object' ? loadedSettings : {}) });
+        if (!Array.isArray(loadedProducts) || !Array.isArray(loadedNotes)) {
+          throw new Error('Yerel ürün veya not kayıtlarının biçimi geçersiz.');
+        }
+        if (!loadedSettings || typeof loadedSettings !== 'object' || Array.isArray(loadedSettings)) {
+          throw new Error('Yerel ayar kayıtlarının biçimi geçersiz.');
+        }
+        if (!loadedProfile || typeof loadedProfile !== 'object' || Array.isArray(loadedProfile)) {
+          throw new Error('Yerel profil kayıtlarının biçimi geçersiz.');
+        }
 
-        const profile = { ...DEFAULT_PROFILE, ...(loadedProfile && typeof loadedProfile === 'object' ? loadedProfile : {}) };
+        setProducts(loadedProducts);
+        setNotes(loadedNotes);
+        setSettings({ ...DEFAULT_SETTINGS, ...loadedSettings });
+
+        const profile = { ...DEFAULT_PROFILE, ...loadedProfile };
+        if (!['tr', 'en'].includes(profile.language)) profile.language = DEFAULT_PROFILE.language;
         setUserProfile(profile);
         i18n.locale = profile.language || 'tr';
+        setLocale(i18n.locale);
       } catch (error) {
         console.error('Uygulama verileri yüklenemedi:', error);
+        if (mounted) setLoadError(error);
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -93,15 +127,16 @@ export const AppProvider = ({ children }) => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [loadAttempt]);
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && !loadError) {
       queueSave({ products, notes, settings, userProfile }).catch((error) => {
         console.error('Uygulama verileri kaydedilemedi:', error);
+        showToast('Veriler cihaza kaydedilemedi. Uygulamayı kapatmadan tekrar deneyin.', 'error');
       });
     }
-  }, [products, notes, settings, userProfile, isLoading]);
+  }, [products, notes, settings, userProfile, isLoading, loadError, showToast]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
@@ -124,22 +159,6 @@ export const AppProvider = ({ children }) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     if (undoTimer.current) clearTimeout(undoTimer.current);
   }, []);
-
-  const showToast = (message, type = 'success', duration = 2500, action = null) => {
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    const id = createId();
-    setToast({ message, type, id, action });
-    if (!action) {
-      toastTimer.current = setTimeout(() => {
-        setToast(current => current?.id === id ? null : current);
-      }, duration);
-    }
-  };
-
-  const hideToast = () => {
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    setToast(null);
-  };
 
   const addProduct = (product) => setProducts(current => [...current, { ...product, id: createId() }]);
 
@@ -224,9 +243,13 @@ export const AppProvider = ({ children }) => {
     setNotes(nextData.notes);
     setSettings(nextData.settings);
     setUserProfile(nextData.userProfile);
+    const nextLocale = ['tr', 'en'].includes(nextData.userProfile.language)
+      ? nextData.userProfile.language
+      : DEFAULT_PROFILE.language;
+    setLocale(nextLocale);
+    i18n.locale = nextLocale;
     setSelectedCategory('Tümü');
     setIsLocked(false);
-    i18n.locale = nextData.userProfile.language || 'tr';
   };
 
   const resetAppData = async () => {
@@ -234,8 +257,14 @@ export const AppProvider = ({ children }) => {
     await replaceAppData();
   };
 
+  const retryLoadData = useCallback(() => setLoadAttempt(attempt => attempt + 1), []);
+
   const changeLanguage = (lang) => {
+    if (!['tr', 'en'].includes(lang)) {
+      throw new Error(`Unsupported language: ${lang}`);
+    }
     i18n.locale = lang;
+    setLocale(lang);
     setUserProfile(prev => ({ ...prev, language: lang }));
   };
 
@@ -244,7 +273,7 @@ export const AppProvider = ({ children }) => {
 
   return (
     <AppContext.Provider value={{
-      products, notes, settings, userProfile, isLoading, toast, isLocked,
+      products, notes, settings, userProfile, isLoading, loadError, retryLoadData, toast, isLocked, locale,
       selectedCategory, setSelectedCategory,
       addProduct, deleteProduct, updateProduct,
       addNote, deleteNote, updateNote, togglePin,

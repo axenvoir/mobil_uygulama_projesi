@@ -2,12 +2,19 @@
   "expo": {
     "name": "Expira",
     "slug": "expira",
-    "version": "1.0.0",
-    "description": "Ürünlerin son kullanma tarihlerini takip edin, envanterinizi düzenleyin ve hatırlatmalar alın.",
+    "version": "1.1.0",
+    "description": "Track product expiry dates, organize your pantry, and get timely reminders.",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
-    "assetBundlePatterns": ["**/*"],
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#153F38"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.expira.app",
@@ -19,11 +26,12 @@
       }
     },
     "android": {
-      "package": "com.expira.app",
+      "package": "com.expira.app.tr",
+      "versionCode": 12,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png",
-        "backgroundImage": "./assets/images/android-icon-background.png"
+        "backgroundColor": "#153F38"
       },
       "permissions": [
         "CAMERA",
@@ -83,7 +91,8 @@
         {
           "calendarPermission": "Expira, SKT hatırlatıcılarını takvimine eklemek için izin ister."
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "updates": {
       "url": "https://u.expo.dev/a6d69b5f-6d35-4054-aab0-41eb1885ebb3",

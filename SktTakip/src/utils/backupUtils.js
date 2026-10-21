@@ -8,6 +8,17 @@ const BACKUP_APP = 'Expira';
 const BACKUP_VERSION = 1;
 
 const isRecord = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+const isValidId = (id) => (
+  (typeof id === 'string' && id.trim().length > 0)
+  || (typeof id === 'number' && Number.isFinite(id))
+);
+const hasUniqueIds = (items) => {
+  const ids = items.map(item => String(item.id));
+  return new Set(ids).size === ids.length;
+};
+const hasOnlyStringValues = (record, keys) => (
+  keys.every(key => record[key] === undefined || typeof record[key] === 'string')
+);
 
 const isValidSettings = (settings) => (
   settings === undefined
@@ -30,7 +41,7 @@ const isValidProfile = (profile) => (
   || (
     isRecord(profile)
     && (profile.name === undefined || typeof profile.name === 'string')
-    && (profile.avatarColor === undefined || typeof profile.avatarColor === 'string')
+    && (profile.avatarColor === undefined || /^#[\da-f]{6}$/i.test(profile.avatarColor))
     && (profile.language === undefined || ['tr', 'en'].includes(profile.language))
     && (profile.biometricsEnabled === undefined || typeof profile.biometricsEnabled === 'boolean')
   )
@@ -50,17 +61,24 @@ const isValidBackup = (backup) => (
   && Array.isArray(backup.notes)
   && backup.products.every(product => (
     isRecord(product)
-    && (typeof product.id === 'string' || typeof product.id === 'number')
+    && isValidId(product.id)
     && typeof product.name === 'string'
     && product.name.trim().length > 0
     && isValidDateString(product.expDate)
+    && hasOnlyStringValues(product, ['productCode', 'category', 'quantity', 'note'])
+    && (product.imageUri === undefined || product.imageUri === null || typeof product.imageUri === 'string')
   ))
   && backup.notes.every(note => (
     isRecord(note)
-    && (typeof note.id === 'string' || typeof note.id === 'number')
+    && isValidId(note.id)
     && typeof note.title === 'string'
     && typeof note.desc === 'string'
+    && (note.pinned === undefined || typeof note.pinned === 'boolean')
+    && (note.color === undefined || /^#[\da-f]{6}$/i.test(note.color))
+    && (note.date === undefined || typeof note.date === 'string')
   ))
+  && hasUniqueIds(backup.products)
+  && hasUniqueIds(backup.notes)
   && isValidSettings(backup.settings)
   && isValidProfile(backup.userProfile)
   && (backup.themeMode === undefined || ['system', 'light', 'dark'].includes(backup.themeMode))

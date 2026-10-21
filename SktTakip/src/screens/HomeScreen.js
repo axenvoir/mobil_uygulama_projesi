@@ -1,21 +1,22 @@
 import React, { useContext, useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
-import { CATEGORIES, SHADOWS, TYPOGRAPHY } from '../theme';
+import { CATEGORIES, CATEGORY_TRANSLATION_KEYS, SHADOWS, TYPOGRAPHY } from '../theme';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useTranslation } from '../hooks/useTranslation';
 import { formatDate, getDaysLeft } from '../utils/formatters';
 import EmptyState from '../components/EmptyState'; // YENİ EKLENDİ
 
 export default function HomeScreen({ navigation }) {
-  const { products, showToast, userProfile } = useContext(AppContext);
+  const { products, userProfile, setSelectedCategory } = useContext(AppContext);
   const { colors } = useTheme();
+  const { t, locale } = useTranslation();
   const responsive = useResponsive();
   const { isTablet, scale } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
 
-  const [refreshing, setRefreshing] = useState(false);
   const [fadeAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
@@ -26,30 +27,23 @@ export default function HomeScreen({ navigation }) {
   const overdue = products.filter(p => getDaysLeft(p.expDate) < 0);
   const todayItems = products.filter(p => getDaysLeft(p.expDate) === 0);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-      showToast('Güncel veriler yüklendi.', 'info');
-    }, 800);
-  };
-
   const recentProducts = products.slice(-3).reverse();
+  const openProducts = (filter) => {
+    setSelectedCategory('Tümü');
+    navigation.navigate('Products', { filter });
+  };
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim, backgroundColor: colors.background }}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />
-        }
       >
         <View style={styles.innerWrap}>
           <View style={styles.header}>
             <View style={{ flex: 1 }}>
               <Text numberOfLines={1} adjustsFontSizeToFit style={styles.headerTitle}>Expira</Text>
-              <Text numberOfLines={1} style={styles.headerSubtitle}>Son kullanma tarihini unutma</Text>
+              <Text numberOfLines={1} style={styles.headerSubtitle}>{t('tagline')}</Text>
             </View>
             <TouchableOpacity style={styles.bellIcon} onPress={() => navigation.navigate('Statistics')} activeOpacity={0.7}>
               <Ionicons name="stats-chart-outline" size={scale(22)} color={colors.text} />
@@ -61,23 +55,23 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.avatarText}>{userProfile.name.charAt(0).toUpperCase()}</Text>
             </View>
             <View style={styles.greetingTextWrap}>
-              <Text numberOfLines={1} adjustsFontSizeToFit style={styles.greeting}>Merhaba, {userProfile.name} 👋</Text>
-              <Text numberOfLines={1} style={styles.greetingSub}>Bugün düzenli, yarın güvenle.</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit style={styles.greeting}>{t('greeting', { name: userProfile.name })} 👋</Text>
+              <Text numberOfLines={1} style={styles.greetingSub}>{t('greeting_sub')}</Text>
             </View>
             <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddProduct')} activeOpacity={0.8}>
               <Ionicons name="add" size={scale(16)} color={colors.onPrimary} />
-              <Text style={styles.addButtonText}>Ekle</Text>
+              <Text style={styles.addButtonText}>{t('add')}</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.summaryCard}>
             <View style={styles.summaryTextContainer}>
-              <Text style={styles.summaryTitle}>Yaklaşan SKT&apos;ler</Text>
+              <Text style={styles.summaryTitle}>{t('home_upcoming_title')}</Text>
               <Text style={styles.summaryCount}>{approaching.length + todayItems.length}</Text>
-              <Text style={styles.summarySub}>ürün</Text>
-              <Text style={styles.summaryDesc}>7 gün içinde sona erecek</Text>
-              <TouchableOpacity style={styles.detailButton} onPress={() => navigation.navigate('Products')} activeOpacity={0.8}>
-                <Text style={styles.detailButtonText}>Detayları gör</Text>
+              <Text style={styles.summarySub}>{t('home_product_count')}</Text>
+              <Text style={styles.summaryDesc}>{t('home_next_seven_days')}</Text>
+              <TouchableOpacity style={styles.detailButton} onPress={() => openProducts('approaching')} activeOpacity={0.8}>
+                <Text style={styles.detailButtonText}>{t('home_view_details')}</Text>
                 <Ionicons name="chevron-forward" size={scale(16)} color={colors.onPrimary} />
               </TouchableOpacity>
             </View>
@@ -90,17 +84,17 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           <View style={styles.statsRow}>
-            <TouchableOpacity style={[styles.statBox, { borderBottomColor: colors.primary }]} onPress={() => navigation.navigate('Products')} activeOpacity={0.8}>
+            <TouchableOpacity style={[styles.statBox, { borderBottomColor: colors.primary }]} onPress={() => openProducts('today')} activeOpacity={0.8}>
               <Text style={styles.statNumber}>{todayItems.length}</Text>
-              <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>Bugün</Text>
+              <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>{t('home_today')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.statBox, { borderBottomColor: colors.warning }]} onPress={() => navigation.navigate('Products')} activeOpacity={0.8}>
+            <TouchableOpacity style={[styles.statBox, { borderBottomColor: colors.warning }]} onPress={() => openProducts('approaching')} activeOpacity={0.8}>
               <Text style={styles.statNumber}>{approaching.length}</Text>
-              <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>Bu hafta</Text>
+              <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>{t('home_this_week')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.statBox, { borderBottomColor: colors.danger }]} onPress={() => navigation.navigate('Products')} activeOpacity={0.8}>
+            <TouchableOpacity style={[styles.statBox, { borderBottomColor: colors.danger }]} onPress={() => openProducts('expired')} activeOpacity={0.8}>
               <Text style={styles.statNumber}>{overdue.length}</Text>
-              <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>Geciken</Text>
+              <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>{t('home_overdue')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -108,8 +102,8 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.statsShortcutLeft}>
               <Ionicons name="bar-chart-outline" size={scale(26)} color={colors.primary} />
               <View style={{ marginLeft: scale(12), flex: 1 }}>
-                <Text style={styles.statsShortcutTitle} numberOfLines={1} adjustsFontSizeToFit>İstatistikleri Gör</Text>
-                <Text style={styles.statsShortcutDesc} numberOfLines={1} adjustsFontSizeToFit>Kategori analizi ve israf skoru</Text>
+                <Text style={styles.statsShortcutTitle} numberOfLines={1} adjustsFontSizeToFit>{t('home_statistics')}</Text>
+                <Text style={styles.statsShortcutDesc} numberOfLines={1} adjustsFontSizeToFit>{t('home_statistics_desc')}</Text>
               </View>
             </View>
             <Ionicons name="chevron-forward" size={scale(20)} color={colors.primary} />
@@ -118,17 +112,17 @@ export default function HomeScreen({ navigation }) {
           {products.length === 0 ? (
             <EmptyState
               icon="basket-outline"
-              title="Buzdolabın şu an boş görünüyor"
-              description="İlk ürününü ekleyerek son kullanma tarihlerini takip etmeye başla ve israfı önle."
-              actionText="İlk Ürünü Ekle"
+              title={t('home_empty_title')}
+              description={t('home_empty_description')}
+              actionText={t('home_empty_action')}
               onAction={() => navigation.navigate('AddProduct')}
             />
           ) : (
             <>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle} numberOfLines={1}>Son eklenen ürünler</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Products')}>
-                  <Text style={styles.seeAll}>Tümü {'>'}</Text>
+                <Text style={styles.sectionTitle} numberOfLines={1}>{t('home_recent_products')}</Text>
+                <TouchableOpacity onPress={() => openProducts('all')}>
+                  <Text style={styles.seeAll}>{t('home_view_all')} {'>'}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -142,7 +136,7 @@ export default function HomeScreen({ navigation }) {
                       </View>
                       <View style={{ flex: 1, marginLeft: scale(12), marginRight: scale(8) }}>
                         <Text numberOfLines={1} adjustsFontSizeToFit style={styles.productName}>{item.name}</Text>
-                        <Text numberOfLines={1} style={styles.productDate}>{formatDate(item.expDate)} • {item.category || 'Kategorisiz'}</Text>
+                        <Text numberOfLines={1} style={styles.productDate}>{formatDate(item.expDate, locale)} • {t(CATEGORY_TRANSLATION_KEYS[cat?.id] || 'category_other')}</Text>
                       </View>
                       <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />
                     </TouchableOpacity>
@@ -158,7 +152,7 @@ export default function HomeScreen({ navigation }) {
 }
 
 const createStyles = (colors, responsive) => {
-  const { isTablet, isSmall, horizontalPadding, contentMaxWidth, scale, moderateScale } = responsive;
+  const { isTablet, isWideScreen, isSmall, horizontalPadding, contentMaxWidth, scale, moderateScale } = responsive;
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     content: { paddingBottom: scale(120), alignItems: 'center' },
@@ -196,7 +190,7 @@ const createStyles = (colors, responsive) => {
     seeAll: { color: colors.primary, fontSize: moderateScale(TYPOGRAPHY.caption, 0.3), fontWeight: '800' },
     productGridTablet: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
     productItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, padding: scale(16), borderRadius: scale(20), marginBottom: scale(12), ...SHADOWS.soft },
-    productItemTablet: { width: '48.5%' },
+    productItemTablet: { width: isWideScreen ? '31.5%' : '48.5%' },
     productIconBg: { width: scale(48), height: scale(48), borderRadius: scale(14), backgroundColor: colors.surfaceAlt, justifyContent: 'center', alignItems: 'center' },
     productName: { fontSize: moderateScale(TYPOGRAPHY.body, 0.3), fontWeight: '800', color: colors.text, textTransform: 'capitalize' },
     productDate: { fontSize: moderateScale(TYPOGRAPHY.small, 0.3), color: colors.textLight, marginTop: scale(2), fontWeight: '500' },

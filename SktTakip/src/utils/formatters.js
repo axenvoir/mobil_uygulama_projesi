@@ -1,23 +1,37 @@
-const MONTHS_TR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
-
-// "2026-10-24" -> "24 Ekim 2026"
-export const formatDate = (dateStr) => {
+const parseDate = (dateStr) => {
   if (!dateStr) return '';
-  const parts = dateStr.split('-');
-  if (parts.length !== 3) return dateStr;
-  const [year, month, day] = parts.map(Number);
-  if (isNaN(year) || isNaN(month) || isNaN(day) || month < 1 || month > 12) return dateStr;
-  return `${day} ${MONTHS_TR[month - 1]} ${year}`;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(0);
+  date.setUTCFullYear(year, month - 1, day);
+  date.setUTCHours(0, 0, 0, 0);
+  if (
+    date.getUTCFullYear() !== year
+    || date.getUTCMonth() !== month - 1
+    || date.getUTCDate() !== day
+  ) return null;
+  return date;
 };
 
-// "2026-10-24" -> "24 Eki"
-export const formatDateShort = (dateStr) => {
-  if (!dateStr) return '';
-  const parts = dateStr.split('-');
-  if (parts.length !== 3) return dateStr;
-  const [, month, day] = parts.map(Number);
-  if (isNaN(month) || month < 1 || month > 12) return dateStr;
-  return `${day} ${MONTHS_TR[month - 1].substring(0, 3)}`;
+export const formatDate = (dateStr, locale = 'tr') => {
+  const date = parseDate(dateStr);
+  if (!date) return dateStr || '';
+  return new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'tr-TR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
+};
+
+export const formatDateShort = (dateStr, locale = 'tr') => {
+  const date = parseDate(dateStr);
+  if (!date) return dateStr || '';
+  return new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'tr-TR', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(date);
 };
 
 // Binlik ayracı: 1500 -> "1.500"

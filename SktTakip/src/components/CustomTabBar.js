@@ -4,10 +4,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; // YENİ EKLENDİ
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useTranslation } from '../hooks/useTranslation';
 import { SHADOWS } from '../theme';
 
 export default function CustomTabBar({ state, descriptors, navigation }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const responsive = useResponsive();
   const { isTablet, scale, icon, fontSize } = responsive;
   const insets = useSafeAreaInsets(); // Çentik/Gesture bar yüksekliği
@@ -51,10 +53,10 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
 
           let iconName;
           let label;
-          if (route.name === 'Home') { iconName = isFocused ? 'home' : 'home-outline'; label = 'Ana Sayfa'; }
-          else if (route.name === 'Products') { iconName = isFocused ? 'cube' : 'cube-outline'; label = 'Ürünler'; }
-          else if (route.name === 'Notes') { iconName = isFocused ? 'document-text' : 'document-text-outline'; label = 'Notlar'; }
-          else if (route.name === 'Notifications') { iconName = isFocused ? 'notifications' : 'notifications-outline'; label = 'Bildirim'; }
+          if (route.name === 'Home') { iconName = isFocused ? 'home' : 'home-outline'; label = t('home'); }
+          else if (route.name === 'Products') { iconName = isFocused ? 'cube' : 'cube-outline'; label = t('products'); }
+          else if (route.name === 'Notes') { iconName = isFocused ? 'document-text' : 'document-text-outline'; label = t('nav_notes'); }
+          else if (route.name === 'Notifications') { iconName = isFocused ? 'notifications' : 'notifications-outline'; label = t('nav_notifications'); }
 
           return (
             <TouchableOpacity
