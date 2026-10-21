@@ -13,12 +13,13 @@ import { isValidDateString, isValidQuantity, sanitizeInput } from '../utils/vali
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
+import { formatDate } from '../utils/formatters';
 
 export default function EditProductScreen({ route, navigation }) {
   const { product } = route.params;
   const { updateProduct, deleteProduct, showToast, settings } = useContext(AppContext);
   const { colors } = useTheme();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const responsive = useResponsive();
   const { isTablet, scale } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
@@ -33,9 +34,9 @@ export default function EditProductScreen({ route, navigation }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const handleUpdate = async () => {
-    if (!name.trim()) { if (settings.hapticsEnabled) await notifyError(); showToast('Ürün adı boş bırakılamaz.', 'error'); return; }
-    if (!isValidDateString(expDate)) { if (settings.hapticsEnabled) await notifyError(); showToast('Geçersiz bir tarih girdiniz.', 'error'); return; }
-    if (quantity && !isValidQuantity(quantity)) { if (settings.hapticsEnabled) await notifyError(); showToast('Lütfen geçerli bir miktar girin (0-10000 arası).', 'error'); return; }
+    if (!name.trim()) { if (settings.hapticsEnabled) await notifyError(); showToast(t('product_name_required'), 'error'); return; }
+    if (!isValidDateString(expDate)) { if (settings.hapticsEnabled) await notifyError(); showToast(t('product_expiry_invalid'), 'error'); return; }
+    if (quantity && !isValidQuantity(quantity)) { if (settings.hapticsEnabled) await notifyError(); showToast(t('product_quantity_invalid'), 'error'); return; }
 
     updateProduct(product.id, {
       name: sanitizeInput(name),
@@ -48,16 +49,16 @@ export default function EditProductScreen({ route, navigation }) {
     });
 
     if (settings.hapticsEnabled) await notifySuccess();
-    showToast('Ürün güncellendi!', 'success');
+    showToast(t('product_updated'), 'success');
     navigation.goBack();
   };
 
   const handleDelete = () => {
-    Alert.alert('Ürünü Sil', `"${product.name}" adlı ürünü silmek istediğine emin misin?`, [
-      { text: 'İptal', style: 'cancel' },
-      { text: 'Sil', style: 'destructive', onPress: () => {
+    Alert.alert(t('product_delete_title'), t('product_delete_message', { name: product.name }), [
+      { text: t('cancel'), style: 'cancel' },
+      { text: t('delete'), style: 'destructive', onPress: () => {
           deleteProduct(product.id);
-          showToast('Ürün silindi.', 'info');
+          showToast(t('product_deleted_count', { count: 1 }), 'info');
           navigation.goBack();
       }},
     ]);
@@ -65,37 +66,37 @@ export default function EditProductScreen({ route, navigation }) {
 
   const handleShare = async () => {
     const result = await shareSingleProduct({ name, productCode, category, expDate, quantity });
-    if (!result.success) showToast('Paylaşım başarısız.', 'error');
+    if (!result.success) showToast(t('share_failed'), 'error');
   };
 
   const handleCopyCode = async () => {
-    if (!productCode) { showToast('Kopyalanacak kod yok.', 'info'); return; }
+    if (!productCode) { showToast(t('product_code_copy_empty'), 'info'); return; }
     await Clipboard.setStringAsync(productCode);
-    showToast('Ürün kodu kopyalandı!', 'success');
+    showToast(t('product_code_copied'), 'success');
   };
 
   const handleAddToCalendar = async () => {
     const res = await addProductToCalendar({ name, productCode, expDate });
-    if (res.success) showToast('Takvime eklendi!', 'success');
-    else showToast('Takvime eklenemedi: ' + res.error, 'error');
+    if (res.success) showToast(t('product_added_calendar'), 'success');
+    else showToast(t('product_added_calendar_failed'), 'warning');
   };
 
   const pickImage = async (fromCamera = false) => {
     try {
       if (fromCamera) {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
-        if (status !== 'granted') { showToast('Kamera izni gerekli.', 'error'); return; }
+        if (status !== 'granted') { showToast(t('product_camera_permission'), 'error'); return; }
         const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.7 });
         if (!result.canceled) setImageUri(result.assets[0].uri);
       } else {
         if (Platform.OS === 'ios') {
           const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          if (status !== 'granted') { showToast('Galeri izni gerekli.', 'error'); return; }
+          if (status !== 'granted') { showToast(t('product_photo_permission'), 'error'); return; }
         }
         const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.7 });
         if (!result.canceled) setImageUri(result.assets[0].uri);
       }
-    } catch (error) { console.error('Ürün fotoğrafı yüklenemedi:', error); showToast('Fotoğraf yüklenemedi.', 'error'); }
+    } catch (error) { console.error('Ürün fotoğrafı yüklenemedi:', error); showToast(t('product_photo_failed'), 'error'); }
   };
 
   const photoSize = scale(isTablet ? 180 : 140);
@@ -109,7 +110,7 @@ export default function EditProductScreen({ route, navigation }) {
               <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
                 <Ionicons name="arrow-back" size={scale(24)} color={colors.text} />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Ürünü Düzenle</Text>
+              <Text style={styles.headerTitle}>{t('product_edit_title')}</Text>
               <View style={{ flexDirection: 'row' }}>
                 <TouchableOpacity onPress={handleShare} style={{ marginRight: scale(16) }} activeOpacity={0.7}>
                   <Ionicons name="share-social-outline" size={scale(24)} color={colors.primary} />
@@ -131,31 +132,31 @@ export default function EditProductScreen({ route, navigation }) {
               ) : (
                 <TouchableOpacity style={[styles.photoPlaceholder, { width: photoSize, height: photoSize }]} onPress={() => pickImage(true)} activeOpacity={0.8}>
                   <Ionicons name="camera" size={scale(40)} color={colors.primary} />
-                  <Text style={styles.photoPlaceholderText}>Fotoğraf Ekle</Text>
+                  <Text style={styles.photoPlaceholderText}>{t('add_photo')}</Text>
                 </TouchableOpacity>
               )}
               <View style={styles.photoButtons}>
                 <TouchableOpacity style={styles.photoBtn} onPress={() => pickImage(true)} activeOpacity={0.7}>
                   <Ionicons name="camera-outline" size={scale(16)} color={colors.primary} />
-                  <Text style={styles.photoBtnText}>Kamera</Text>
+                  <Text style={styles.photoBtnText}>{t('product_take_photo')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.photoBtn} onPress={() => pickImage(false)} activeOpacity={0.7}>
                   <Ionicons name="images-outline" size={scale(16)} color={colors.primary} />
-                  <Text style={styles.photoBtnText}>Galeri</Text>
+                  <Text style={styles.photoBtnText}>{t('product_choose_gallery')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
-            <Text style={styles.label}>Ürün Adı</Text>
+            <Text style={styles.label}>{t('product_name')}</Text>
             <View style={styles.inputContainer}>
-              <TextInput style={styles.input} value={name} onChangeText={setName} />
+              <TextInput style={styles.input} accessibilityLabel={t('product_name')} value={name} onChangeText={setName} />
               <Ionicons name="pricetag-outline" size={scale(20)} color={colors.textLight} />
             </View>
 
-            <Text style={styles.label}>Kısa Kod</Text>
+            <Text style={styles.label}>{t('product_code')}</Text>
             <View style={styles.barcodeRow}>
               <View style={styles.barcodeInputWrapper}>
-                <TextInput style={styles.barcodeInput} value={productCode} onChangeText={setProductCode} autoCapitalize="characters" />
+                <TextInput style={styles.barcodeInput} accessibilityLabel={t('product_code')} value={productCode} onChangeText={setProductCode} autoCapitalize="characters" />
                 {productCode ? (
                   <TouchableOpacity onPress={handleCopyCode} style={{ padding: scale(4) }} activeOpacity={0.7}>
                     <Ionicons name="copy-outline" size={scale(18)} color={colors.primary} />
@@ -164,7 +165,7 @@ export default function EditProductScreen({ route, navigation }) {
               </View>
             </View>
 
-            <Text style={styles.label}>Kategori</Text>
+            <Text style={styles.label}>{t('product_category_label')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll} contentContainerStyle={{ paddingRight: scale(20) }}>
               {CATEGORIES.filter(c => c.id !== 'all').map((cat) => (
                 <TouchableOpacity key={cat.id} style={[styles.categoryChip, category === cat.name && { backgroundColor: colors.primary, borderColor: colors.primary }]} onPress={() => setCategory(cat.name)} activeOpacity={0.7}>
@@ -174,38 +175,38 @@ export default function EditProductScreen({ route, navigation }) {
               ))}
             </ScrollView>
 
-            <Text style={styles.label}>Son Kullanma Tarihi</Text>
+            <Text style={styles.label}>{t('expiry_date')}</Text>
             <TouchableOpacity style={styles.inputContainer} onPress={() => setShowDatePicker(true)} activeOpacity={0.7}>
-              <Text style={[styles.input, { color: expDate ? colors.text : colors.textLight }]}>{expDate || 'Tarih seçmek için dokun'}</Text>
+              <Text style={[styles.input, { color: expDate ? colors.text : colors.textLight }]}>{expDate ? formatDate(expDate, locale) : t('product_expiry_select')}</Text>
               <Ionicons name="calendar" size={scale(20)} color={colors.primary} />
             </TouchableOpacity>
 
-            <Text style={styles.label}>Miktar</Text>
+            <Text style={styles.label}>{t('quantity')}</Text>
             <View style={styles.inputContainer}>
-              <TextInput style={styles.input} keyboardType="numeric" value={quantity} onChangeText={setQuantity} />
+              <TextInput style={styles.input} accessibilityLabel={t('quantity')} keyboardType="decimal-pad" value={quantity} onChangeText={setQuantity} />
               <Ionicons name="flask-outline" size={scale(20)} color={colors.textLight} />
-              <Text style={styles.unitText}>adet</Text>
+              <Text style={styles.unitText}>{t('product_quantity_unit')}</Text>
             </View>
 
-            <Text style={styles.label}>Not</Text>
+            <Text style={styles.label}>{t('note')}</Text>
             <View style={[styles.inputContainer, { height: scale(80), alignItems: 'flex-start', paddingTop: scale(12) }]}>
-              <TextInput style={styles.input} multiline value={note} onChangeText={setNote} />
+              <TextInput style={styles.input} accessibilityLabel={t('note')} multiline value={note} onChangeText={setNote} />
             </View>
 
             <TouchableOpacity style={styles.calendarBtn} onPress={handleAddToCalendar} activeOpacity={0.7}>
               <Ionicons name="calendar-outline" size={scale(20)} color={colors.primary} />
-              <Text style={styles.calendarBtnText} numberOfLines={1}>Takvime SKT hatırlatıcısı ekle</Text>
+              <Text style={styles.calendarBtnText} numberOfLines={1}>{t('product_calendar_reminder')}</Text>
               <Ionicons name="chevron-forward" size={scale(18)} color={colors.textLight} />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.saveButton} onPress={handleUpdate} activeOpacity={0.8}>
               <Ionicons name="checkmark-circle-outline" size={scale(24)} color={colors.onPrimary} />
-              <Text style={styles.saveButtonText}>Güncelle</Text>
+              <Text style={styles.saveButtonText}>{t('update')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={[styles.deleteButton, { backgroundColor: colors.danger + '15', borderColor: colors.danger + '30' }]} onPress={handleDelete} activeOpacity={0.8}>
               <Ionicons name="trash-outline" size={scale(20)} color={colors.danger} />
-              <Text style={styles.deleteButtonText}>Bu ürünü sil</Text>
+              <Text style={styles.deleteButtonText}>{t('delete')}</Text>
             </TouchableOpacity>
             <View style={{ height: scale(40) }} />
           </View>

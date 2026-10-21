@@ -9,7 +9,6 @@
       "distribution": "internal",
       "channel": "development",
       "env": {
-        "EXPO_ROUTER_DISABLE_RN_NAVIGATION_CHECK": "1",
         "EXPO_USE_HERMES": "0"
       }
     },
@@ -20,7 +19,6 @@
       },
       "channel": "preview",
       "env": {
-        "EXPO_ROUTER_DISABLE_RN_NAVIGATION_CHECK": "1",
         "EXPO_USE_HERMES": "0"
       }
     },
@@ -32,7 +30,6 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_ROUTER_DISABLE_RN_NAVIGATION_CHECK": "1",
         "EXPO_USE_HERMES": "0"
       }
     }

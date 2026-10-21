@@ -29,7 +29,7 @@ export default function HelpScreen({ navigation }) {
   const toggleExpand = (index) => setExpandedIndex(expandedIndex === index ? null : index);
 
   const openEmail = () => {
-    Linking.openURL('mailto:destek@expira.app?subject=Expira Destek').catch(() => {
+    Linking.openURL('mailto:axenvoir@yahoo.com?subject=Expira Destek').catch(() => {
       showToast('E-posta uygulaması bulunamadı.', 'error');
     });
   };
@@ -80,7 +80,7 @@ export default function HelpScreen({ navigation }) {
           </View>
           <View style={{ flex: 1, marginLeft: scale(14), marginRight: scale(8) }}>
             <Text style={styles.contactTitle}>E-posta ile Destek</Text>
-            <Text style={styles.contactDesc} numberOfLines={1}>destek@expira.app</Text>
+            <Text style={styles.contactDesc} numberOfLines={1}>axenvoir@yahoo.com</Text>
           </View>
           <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />
         </TouchableOpacity>

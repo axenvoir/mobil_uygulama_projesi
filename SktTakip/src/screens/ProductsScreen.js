@@ -15,7 +15,6 @@ import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatDate, getDaysLeft } from '../utils/formatters';
 import ConfirmModal from '../components/ConfirmModal';
-import Skeleton from '../components/Skeleton';
 import EmptyState from '../components/EmptyState';
 
 export default function ProductsScreen({ route, navigation }) {
@@ -26,7 +25,6 @@ export default function ProductsScreen({ route, navigation }) {
   const { isTablet, isSmall, scale, itemColumns, itemGap } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
 
-  const [isPageLoading, setIsPageLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [searchText, setSearchText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -43,11 +41,6 @@ export default function ProductsScreen({ route, navigation }) {
 
   const swipeRefs = useRef({});
   const searchRef = useRef(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsPageLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => { setDebouncedSearch(searchText); }, 500);
@@ -324,25 +317,6 @@ export default function ProductsScreen({ route, navigation }) {
     );
   };
 
-  const renderSkeleton = () => (
-    <View style={{ flex: 1, paddingTop: scale(10) }}>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <View key={i} style={styles.productCard}>
-          <Skeleton width={scale(5)} height="80%" borderRadius={scale(3)} style={{ position: 'absolute', left: 0 }} />
-          <Skeleton width={scale(50)} height={scale(50)} borderRadius={scale(14)} style={{ marginLeft: scale(8) }} />
-          <View style={{ flex: 1, marginLeft: scale(12), marginRight: scale(8) }}>
-            <Skeleton width="70%" height={scale(16)} style={{ marginBottom: scale(6) }} />
-            <Skeleton width="40%" height={scale(12)} />
-          </View>
-          <View style={{ alignItems: 'flex-end', marginRight: scale(8) }}>
-            <Skeleton width={scale(60)} height={scale(12)} style={{ marginBottom: scale(6) }} />
-            <Skeleton width={scale(50)} height={scale(16)} borderRadius={scale(8)} />
-          </View>
-        </View>
-      ))}
-    </View>
-  );
-
   const sortLabels = {
     date: t('products_sort_date'),
     name: t('products_sort_name'),
@@ -463,7 +437,7 @@ export default function ProductsScreen({ route, navigation }) {
         </ScrollView>
 
         <View style={styles.sortRow}>
-          <Text style={styles.resultCount}>{isPageLoading ? '...' : `${filteredProducts.length} ${t('products')}`}</Text>
+          <Text style={styles.resultCount}>{`${filteredProducts.length} ${t('products')}`}</Text>
           <View style={{ flexDirection: 'row' }}>
             <TouchableOpacity style={styles.sortBtn} onPress={() => { setSelectionMode(!selectionMode); setSelectedIds([]); }}>
               <Ionicons name="checkmark-done-outline" size={scale(16)} color={colors.primary} />
@@ -480,19 +454,17 @@ export default function ProductsScreen({ route, navigation }) {
           </View>
         </View>
 
-        {isPageLoading ? renderSkeleton() : (
-          <FlatList
-            data={filteredProducts}
-            keyExtractor={item => item.id}
-            key={`columns-${itemColumns}`}
-            numColumns={itemColumns}
-            columnWrapperStyle={itemColumns > 1 ? { gap: itemGap } : undefined}
-            contentContainerStyle={{ paddingBottom: scale(100), flexGrow: 1 }}
-            ListEmptyComponent={renderEmpty}
-            renderItem={renderProduct}
-            keyboardShouldPersistTaps="handled"
-          />
-        )}
+        <FlatList
+          data={filteredProducts}
+          keyExtractor={item => item.id}
+          key={`columns-${itemColumns}`}
+          numColumns={itemColumns}
+          columnWrapperStyle={itemColumns > 1 ? { gap: itemGap } : undefined}
+          contentContainerStyle={{ paddingBottom: scale(100), flexGrow: 1 }}
+          ListEmptyComponent={renderEmpty}
+          renderItem={renderProduct}
+          keyboardShouldPersistTaps="handled"
+        />
       </View>
 
       <Modal visible={showCategoryModal} transparent animationType="slide" onRequestClose={() => setShowCategoryModal(false)}>

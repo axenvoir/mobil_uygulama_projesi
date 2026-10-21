@@ -53,7 +53,11 @@ export default function NotificationsScreen({ navigation }) {
         loadScheduledCount();
       } else { showToast(t('notification_schedule_failed'), 'error'); }
     } else {
-      await cancelAllReminders();
+      const cancelled = await cancelAllReminders();
+      if (!cancelled) {
+        showToast(t('notification_cancel_failed'), 'error');
+        return;
+      }
       updateSettings('dailyReminder', false);
       showToast(t('notification_daily_disabled'), 'info');
       loadScheduledCount();

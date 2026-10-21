@@ -2,16 +2,11 @@
   "expo": {
     "name": "Expira",
     "slug": "expira",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "Track product expiry dates, organize your pantry, and get timely reminders.",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/images/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#153F38"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -27,7 +22,7 @@
     },
     "android": {
       "package": "com.expira.app.tr",
-      "versionCode": 12,
+      "versionCode": 27,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png",
@@ -69,6 +64,15 @@
             "jsEngine": "jsc",
             "newArchEnabled": false
           }
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#153F38"
         }
       ],
       [

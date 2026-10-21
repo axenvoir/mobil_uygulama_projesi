@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState, useEffect } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
@@ -7,7 +7,6 @@ import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatDate, getDaysLeft } from '../utils/formatters';
-import Skeleton from '../components/Skeleton';
 
 export default function StatisticsScreen({ navigation }) {
   const { products } = useContext(AppContext);
@@ -16,13 +15,6 @@ export default function StatisticsScreen({ navigation }) {
   const responsive = useResponsive();
   const { isTablet, scale } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
-  const [isPageLoading, setIsPageLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsPageLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
-
   const fresh = products.filter(p => getDaysLeft(p.expDate) > 7);
   const approaching = products.filter(p => getDaysLeft(p.expDate) >= 0 && getDaysLeft(p.expDate) <= 7);
   const overdue = products.filter(p => getDaysLeft(p.expDate) < 0);
@@ -55,30 +47,6 @@ export default function StatisticsScreen({ navigation }) {
     if (score >= 40) return t('statistics_score_ok');
     return t('statistics_score_low');
   };
-
-  if (isPageLoading) {
-    return (
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        <View style={styles.innerWrap}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
-              <Ionicons name="arrow-back" size={scale(24)} color={colors.text} />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>{t('statistics')}</Text>
-            <View style={{ width: scale(24) }} />
-          </View>
-          <Skeleton height={scale(140)} borderRadius={scale(24)} style={{ marginBottom: scale(20) }} />
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: scale(20) }}>
-            <Skeleton width="31%" height={scale(90)} borderRadius={scale(16)} />
-            <Skeleton width="31%" height={scale(90)} borderRadius={scale(16)} />
-            <Skeleton width="31%" height={scale(90)} borderRadius={scale(16)} />
-          </View>
-          <Skeleton height={scale(120)} borderRadius={scale(20)} style={{ marginBottom: scale(20) }} />
-          <Skeleton height={scale(200)} borderRadius={scale(20)} />
-        </View>
-      </ScrollView>
-    );
-  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>

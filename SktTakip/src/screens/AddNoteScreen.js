@@ -5,12 +5,14 @@ import { AppContext } from '../context/AppContext';
 import { notifySuccess, notifyError } from '../utils/haptics';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useTranslation } from '../hooks/useTranslation';
 import { SHADOWS, TYPOGRAPHY, getContrastingTextColor } from '../theme';
 import ConfirmModal from '../components/ConfirmModal';
 
 export default function AddNoteScreen({ route, navigation }) {
   const { addNote, updateNote, deleteNote, showToast, settings } = useContext(AppContext);
   const { colors } = useTheme();
+  const { t, locale } = useTranslation();
   const responsive = useResponsive();
   const { scale } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
@@ -34,20 +36,21 @@ export default function AddNoteScreen({ route, navigation }) {
   const colorOptions = ['#14B8A6', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6', '#EC4899'];
 
   const handleSave = async () => {
-    if (!title.trim()) { if (settings.hapticsEnabled) await notifyError(); showToast('Not başlığı boş bırakılamaz.', 'error'); return; }
-    if (!desc.trim()) { if (settings.hapticsEnabled) await notifyError(); showToast('Not içeriği boş bırakılamaz.', 'error'); return; }
+    if (!title.trim()) { if (settings.hapticsEnabled) await notifyError(); showToast(t('note_title_required'), 'error'); return; }
+    if (!desc.trim()) { if (settings.hapticsEnabled) await notifyError(); showToast(t('note_content_required'), 'error'); return; }
 
-    const today = new Date();
-    const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
-    const dateStr = `${today.getDate()} ${months[today.getMonth()]}`;
+    const dateStr = new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'tr-TR', {
+      day: 'numeric',
+      month: 'long',
+    }).format(new Date());
 
     if (isEditing) {
-      updateNote(editingNote.id, { title, desc, color });
-      showToast('Not güncellendi!', 'success');
+      updateNote(editingNote.id, { title: title.trim(), desc: desc.trim(), color });
+      showToast(t('note_updated'), 'success');
     } else {
-      addNote({ title, desc, color, date: dateStr });
+      addNote({ title: title.trim(), desc: desc.trim(), color, date: dateStr });
       if (settings.hapticsEnabled) await notifySuccess();
-      showToast('Not eklendi!', 'success');
+      showToast(t('note_added'), 'success');
     }
     navigation.goBack();
   };
@@ -55,7 +58,7 @@ export default function AddNoteScreen({ route, navigation }) {
   const confirmDelete = () => {
     setModalVisible(false);
     deleteNote(editingNote.id);
-    showToast('Not silindi.', 'info');
+    showToast(t('note_deleted'), 'info');
     navigation.goBack();
   };
 
@@ -68,7 +71,7 @@ export default function AddNoteScreen({ route, navigation }) {
               <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
                 <Ionicons name="arrow-back" size={scale(24)} color={colors.text} />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>{isEditing ? 'Notu Düzenle' : 'Yeni Not'}</Text>
+              <Text style={styles.headerTitle}>{t(isEditing ? 'note_edit_title' : 'note_new_title')}</Text>
               {isEditing ? (
                 <TouchableOpacity onPress={() => setModalVisible(true)} activeOpacity={0.7}>
                   <Ionicons name="trash-outline" size={scale(24)} color={colors.danger} />
@@ -78,18 +81,18 @@ export default function AddNoteScreen({ route, navigation }) {
               )}
             </View>
 
-            <Text style={styles.label}>Başlık</Text>
+            <Text style={styles.label}>{t('note_title_label')}</Text>
             <View style={styles.inputContainer}>
-              <TextInput style={styles.input} placeholder="Not başlığı girin" placeholderTextColor={colors.textLight} value={title} onChangeText={setTitle} maxLength={50} />
+              <TextInput style={styles.input} placeholder={t('note_title_placeholder')} placeholderTextColor={colors.textLight} value={title} onChangeText={setTitle} maxLength={50} />
               <Ionicons name="document-text-outline" size={scale(20)} color={colors.textLight} />
             </View>
 
-            <Text style={styles.label}>İçerik</Text>
+            <Text style={styles.label}>{t('note_content_label')}</Text>
             <View style={[styles.inputContainer, { height: scale(180), alignItems: 'flex-start', paddingTop: scale(14) }]}>
-              <TextInput style={[styles.input, { height: '100%' }]} placeholder="Notunuzu buraya yazın..." placeholderTextColor={colors.textLight} value={desc} onChangeText={setDesc} multiline textAlignVertical="top" />
+              <TextInput style={[styles.input, { height: '100%' }]} placeholder={t('note_content_placeholder')} placeholderTextColor={colors.textLight} value={desc} onChangeText={setDesc} multiline textAlignVertical="top" />
             </View>
 
-            <Text style={styles.label}>Renk Seç</Text>
+            <Text style={styles.label}>{t('note_color_label')}</Text>
             <View style={styles.colorRow}>
               {colorOptions.map((c) => (
                 <TouchableOpacity key={c} style={[styles.colorCircle, { backgroundColor: c, borderWidth: color === c ? 3 : 0, borderColor: colors.text }]} onPress={() => setColor(c)} activeOpacity={0.8}>
@@ -100,7 +103,7 @@ export default function AddNoteScreen({ route, navigation }) {
 
             <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
               <Ionicons name="checkmark-circle-outline" size={scale(24)} color={colors.onPrimary} />
-              <Text style={styles.saveButtonText}>{isEditing ? 'Güncelle' : 'Kaydet'}</Text>
+              <Text style={styles.saveButtonText}>{t(isEditing ? 'update' : 'save')}</Text>
             </TouchableOpacity>
             <View style={{ height: scale(40) }} />
           </View>
@@ -110,9 +113,9 @@ export default function AddNoteScreen({ route, navigation }) {
       <ConfirmModal
         visible={modalVisible}
         type="danger"
-        title="Notu Sil"
-        message={`"${title}" notu silinecek. Emin misin?`}
-        confirmText="Sil"
+        title={t('note_delete_title')}
+        message={t('note_delete_message', { title })}
+        confirmText={t('delete')}
         onConfirm={confirmDelete}
         onCancel={() => setModalVisible(false)}
       />

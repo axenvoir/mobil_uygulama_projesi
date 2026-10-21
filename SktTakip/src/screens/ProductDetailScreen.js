@@ -36,7 +36,7 @@ export default function ProductDetailScreen({ route, navigation }) {
   const formattedDate = formatDate(product.expDate, locale);
 
   const handleShare = async () => {
-    const result = await shareSingleProduct({ ...product, expDate: formattedDate });
+    const result = await shareSingleProduct(product);
     if (!result.success) showToast(t('share_failed'), 'error');
   };
 

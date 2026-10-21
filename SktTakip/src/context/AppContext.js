@@ -56,11 +56,9 @@ export const AppProvider = ({ children }) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     const id = createId();
     setToast({ message, type, id, action });
-    if (!action) {
-      toastTimer.current = setTimeout(() => {
-        setToast(current => current?.id === id ? null : current);
-      }, duration);
-    }
+    toastTimer.current = setTimeout(() => {
+      setToast(current => current?.id === id ? null : current);
+    }, duration);
   }, []);
 
   const hideToast = useCallback(() => {

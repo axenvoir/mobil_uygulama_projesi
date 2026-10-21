@@ -3,15 +3,18 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { createBackup, restoreBackup } from '../utils/backupUtils';
+import { cancelAllReminders } from '../utils/notifications';
 import { notifySuccess, notifyError } from '../utils/haptics';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useTranslation } from '../hooks/useTranslation';
 import { SHADOWS, TYPOGRAPHY } from '../theme';
 import ConfirmModal from '../components/ConfirmModal';
 
 export default function BackupScreen({ navigation }) {
   const { showToast, settings, products, notes, userProfile, replaceAppData, resetAppData } = useContext(AppContext);
   const { colors, mode, changeMode } = useTheme();
+  const { t } = useTranslation();
   const responsive = useResponsive();
   const { scale } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
@@ -36,21 +39,21 @@ export default function BackupScreen({ navigation }) {
   };
 
   const handleBackup = () => {
-    openModal('info', 'Yedek Oluştur', 'Ürün fotoğrafları yedek dosyasına dahil edilmez. Ürünler, notlar ve ayarlar yedeklenir. Devam etmek istiyor musun?', 'Yedekle', async () => {
+    openModal('info', t('backup_create_confirm_title'), t('backup_create_confirm_message'), t('backup_create'), async () => {
       setModalVisible(false);
       setLoading(true);
       try {
         const result = await createBackup({ products, notes, settings, userProfile, themeMode: mode });
         if (result.success) {
           if (settings.hapticsEnabled) await notifySuccess();
-          showToast('Yedek oluşturuldu!', 'success');
+          showToast(t('backup_created'), 'success');
         } else {
           if (settings.hapticsEnabled) await notifyError();
-          showToast('Yedek oluşturulamadı: ' + result.error, 'error');
+          showToast(t('backup_create_failed', { error: result.error }), 'error');
         }
       } catch (error) {
         if (settings.hapticsEnabled) await notifyError();
-        showToast('Yedek oluşturulamadı: ' + error.message, 'error');
+        showToast(t('backup_create_failed', { error: error.message }), 'error');
       } finally {
         setLoading(false);
       }
@@ -58,25 +61,25 @@ export default function BackupScreen({ navigation }) {
   };
 
   const handleRestore = () => {
-    openModal('warning', 'Yedekten Yükle', 'Mevcut veriler yedektekilerle DEĞİŞTİRİLECEK. Devam etmek istiyor musun?', 'Devam Et', async () => {
+    openModal('warning', t('backup_restore_confirm_title'), t('backup_restore_confirm_message'), t('confirm'), async () => {
       setModalVisible(false);
       setLoading(true);
       try {
         const result = await restoreBackup();
         if (result.canceled) {
-          showToast('İptal edildi.', 'info');
+          showToast(t('backup_restore_cancelled'), 'info');
         } else if (result.success) {
           await replaceAppData(result.data);
           if (result.data.themeMode) await changeMode(result.data.themeMode);
           if (settings.hapticsEnabled) await notifySuccess();
-          showToast(`${result.stats.products} ürün ve ${result.stats.notes} not geri yüklendi.`, 'success');
+          showToast(t('backup_restored', result.stats), 'success');
         } else {
           if (settings.hapticsEnabled) await notifyError();
-          showToast('Yedek yüklenemedi: ' + result.error, 'error');
+          showToast(t('backup_restore_failed', { error: result.error }), 'error');
         }
       } catch (error) {
         if (settings.hapticsEnabled) await notifyError();
-        showToast('Yedek yüklenemedi: ' + error.message, 'error');
+        showToast(t('backup_restore_failed', { error: error.message }), 'error');
       } finally {
         setLoading(false);
       }
@@ -84,15 +87,16 @@ export default function BackupScreen({ navigation }) {
   };
 
   const handleReset = () => {
-    openModal('danger', 'Tüm Verileri Sil', 'TÜM veriler kalıcı olarak silinecek. Bu işlem GERİ ALINAMAZ! Devam etmek istiyor musun?', 'SİL', async () => {
+    openModal('danger', t('backup_reset_confirm_title'), t('backup_reset_confirm_message'), t('delete'), async () => {
       setModalVisible(false);
       setLoading(true);
       try {
+        const remindersCancelled = await cancelAllReminders();
         await resetAppData();
         await changeMode('system');
-        showToast('Veriler silindi.', 'info');
+        showToast(remindersCancelled ? t('backup_reset_done') : t('backup_reset_notification_warning'), remindersCancelled ? 'info' : 'warning');
       } catch (error) {
-        showToast('Veriler silinemedi: ' + error.message, 'error');
+        showToast(t('backup_reset_failed', { error: error.message }), 'error');
       } finally {
         setLoading(false);
       }
@@ -106,34 +110,34 @@ export default function BackupScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
             <Ionicons name="arrow-back" size={scale(24)} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Yedekleme</Text>
+          <Text style={styles.headerTitle}>{t('backup_title')}</Text>
           <View style={{ width: scale(24) }} />
         </View>
 
         <View style={styles.summaryCard}>
           <Ionicons name="archive-outline" size={scale(40)} color={colors.primary} />
-          <Text style={styles.summaryTitle}>Mevcut Veriler</Text>
+          <Text style={styles.summaryTitle}>{t('backup_current_data')}</Text>
           <View style={styles.summaryGrid}>
             <View style={styles.summaryItem}>
               <Text style={styles.summaryNumber}>{summary.products}</Text>
-              <Text style={styles.summaryLabel}>Ürün</Text>
+              <Text style={styles.summaryLabel}>{t('backup_products')}</Text>
             </View>
             <View style={styles.summaryItem}>
               <Text style={styles.summaryNumber}>{summary.notes}</Text>
-              <Text style={styles.summaryLabel}>Not</Text>
+              <Text style={styles.summaryLabel}>{t('backup_notes')}</Text>
             </View>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>İşlemler</Text>
+        <Text style={styles.sectionTitle}>{t('backup_items')}</Text>
 
         <TouchableOpacity style={styles.actionCard} onPress={handleBackup} disabled={loading} activeOpacity={0.7}>
           <View style={[styles.actionIcon, { backgroundColor: colors.primary + '15' }]}>
             <Ionicons name="cloud-upload-outline" size={scale(24)} color={colors.primary} />
           </View>
           <View style={{ flex: 1, marginLeft: scale(16), marginRight: scale(8) }}>
-            <Text style={styles.actionTitle}>Yedek Oluştur</Text>
-            <Text style={styles.actionDesc} numberOfLines={2}>Tüm verilerini JSON olarak paylaş</Text>
+            <Text style={styles.actionTitle}>{t('backup_create')}</Text>
+            <Text style={styles.actionDesc} numberOfLines={2}>{t('backup_create_desc')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />
         </TouchableOpacity>
@@ -143,28 +147,28 @@ export default function BackupScreen({ navigation }) {
             <Ionicons name="cloud-download-outline" size={scale(24)} color={colors.info} />
           </View>
           <View style={{ flex: 1, marginLeft: scale(16), marginRight: scale(8) }}>
-            <Text style={styles.actionTitle}>Yedekten Yükle</Text>
-            <Text style={styles.actionDesc} numberOfLines={2}>Daha önce oluşturduğun yedeği geri yükle</Text>
+            <Text style={styles.actionTitle}>{t('backup_restore')}</Text>
+            <Text style={styles.actionDesc} numberOfLines={2}>{t('backup_restore_desc')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />
         </TouchableOpacity>
 
-        <Text style={[styles.sectionTitle, { color: colors.danger, marginTop: scale(24) }]}>Tehlikeli Bölge</Text>
+        <Text style={[styles.sectionTitle, { color: colors.danger, marginTop: scale(24) }]}>{t('backup_danger_zone')}</Text>
 
-        <TouchableOpacity style={[styles.actionCard, { borderColor: colors.danger + '40', borderWidth: 1 }]} onPress={handleReset} activeOpacity={0.7}>
+        <TouchableOpacity style={[styles.actionCard, { borderColor: colors.danger + '40', borderWidth: 1 }]} onPress={handleReset} disabled={loading} activeOpacity={0.7}>
           <View style={[styles.actionIcon, { backgroundColor: colors.danger + '15' }]}>
             <Ionicons name="trash-outline" size={scale(24)} color={colors.danger} />
           </View>
           <View style={{ flex: 1, marginLeft: scale(16), marginRight: scale(8) }}>
-            <Text style={[styles.actionTitle, { color: colors.danger }]}>Tüm Verileri Sil</Text>
-            <Text style={styles.actionDesc} numberOfLines={2}>Tüm verileri sıfırla (geri alınamaz)</Text>
+            <Text style={[styles.actionTitle, { color: colors.danger }]}>{t('backup_reset')}</Text>
+            <Text style={styles.actionDesc} numberOfLines={2}>{t('backup_reset_desc')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={scale(20)} color={colors.danger} />
         </TouchableOpacity>
 
         <View style={[styles.infoBox, { backgroundColor: colors.primary + '15' }]}>
           <Ionicons name="information-circle-outline" size={scale(20)} color={colors.primary} />
-          <Text style={styles.infoText} numberOfLines={3}>Ürün fotoğrafları yedeklenmez. Yedek dosyanı güvenli bir yerde sakla.</Text>
+          <Text style={styles.infoText} numberOfLines={3}>{t('backup_photo_warning')}</Text>
         </View>
 
         <View style={{ height: scale(60) }} />
@@ -173,7 +177,7 @@ export default function BackupScreen({ navigation }) {
           <View style={styles.loadingOverlay}>
             <View style={styles.loadingBox}>
               <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={styles.loadingText}>İşlem yapılıyor...</Text>
+              <Text style={styles.loadingText}>{t('backup_in_progress')}</Text>
             </View>
           </View>
         )}

@@ -52,7 +52,7 @@ export const scheduleDailyReminder = async (hour, minute, customMessage = null, 
   if (!Notifications) return null;
 
   try {
-    await cancelAllReminders();
+    if (!(await cancelAllReminders())) return null;
 
     const id = await Notifications.scheduleNotificationAsync({
       content: {
@@ -78,12 +78,14 @@ export const scheduleDailyReminder = async (hour, minute, customMessage = null, 
 };
 
 export const cancelAllReminders = async () => {
-  if (!Notifications) return;
+  if (!Notifications) return true;
 
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
+    return true;
   } catch (e) {
     console.error('Bildirim iptal hatası:', e);
+    return false;
   }
 };
 

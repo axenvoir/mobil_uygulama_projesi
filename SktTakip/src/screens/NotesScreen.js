@@ -5,6 +5,7 @@ import { AppContext } from '../context/AppContext';
 import { SHADOWS, TYPOGRAPHY } from '../theme';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useTranslation } from '../hooks/useTranslation';
 import ConfirmModal from '../components/ConfirmModal';
 import EmptyState from '../components/EmptyState'; // YENİ EKLENDİ
 import { notifySuccess } from '../utils/haptics';
@@ -12,6 +13,7 @@ import { notifySuccess } from '../utils/haptics';
 export default function NotesScreen({ navigation }) {
   const { notes, deleteNote, togglePin, showToast, settings } = useContext(AppContext);
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const responsive = useResponsive();
   const { isTablet, scale, itemColumns, itemGap } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
@@ -37,7 +39,7 @@ export default function NotesScreen({ navigation }) {
     setModalVisible(false);
     if (!selectedNote) return;
     deleteNote(selectedNote.id);
-    showToast('Not silindi.', 'info');
+    showToast(t('note_deleted'), 'info');
     if (settings.hapticsEnabled) await notifySuccess();
     setSelectedNote(null);
   };
@@ -58,7 +60,7 @@ export default function NotesScreen({ navigation }) {
             showToast(note.pinned ? 'Sabitleme kaldırıldı.' : 'Not sabitlendi.', 'info');
           }}
           accessibilityRole="button"
-          accessibilityLabel={note.pinned ? 'Not sabitlemesini kaldır' : 'Notu sabitle'}
+          accessibilityLabel={t(note.pinned ? 'notes_unpin' : 'notes_pin')}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <Ionicons name={note.pinned ? 'pin' : 'pin-outline'} size={scale(20)} color={colors.primary} />
@@ -79,7 +81,7 @@ export default function NotesScreen({ navigation }) {
     <View style={styles.container}>
       <View style={styles.innerWrap}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Notlarım</Text>
+          <Text style={styles.headerTitle}>{t('notes_title')}</Text>
           <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate('AddNote')} activeOpacity={0.8}>
             <Ionicons name="add" size={scale(22)} color={colors.onPrimary} />
           </TouchableOpacity>
@@ -87,15 +89,15 @@ export default function NotesScreen({ navigation }) {
 
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={scale(20)} color={colors.textLight} />
-          <TextInput style={styles.searchInput} placeholder="Notlarda ara" placeholderTextColor={colors.textLight} value={search} onChangeText={setSearch} />
+          <TextInput style={styles.searchInput} placeholder={t('notes_search_placeholder')} placeholderTextColor={colors.textLight} value={search} onChangeText={setSearch} />
         </View>
 
         {notes.length === 0 ? (
           <EmptyState
             icon="document-text-outline"
-            title="Henüz not eklemedin"
-            description="Alışveriş listesi, buzdolabı kontrolü gibi notlar eklemek için hemen bir tane oluştur."
-            actionText="İlk Notu Ekle"
+            title={t('notes_empty_title')}
+            description={t('notes_empty_description')}
+            actionText={t('notes_empty_action')}
             onAction={() => navigation.navigate('AddNote')}
           />
         ) : (
@@ -106,11 +108,12 @@ export default function NotesScreen({ navigation }) {
             numColumns={itemColumns}
             columnWrapperStyle={itemColumns > 1 ? { gap: itemGap } : undefined}
             contentContainerStyle={{ paddingBottom: scale(100) }}
+            ListEmptyComponent={<EmptyState icon="search-outline" title={t('empty_search')} />}
             ListHeaderComponent={
               pinnedNotes.length > 0 ? (
                 <View style={styles.pinnedHeader}>
                   <Ionicons name="pin" size={scale(16)} color={colors.primary} />
-                  <Text style={styles.pinnedTitle}>Sabitlenen Notlar</Text>
+                  <Text style={styles.pinnedTitle}>{t('notes_pinned')}</Text>
                 </View>
               ) : null
             }
@@ -118,7 +121,7 @@ export default function NotesScreen({ navigation }) {
               const isFirstOther = !item.pinned && (index === 0 || pinnedNotes[index - 1]);
               return (
                 <>
-                  {isFirstOther && pinnedNotes.length > 0 && !isTablet && <Text style={styles.sectionTitle}>Tüm Notlar</Text>}
+                  {isFirstOther && pinnedNotes.length > 0 && !isTablet && <Text style={styles.sectionTitle}>{t('notes_all')}</Text>}
                   {renderNote(item)}
                 </>
               );
@@ -130,9 +133,9 @@ export default function NotesScreen({ navigation }) {
       <ConfirmModal
         visible={modalVisible}
         type="danger"
-        title="Notu Sil"
-        message={`"${selectedNote?.title}" notu silinecek. Emin misin?`}
-        confirmText="Sil"
+        title={t('note_delete_title')}
+        message={t('note_delete_message', { title: selectedNote?.title })}
+        confirmText={t('delete')}
         onConfirm={confirmDelete}
         onCancel={() => { setModalVisible(false); setSelectedNote(null); }}
       />

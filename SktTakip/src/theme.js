@@ -4,9 +4,9 @@ export const LIGHT_COLORS = {
   accent: '#DCEB83',
   onPrimary: '#FFFFFF',
   onAccent: '#18362F',
-  background: '#F4F6EF',
+  background: '#F5F7F4',
   surface: '#FFFFFF',
-  surfaceAlt: '#EAF0E7',
+  surfaceAlt: '#EDF2EE',
   white: '#FFFFFF',
   text: '#19332D',
   textLight: '#65766F',
@@ -19,7 +19,7 @@ export const LIGHT_COLORS = {
   onSuccess: '#FFFFFF',
   info: '#396F9F',
   onInfo: '#FFFFFF',
-  border: '#DCE4DA',
+  border: '#E1E8E3',
   tabBar: '#FFFFFF',
   tabBarActive: '#267968',
   tabBarInactive: '#7D8D85',
@@ -81,9 +81,9 @@ export const TYPOGRAPHY = {
 };
 
 export const SHADOWS = {
-  soft: { shadowColor: '#153F38', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2 },
-  medium: { shadowColor: '#153F38', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.09, shadowRadius: 16, elevation: 4 },
-  heavy: { shadowColor: '#153F38', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 20, elevation: 7 },
+  soft: { shadowColor: '#153F38', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
+  medium: { shadowColor: '#153F38', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.07, shadowRadius: 12, elevation: 2 },
+  heavy: { shadowColor: '#153F38', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.1, shadowRadius: 18, elevation: 4 },
 };
 
 export const CATEGORIES = [

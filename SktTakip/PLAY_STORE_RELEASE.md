@@ -8,12 +8,12 @@
 - [ ] Start with an internal testing track, then complete any additional testing requirements shown in Play Console before requesting production access.
 - [ ] Keep the EAS-managed Android signing key and Play App Signing enabled. Do not commit signing credentials.
 
-The production profile automatically increments the local Android build number in `app.json`. Its current `android.versionCode` is `12`, above the previously used Play Console code `4`. Increase `expo.version` in `app.json` when publishing a user-visible release.
+The production profile automatically increments the local Android build number in `app.json`. Its current `android.versionCode` is `20`, above the previously used Play Console code `4`. The next user-facing release is `1.1.1`.
 
 ## Play Console listing and declarations
 
 - [ ] Review `PRIVACY_POLICY.md`, replace its publisher/contact placeholders, publish it at a publicly accessible URL, and enter that URL in Play Console.
-- [ ] Confirm that the existing support address `destek@expira.app` is monitored, or update the in-app support address and store listing to a working address.
+- [ ] Confirm that the support address `axenvoir@yahoo.com` is monitored and use it in the store listing.
 - [ ] Use `PLAY_STORE_LISTING_TR.md` as a draft; verify all wording and provide English and any other store-localized versions as needed.
 - [ ] Add the store listing, a 512 x 512 app icon, a 1024 x 500 feature graphic, and genuine screenshots captured from the release app. Do not use mock screens.
 - [ ] Complete the Data safety form based on the shipped binary and all SDK/service behavior. Product, note, and profile data are stored on-device; users can explicitly export a backup or add an event to their device calendar. Recheck this description if analytics, ads, cloud sync, or other services are added.

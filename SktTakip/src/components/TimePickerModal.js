@@ -5,6 +5,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { TYPOGRAPHY } from '../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from '../hooks/useTranslation';
 
 const parseInitialTime = (initialTime) => {
   if (initialTime && initialTime.includes(':')) {
@@ -16,6 +17,7 @@ const parseInitialTime = (initialTime) => {
 
 export default function TimePickerModal({ visible, onClose, onSelect, initialTime }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const responsive = useResponsive();
   const { scale } = responsive;
   const insets = useSafeAreaInsets();
@@ -43,10 +45,10 @@ export default function TimePickerModal({ visible, onClose, onSelect, initialTim
   };
 
   const presets = [
-    { label: 'Sabah 08:00', h: 8, m: 0 },
-    { label: 'Öğle 12:00', h: 12, m: 0 },
-    { label: 'Akşam 18:00', h: 18, m: 0 },
-    { label: 'Gece 21:00', h: 21, m: 0 },
+    { label: t('time_picker_morning'), h: 8, m: 0 },
+    { label: t('time_picker_noon'), h: 12, m: 0 },
+    { label: t('time_picker_evening'), h: 18, m: 0 },
+    { label: t('time_picker_night'), h: 21, m: 0 },
   ];
 
   return (
@@ -55,7 +57,7 @@ export default function TimePickerModal({ visible, onClose, onSelect, initialTim
         <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, scale(20)) }]}>
           <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled>
           <View style={styles.header}>
-            <Text style={styles.title}>Bildirim Zamanı</Text>
+            <Text style={styles.title}>{t('time_picker_title')}</Text>
             <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
               <Ionicons name="close" size={scale(24)} color={colors.text} />
             </TouchableOpacity>
@@ -71,10 +73,10 @@ export default function TimePickerModal({ visible, onClose, onSelect, initialTim
 
           <View style={styles.previewBox}>
             <Text style={styles.previewTime}>{String(hour).padStart(2, '0')}:{String(minute).padStart(2, '0')}</Text>
-            <Text style={styles.previewLabel}>seçilen saat</Text>
+            <Text style={styles.previewLabel}>{t('time_picker_selected')}</Text>
           </View>
 
-          <Text style={styles.pickerLabel}>Saat</Text>
+          <Text style={styles.pickerLabel}>{t('time_picker_hour')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerScroll}>
             {hours.map((h) => (
               <TouchableOpacity key={h} style={[styles.timeChip, hour === h && styles.timeChipActive]} onPress={() => setHour(h)} activeOpacity={0.7}>
@@ -83,7 +85,7 @@ export default function TimePickerModal({ visible, onClose, onSelect, initialTim
             ))}
           </ScrollView>
 
-          <Text style={styles.pickerLabel}>Dakika</Text>
+          <Text style={styles.pickerLabel}>{t('time_picker_minute')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerScroll}>
             {minutes.map((m) => (
               <TouchableOpacity key={m} style={[styles.timeChip, minute === m && styles.timeChipActive]} onPress={() => setMinute(m)} activeOpacity={0.7}>
@@ -94,11 +96,11 @@ export default function TimePickerModal({ visible, onClose, onSelect, initialTim
 
           <View style={styles.btnRow}>
             <TouchableOpacity style={styles.cancelBtn} onPress={onClose} activeOpacity={0.7}>
-              <Text style={styles.cancelBtnText}>İptal</Text>
+              <Text style={styles.cancelBtnText}>{t('cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.confirmBtn} onPress={handleConfirm} activeOpacity={0.8}>
               <Ionicons name="checkmark" size={scale(20)} color={colors.onPrimary} />
-              <Text style={styles.confirmBtnText}>Onayla</Text>
+              <Text style={styles.confirmBtnText}>{t('confirm')}</Text>
             </TouchableOpacity>
           </View>
           </ScrollView>

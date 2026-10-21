@@ -23,11 +23,20 @@ export default function HomeScreen({ navigation }) {
     Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
   }, [fadeAnim]);
 
-  const approaching = products.filter(p => getDaysLeft(p.expDate) > 0 && getDaysLeft(p.expDate) <= 7);
-  const overdue = products.filter(p => getDaysLeft(p.expDate) < 0);
-  const todayItems = products.filter(p => getDaysLeft(p.expDate) === 0);
-
-  const recentProducts = products.slice(-3).reverse();
+  const productsByExpiry = products
+    .map(product => ({ product, daysLeft: getDaysLeft(product.expDate) }))
+    .filter(item => Number.isFinite(item.daysLeft));
+  const approaching = productsByExpiry.filter(item => item.daysLeft > 0 && item.daysLeft <= 7);
+  const overdue = productsByExpiry.filter(item => item.daysLeft < 0);
+  const todayItems = productsByExpiry.filter(item => item.daysLeft === 0);
+  const upcomingProducts = productsByExpiry
+    .filter(item => item.daysLeft >= 0)
+    .sort((a, b) => a.daysLeft - b.daysLeft)
+    .map(item => item.product)
+    .slice(0, 3);
+  const recentProducts = upcomingProducts.length > 0
+    ? upcomingProducts
+    : products.slice(-3).reverse();
   const openProducts = (filter) => {
     setSelectedCategory('Tümü');
     navigation.navigate('Products', { filter });
@@ -72,13 +81,13 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.summaryDesc}>{t('home_next_seven_days')}</Text>
               <TouchableOpacity style={styles.detailButton} onPress={() => openProducts('approaching')} activeOpacity={0.8}>
                 <Text style={styles.detailButtonText}>{t('home_view_details')}</Text>
-                <Ionicons name="chevron-forward" size={scale(16)} color={colors.onPrimary} />
+                <Ionicons name="chevron-forward" size={scale(16)} color={colors.onAccent} />
               </TouchableOpacity>
             </View>
             <Ionicons
               name="calendar"
               size={scale(isTablet ? 110 : 85)}
-              color={colors.primary}
+              color={colors.accent}
               style={{ opacity: 0.1, position: 'absolute', right: scale(5), bottom: scale(5) }}
             />
           </View>
@@ -120,7 +129,9 @@ export default function HomeScreen({ navigation }) {
           ) : (
             <>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle} numberOfLines={1}>{t('home_recent_products')}</Text>
+                <Text style={styles.sectionTitle} numberOfLines={1}>
+                  {upcomingProducts.length > 0 ? t('home_upcoming_products') : t('home_recent_products')}
+                </Text>
                 <TouchableOpacity onPress={() => openProducts('all')}>
                   <Text style={styles.seeAll}>{t('home_view_all')} {'>'}</Text>
                 </TouchableOpacity>
@@ -169,14 +180,14 @@ const createStyles = (colors, responsive) => {
     greetingSub: { fontSize: moderateScale(TYPOGRAPHY.small, 0.3), color: colors.textLight, marginTop: 2, fontWeight: '500' },
     addButton: { flexDirection: 'row', backgroundColor: colors.primary, paddingHorizontal: scale(16), paddingVertical: scale(10), borderRadius: scale(22), alignItems: 'center', flexShrink: 0, ...SHADOWS.soft },
     addButtonText: { color: colors.onPrimary, marginLeft: scale(6), fontSize: moderateScale(TYPOGRAPHY.caption, 0.3), fontWeight: '800' },
-    summaryCard: { backgroundColor: colors.surface, borderRadius: scale(24), padding: scale(24), marginBottom: scale(24), overflow: 'hidden', ...SHADOWS.medium, borderWidth: 1, borderColor: colors.border },
+    summaryCard: { backgroundColor: colors.primaryDark, borderRadius: scale(24), padding: scale(24), marginBottom: scale(24), overflow: 'hidden', ...SHADOWS.medium },
     summaryTextContainer: { zIndex: 1 },
-    summaryTitle: { fontSize: moderateScale(TYPOGRAPHY.h3, 0.3), fontWeight: '800', color: colors.text },
-    summaryCount: { fontSize: scale(56), fontWeight: '900', color: colors.primary, marginVertical: scale(4), letterSpacing: -1 },
-    summarySub: { fontSize: moderateScale(TYPOGRAPHY.body, 0.3), color: colors.textLight, marginTop: scale(-8), fontWeight: '600' },
-    summaryDesc: { fontSize: moderateScale(TYPOGRAPHY.caption, 0.3), color: colors.textLight, marginBottom: scale(16), fontWeight: '500' },
-    detailButton: { flexDirection: 'row', backgroundColor: colors.primary, paddingHorizontal: scale(18), paddingVertical: scale(10), borderRadius: scale(22), alignSelf: 'flex-start', alignItems: 'center' },
-    detailButtonText: { color: colors.onPrimary, fontWeight: '800', marginRight: scale(4), fontSize: moderateScale(TYPOGRAPHY.caption, 0.3) },
+    summaryTitle: { fontSize: moderateScale(TYPOGRAPHY.h3, 0.3), fontWeight: '800', color: colors.white },
+    summaryCount: { fontSize: scale(56), fontWeight: '900', color: colors.accent, marginVertical: scale(4), letterSpacing: -1 },
+    summarySub: { fontSize: moderateScale(TYPOGRAPHY.body, 0.3), color: colors.white, marginTop: scale(-8), fontWeight: '600', opacity: 0.9 },
+    summaryDesc: { fontSize: moderateScale(TYPOGRAPHY.caption, 0.3), color: colors.white, marginBottom: scale(16), fontWeight: '500', opacity: 0.8 },
+    detailButton: { flexDirection: 'row', backgroundColor: colors.accent, paddingHorizontal: scale(18), paddingVertical: scale(10), borderRadius: scale(22), alignSelf: 'flex-start', alignItems: 'center' },
+    detailButtonText: { color: colors.onAccent, fontWeight: '800', marginRight: scale(4), fontSize: moderateScale(TYPOGRAPHY.caption, 0.3) },
     statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: scale(20) },
     statBox: { flex: 1, backgroundColor: colors.surface, paddingVertical: scale(isSmall ? 14 : 18), paddingHorizontal: scale(4), borderRadius: scale(20), marginHorizontal: scale(5), borderBottomWidth: 4, ...SHADOWS.soft, alignItems: 'center' },
     statNumber: { fontSize: scale(isTablet ? 32 : isSmall ? 24 : 28), fontWeight: '900', color: colors.text },
