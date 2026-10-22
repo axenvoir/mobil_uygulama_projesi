@@ -41,7 +41,12 @@ jobs:
           with open('android/app/build.gradle', 'r') as f:
               content = f.read()
 
-          release_config = """
+          # Eski hatalı eklemeleri temizle
+          content = content.replace('signingConfig signingConfigs.release\n', '')
+          content = content.replace('signingConfig signingConfigs.release', '')
+
+          # 1. Anahtar tanımlama (signingConfigs) bloğunu doğru yere ekle
+          release_signing = """
                   release {
                       storeFile file('release.keystore')
                       storePassword System.getenv("KEYSTORE_PASSWORD")
@@ -50,20 +55,20 @@ jobs:
                   }"""
 
           if 'signingConfigs {' in content:
-              signing_block = content.split('signingConfigs {')[1].split('}')[0]
-              if 'release {' not in signing_block:
-                  content = content.replace('signingConfigs {', 'signingConfigs {' + release_config, 1)
+              content = content.replace('signingConfigs {', 'signingConfigs {' + release_signing, 1)
           else:
-              content = content.replace('buildTypes {', 'signingConfigs {' + release_config + '}\n    buildTypes {', 1)
+              content = content.replace('android {', 'android {\n    signingConfigs {' + release_signing + '\n    }', 1)
 
-          content = content.replace('signingConfig signingConfigs.debug', '')
-          if 'signingConfig signingConfigs.release' not in content:
-              release_block_match = re.search(r'release\s*\{([^}]*)\}', content)
-              if release_block_match:
-                  release_block = release_block_match.group(1)
-                  if 'signingConfig' not in release_block:
-                      new_release_block = release_block + '\n            signingConfig signingConfigs.release'
-                      content = content.replace(release_block, new_release_block)
+          # 2. Derleme türleri (buildTypes) içindeki release bloğunu bul ve debug'ı release yap
+          build_types_match = re.search(r'buildTypes\s*\{([\s\S]*?)\n    \}', content)
+          if build_types_match:
+              build_types = build_types_match.group(1)
+              release_match = re.search(r'release\s*\{([\s\S]*?)\n        \}', build_types)
+              if release_match:
+                  release_block = release_match.group(0)
+                  # İçindeki debug imzasını sil, release imzası ekle
+                  new_release_block = release_block.replace('signingConfig signingConfigs.debug', 'signingConfig signingConfigs.release')
+                  content = content.replace(release_block, new_release_block)
 
           with open('android/app/build.gradle', 'w') as f:
               f.write(content)
@@ -79,7 +84,7 @@ jobs:
           echo "--- signingConfigs block ---"
           grep -A 10 "signingConfigs {" android/app/build.gradle || true
           echo "--- buildTypes.release block ---"
-          grep -A 10 "release {" android/app/build.gradle || true
+          grep -A 15 "buildTypes {" android/app/build.gradle || true
         working-directory: ./SktTakip
 
       - name: Configure Gradle Memory
@@ -88,7 +93,6 @@ jobs:
           echo "org.gradle.daemon=false" >> android/gradle.properties
         working-directory: ./SktTakip
 
-      # EN KRİTİK DEĞİŞİKLİK: Ortam değişkenleri Build adımına eklendi
       - name: Build AAB
         run: cd android && ./gradlew bundleRelease -x lintVitalRelease
         working-directory: ./SktTakip
