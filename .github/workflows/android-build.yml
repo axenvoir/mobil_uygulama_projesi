@@ -38,6 +38,8 @@ jobs:
           python3 - << 'EOF'
           with open('android/app/build.gradle', 'r') as f:
               content = f.read()
+              
+          # 1. Release imzalama ayarlarını ekle (eğer yoksa)
           release_config = """
                   release {
                       storeFile file('release.keystore')
@@ -47,8 +49,10 @@ jobs:
                   }"""
           if 'release {' not in content:
               content = content.replace('signingConfigs {', 'signingConfigs {' + release_config, 1)
-              content = content.replace('signingConfig buildTypes.release', 'signingConfig signingConfigs.release')
-              content = content.replace('signingConfig signingConfigs.debug', 'signingConfig signingConfigs.release')
+          
+          # 2. Release derlemesindeki debug ayarını zorla sil ve release yap
+          content = content.replace('signingConfig signingConfigs.debug', 'signingConfig signingConfigs.release')
+          
           with open('android/app/build.gradle', 'w') as f:
               f.write(content)
           EOF
@@ -58,7 +62,11 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      # HATA DÜZELTİLDİ: Alt satıra geçmesi için \n eklendi
+      # Derlemeden önce gradle dosyasında "release" yazdığını teyit et
+      - name: Verify Signing Config
+        run: grep -A 5 "release {" android/app/build.gradle
+        working-directory: ./SktTakip
+
       - name: Configure Gradle Memory
         run: |
           echo -e "\norg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m" >> android/gradle.properties
