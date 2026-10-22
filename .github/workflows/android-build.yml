@@ -49,22 +49,15 @@ jobs:
                       keyPassword System.getenv("KEY_PASSWORD")
                   }"""
 
-          # 1. signingConfigs bloğunu bul veya oluştur
           if 'signingConfigs {' in content:
-              # signingConfigs bloğu varsa, release'i içine ekle (eğer yoksa)
               signing_block = content.split('signingConfigs {')[1].split('}')[0]
               if 'release {' not in signing_block:
                   content = content.replace('signingConfigs {', 'signingConfigs {' + release_config, 1)
           else:
-              # signingConfigs bloğu yoksa, buildTypes'tan önce oluştur
               content = content.replace('buildTypes {', 'signingConfigs {' + release_config + '}\n    buildTypes {', 1)
 
-          # 2. buildTypes.release içindeki signingConfig'i değiştir
-          # Önce debug signingConfig'ini kaldır
           content = content.replace('signingConfig signingConfigs.debug', '')
-          # Sonra release signingConfig'ini ekle (eğer yoksa)
           if 'signingConfig signingConfigs.release' not in content:
-              # release bloğunu bul ve signingConfig ekle
               release_block_match = re.search(r'release\s*\{([^}]*)\}', content)
               if release_block_match:
                   release_block = release_block_match.group(1)
@@ -95,9 +88,14 @@ jobs:
           echo "org.gradle.daemon=false" >> android/gradle.properties
         working-directory: ./SktTakip
 
+      # EN KRİTİK DEĞİŞİKLİK: Ortam değişkenleri Build adımına eklendi
       - name: Build AAB
         run: cd android && ./gradlew bundleRelease -x lintVitalRelease
         working-directory: ./SktTakip
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
