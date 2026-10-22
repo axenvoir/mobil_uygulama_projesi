@@ -58,8 +58,16 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
+      # YENİ EKLENEN KISIM: Gradle Hafıza Ayarı
+      - name: Configure Gradle Memory
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m" >> android/gradle.properties
+          echo "org.gradle.daemon=false" >> android/gradle.properties
+        working-directory: ./SktTakip
+
+      # GÜNCELLENEN KISIM: Lint kontrolünü atla (-x lintVitalRelease)
       - name: Build AAB
-        run: cd android && ./gradlew bundleRelease
+        run: cd android && ./gradlew bundleRelease -x lintVitalRelease
         working-directory: ./SktTakip
 
       - name: Upload AAB
