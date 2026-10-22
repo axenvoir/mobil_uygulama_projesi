@@ -22,19 +22,17 @@ jobs:
           java-version: '17'
 
       - name: Install dependencies
-        run: npm install
-        working-directory: ./SktTakip
+        run: cd SktTakip && npm install
 
       - name: Prebuild Android
-        run: npx expo prebuild --platform android --no-install
-        working-directory: ./SktTakip
+        run: cd SktTakip && npx expo prebuild --platform android --no-install
 
       - name: Decode Keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
-        working-directory: ./SktTakip
+        run: cd SktTakip && echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
 
       - name: Configure build.gradle
         run: |
+          cd SktTakip
           python3 - << 'EOF'
           with open('android/app/build.gradle', 'r') as f:
               content = f.read()
@@ -52,15 +50,13 @@ jobs:
           with open('android/app/build.gradle', 'w') as f:
               f.write(content)
           EOF
-        working-directory: ./SktTakip
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Build AAB
-        run: cd android && ./gradlew bundleRelease
-        working-directory: ./SktTakip
+        run: cd SktTakip/android && ./gradlew bundleRelease
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
