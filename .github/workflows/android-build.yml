@@ -36,10 +36,11 @@ jobs:
       - name: Configure build.gradle
         run: |
           python3 - << 'EOF'
+          import re
+
           with open('android/app/build.gradle', 'r') as f:
               content = f.read()
-              
-          # 1. Release imzalama ayarlarını ekle (eğer yoksa)
+
           release_config = """
                   release {
                       storeFile file('release.keystore')
@@ -47,12 +48,18 @@ jobs:
                       keyAlias System.getenv("KEY_ALIAS")
                       keyPassword System.getenv("KEY_PASSWORD")
                   }"""
-          if 'release {' not in content:
-              content = content.replace('signingConfigs {', 'signingConfigs {' + release_config, 1)
-          
-          # 2. Release derlemesindeki debug ayarını zorla sil ve release yap
+
+          # signingConfigs bloğunu bul ve release'i ekle
+          if 'signingConfigs {' in content:
+              if 'release {' not in content.split('signingConfigs {')[1].split('}')[0]:
+                  content = content.replace('signingConfigs {', 'signingConfigs {' + release_config, 1)
+          else:
+              # signingConfigs yoksa, buildTypes'tan önce ekle
+              content = content.replace('buildTypes {', 'signingConfigs {' + release_config + '}\n    buildTypes {', 1)
+
+          # buildTypes.release içindeki signingConfig'i değiştir
           content = content.replace('signingConfig signingConfigs.debug', 'signingConfig signingConfigs.release')
-          
+
           with open('android/app/build.gradle', 'w') as f:
               f.write(content)
           EOF
@@ -62,9 +69,12 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      # Derlemeden önce gradle dosyasında "release" yazdığını teyit et
       - name: Verify Signing Config
-        run: grep -A 5 "release {" android/app/build.gradle
+        run: |
+          echo "--- signingConfigs block ---"
+          grep -A 5 "signingConfigs {" android/app/build.gradle || true
+          echo "--- buildTypes.release block ---"
+          grep -A 5 "release {" android/app/build.gradle || true
         working-directory: ./SktTakip
 
       - name: Configure Gradle Memory
