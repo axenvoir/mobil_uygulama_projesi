@@ -1,0 +1,64 @@
+name: Build Android AAB
+
+on:
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Prebuild Android
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Decode Keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+
+      - name: Configure build.gradle
+        run: |
+          python3 - << 'EOF'
+          with open('android/app/build.gradle', 'r') as f:
+              content = f.read()
+          release_config = """
+                  release {
+                      storeFile file('release.keystore')
+                      storePassword System.getenv("KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("KEY_ALIAS")
+                      keyPassword System.getenv("KEY_PASSWORD")
+                  }"""
+          if 'release {' not in content:
+              content = content.replace('signingConfigs {', 'signingConfigs {' + release_config, 1)
+              content = content.replace('signingConfig buildTypes.release', 'signingConfig signingConfigs.release')
+              content = content.replace('signingConfig signingConfigs.debug', 'signingConfig signingConfigs.release')
+          with open('android/app/build.gradle', 'w') as f:
+              f.write(content)
+          EOF
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Build AAB
+        run: cd android && ./gradlew bundleRelease
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
