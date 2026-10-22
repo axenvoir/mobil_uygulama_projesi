@@ -141,7 +141,7 @@ export default function HomeScreen({ navigation }) {
                 {recentProducts.map((item) => {
                   const cat = CATEGORIES.find(c => c.name === item.category);
                   return (
-                    <TouchableOpacity key={item.id} style={[styles.productItem, isTablet && styles.productItemTablet]} onPress={() => navigation.navigate('ProductDetail', { product: item })} activeOpacity={0.7}>
+                    <TouchableOpacity key={item.id} style={[styles.productItem, isTablet && styles.productItemTablet]} onPress={() => navigation.navigate('ProductDetail', { productId: item.id })} activeOpacity={0.7}>
                       <View style={styles.productIconBg}>
                         <Ionicons name={cat?.icon || 'cube-outline'} size={scale(22)} color={colors.primary} />
                       </View>

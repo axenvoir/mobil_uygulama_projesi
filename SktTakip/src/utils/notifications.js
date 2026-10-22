@@ -1,8 +1,10 @@
 import { isRunningInExpoGo } from 'expo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 const isAndroidExpoGo = Platform.OS === 'android' && isRunningInExpoGo();
 const Notifications = isAndroidExpoGo ? null : require('expo-notifications');
+const REMINDER_ID_KEY = '@dailyReminderNotificationId';
 
 export const isNotificationsAvailable = !isAndroidExpoGo;
 
@@ -15,6 +17,32 @@ if (Notifications) {
     }),
   });
 }
+
+const parseReminderTime = (reminderTime = '09:00') => {
+  const [hour, minute] = String(reminderTime).split(':').map((part) => parseInt(part, 10));
+  if (!Number.isFinite(hour) || !Number.isFinite(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+    return null;
+  }
+  return { hour, minute };
+};
+
+const getStoredReminderId = async () => {
+  try {
+    return await AsyncStorage.getItem(REMINDER_ID_KEY);
+  } catch (error) {
+    console.error('Hatırlatıcı kimliği okunamadı:', error);
+    return null;
+  }
+};
+
+const setStoredReminderId = async (id) => {
+  try {
+    if (id) await AsyncStorage.setItem(REMINDER_ID_KEY, id);
+    else await AsyncStorage.removeItem(REMINDER_ID_KEY);
+  } catch (error) {
+    console.error('Hatırlatıcı kimliği kaydedilemedi:', error);
+  }
+};
 
 export const requestPermissions = async () => {
   if (!Notifications) return false;
@@ -48,45 +76,109 @@ export const requestPermissions = async () => {
   }
 };
 
-export const scheduleDailyReminder = async (hour, minute, customMessage = null, locale = 'tr') => {
-  if (!Notifications) return null;
+/** Cancels only the tracked daily reminder (not other scheduled notifications). */
+export const cancelDailyReminder = async () => {
+  if (!Notifications) {
+    await setStoredReminderId(null);
+    return true;
+  }
 
   try {
-    if (!(await cancelAllReminders())) return null;
-
-    const id = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: locale === 'en' ? '⏰ Expira Reminder' : '⏰ Expira Hatırlatması',
-        body: customMessage || (
-          locale === 'en'
-            ? "Don't forget to check your fridge! Some products may be close to expiry."
-            : 'Buzdolabını kontrol etmeyi unutma! Son kullanma tarihi yaklaşan ürünlerin olabilir.'
-        ),
-        sound: true,
-      },
-      trigger: {
-        hour,
-        minute,
-        repeats: true,
-      },
-    });
-    return id;
+    const id = await getStoredReminderId();
+    if (id) {
+      await Notifications.cancelScheduledNotificationAsync(id);
+    }
+    await setStoredReminderId(null);
+    return true;
   } catch (e) {
-    console.error('Bildirim planlama hatası:', e);
-    return null;
+    console.error('Günlük hatırlatıcı iptal hatası:', e);
+    return false;
   }
 };
 
+/** Nuclear cancel used for factory reset / clearing orphaned OS schedules. */
 export const cancelAllReminders = async () => {
-  if (!Notifications) return true;
+  if (!Notifications) {
+    await setStoredReminderId(null);
+    return true;
+  }
 
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
+    await setStoredReminderId(null);
     return true;
   } catch (e) {
     console.error('Bildirim iptal hatası:', e);
     return false;
   }
+};
+
+export const scheduleDailyReminder = async (hour, minute, customMessage = null, locale = 'tr') => {
+  if (!Notifications) return null;
+
+  try {
+    if (!(await cancelDailyReminder())) return null;
+
+    const content = {
+      title: locale === 'en' ? '⏰ Expira Reminder' : '⏰ Expira Hatırlatması',
+      body: customMessage || (
+        locale === 'en'
+          ? "Don't forget to check your fridge! Some products may be close to expiry."
+          : 'Buzdolabını kontrol etmeyi unutma! Son kullanma tarihi yaklaşan ürünlerin olabilir.'
+      ),
+      sound: true,
+    };
+
+    const trigger = {
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour,
+      minute,
+    };
+    if (Platform.OS === 'android') {
+      trigger.channelId = 'default';
+    }
+
+    const id = await Notifications.scheduleNotificationAsync({ content, trigger });
+    await setStoredReminderId(id);
+    return id;
+  } catch (e) {
+    console.error('Bildirim planlama hatası:', e);
+    await setStoredReminderId(null);
+    return null;
+  }
+};
+
+/**
+ * Align OS scheduled reminders with persisted settings.
+ * Call after load, restore, and reset.
+ */
+export const syncRemindersFromSettings = async (settings = {}, locale = 'tr') => {
+  if (!settings.dailyReminder) {
+    const cancelled = await cancelDailyReminder();
+    return { success: cancelled, scheduled: false };
+  }
+
+  if (!Notifications) {
+    return { success: true, scheduled: false, reason: 'unavailable' };
+  }
+
+  const granted = await requestPermissions();
+  if (!granted) {
+    return { success: false, scheduled: false, reason: 'permission' };
+  }
+
+  const parsed = parseReminderTime(settings.reminderTime);
+  if (!parsed) {
+    return { success: false, scheduled: false, reason: 'time' };
+  }
+
+  const id = await scheduleDailyReminder(
+    parsed.hour,
+    parsed.minute,
+    settings.notificationMessage || null,
+    locale,
+  );
+  return { success: !!id, scheduled: !!id, id };
 };
 
 export const sendTestNotification = async (customMessage = null, locale = 'tr') => {
@@ -102,6 +194,7 @@ export const sendTestNotification = async (customMessage = null, locale = 'tr') 
             : 'Harika! Bildirimlerin çalışıyor. Artık ürünlerinin SKT\'sini takip edebilirsin.'
         ),
         sound: true,
+        ...(Platform.OS === 'android' ? { channelId: 'default' } : {}),
       },
       trigger: null,
     });

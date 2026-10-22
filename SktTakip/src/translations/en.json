@@ -344,5 +344,17 @@
   "profile_biometric_enabled": "Biometric lock enabled.",
   "profile_biometric_disabled": "Biometric lock disabled.",
   "profile_biometric_failed": "Biometric authentication could not be completed.",
-  "profile_anonymous": "Guest user"
+  "profile_anonymous": "Guest user",
+  "lock_title": "Expira Locked",
+  "lock_subtitle": "Hi {{name}}, authenticate to continue.",
+  "lock_prompt": "Unlock Expira",
+  "lock_fallback": "Use Passcode",
+  "lock_unlock": "Unlock",
+  "lock_disable": "Turn off biometric lock",
+  "lock_auth_failed": "Authentication failed",
+  "lock_biometrics_unavailable": "Biometric authentication is unavailable on this device. You can turn off the lock to continue.",
+  "lock_unexpected_error": "Unexpected error: {{message}}",
+  "backup_restored_notification_warning": "Backup restored ({{products}} products, {{notes}} notes) but the daily reminder could not be rescheduled. Re-enable it in Notifications.",
+  "product_not_found": "Product not found.",
+  "product_photo_persist_failed": "Could not save the photo permanently. Please try again."
 }

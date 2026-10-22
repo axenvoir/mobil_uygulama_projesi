@@ -1,4 +1,4 @@
-import React, { useMemo, useContext } from 'react';
+import React, { useMemo, useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
@@ -11,17 +11,32 @@ import { formatDate, getDaysLeft } from '../utils/formatters';
 import * as Clipboard from 'expo-clipboard';
 
 export default function ProductDetailScreen({ route, navigation }) {
-  const { product } = route.params;
-  const { showToast } = useContext(AppContext);
+  const productId = route.params?.productId ?? route.params?.product?.id;
+  const { products, showToast } = useContext(AppContext);
+  const product = products.find((item) => item.id === productId) || null;
   const { colors } = useTheme();
   const { t, locale } = useTranslation();
   const responsive = useResponsive();
   const { isTablet, scale } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
 
+  useEffect(() => {
+    if (!product) {
+      showToast(t('product_not_found'), 'error');
+      navigation.goBack();
+    }
+  }, [product, navigation, showToast, t]);
+
+  if (!product) {
+    return <View style={[styles.container, { backgroundColor: colors.background }]} />;
+  }
+
   const daysLeft = getDaysLeft(product.expDate);
 
   const getStatus = () => {
+    if (!Number.isFinite(daysLeft)) {
+      return { text: t('product_status_fresh'), color: colors.textLight, bg: colors.surfaceAlt, icon: 'help-circle' };
+    }
     if (daysLeft < 0) return { text: t('product_status_expired'), color: colors.danger, bg: colors.danger + '15', icon: 'alert-circle' };
     if (daysLeft === 0) return { text: t('product_status_today'), color: colors.danger, bg: colors.danger + '15', icon: 'warning' };
     if (daysLeft <= 3) return { text: t('product_status_days', { count: daysLeft }), color: colors.danger, bg: colors.danger + '15', icon: 'time' };
@@ -47,7 +62,7 @@ export default function ProductDetailScreen({ route, navigation }) {
   };
 
   const handleEdit = () => {
-    navigation.replace('EditProduct', { product });
+    navigation.replace('EditProduct', { productId: product.id });
   };
 
   return (

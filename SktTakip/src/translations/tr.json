@@ -344,5 +344,17 @@
   "profile_biometric_enabled": "Biyometrik kilit etkinleştirildi.",
   "profile_biometric_disabled": "Biyometrik kilit kapatıldı.",
   "profile_biometric_failed": "Biyometrik doğrulama tamamlanamadı.",
-  "profile_anonymous": "İsimsiz kullanıcı"
+  "profile_anonymous": "İsimsiz kullanıcı",
+  "lock_title": "Expira Kilitli",
+  "lock_subtitle": "Merhaba {{name}}, devam etmek için kimliğini doğrula.",
+  "lock_prompt": "Expira kilidini aç",
+  "lock_fallback": "Şifre Kullan",
+  "lock_unlock": "Kilidi Aç",
+  "lock_disable": "Biyometrik kilidi kapat",
+  "lock_auth_failed": "Kimlik doğrulanamadı",
+  "lock_biometrics_unavailable": "Bu cihazda biyometrik doğrulama kullanılamıyor. Kilidi kapatarak devam edebilirsin.",
+  "lock_unexpected_error": "Beklenmeyen hata: {{message}}",
+  "backup_restored_notification_warning": "Yedek yüklendi ({{products}} ürün, {{notes}} not) ancak günlük hatırlatıcı yeniden planlanamadı. Bildirimler sekmesinden tekrar aç.",
+  "product_not_found": "Ürün bulunamadı.",
+  "product_photo_persist_failed": "Fotoğraf kalıcı olarak kaydedilemedi. Tekrar dene."
 }

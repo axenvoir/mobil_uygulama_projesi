@@ -69,10 +69,14 @@ export default function BackupScreen({ navigation }) {
         if (result.canceled) {
           showToast(t('backup_restore_cancelled'), 'info');
         } else if (result.success) {
-          await replaceAppData(result.data);
+          const syncResult = await replaceAppData(result.data);
           if (result.data.themeMode) await changeMode(result.data.themeMode);
           if (settings.hapticsEnabled) await notifySuccess();
-          showToast(t('backup_restored', result.stats), 'success');
+          if (result.data.settings?.dailyReminder && syncResult && !syncResult.success) {
+            showToast(t('backup_restored_notification_warning', result.stats), 'warning');
+          } else {
+            showToast(t('backup_restored', result.stats), 'success');
+          }
         } else {
           if (settings.hapticsEnabled) await notifyError();
           showToast(t('backup_restore_failed', { error: result.error }), 'error');
@@ -94,7 +98,10 @@ export default function BackupScreen({ navigation }) {
         const remindersCancelled = await cancelAllReminders();
         await resetAppData();
         await changeMode('system');
-        showToast(remindersCancelled ? t('backup_reset_done') : t('backup_reset_notification_warning'), remindersCancelled ? 'info' : 'warning');
+        showToast(
+          remindersCancelled ? t('backup_reset_done') : t('backup_reset_notification_warning'),
+          remindersCancelled ? 'info' : 'warning',
+        );
       } catch (error) {
         showToast(t('backup_reset_failed', { error: error.message }), 'error');
       } finally {

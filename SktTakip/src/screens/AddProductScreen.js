@@ -8,6 +8,7 @@ import DatePickerModal from '../components/DatePickerModal';
 import { notifySuccess, notifyError } from '../utils/haptics';
 import { addProductToCalendar } from '../utils/calendarUtils';
 import { isValidDateString, isValidQuantity, sanitizeInput } from '../utils/validators';
+import { persistProductImage } from '../utils/imagePersistence';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
@@ -99,20 +100,32 @@ export default function AddProductScreen({ navigation }) {
 
   const pickImage = async (fromCamera = false) => {
     try {
+      let pickedUri = null;
       if (fromCamera) {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') { showToast(t('product_camera_permission'), 'error'); return; }
         const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.7 });
-        if (!result.canceled) setImageUri(result.assets[0].uri);
+        if (!result.canceled) pickedUri = result.assets[0].uri;
       } else {
         if (Platform.OS === 'ios') {
           const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
           if (status !== 'granted') { showToast(t('product_photo_permission'), 'error'); return; }
         }
         const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.7 });
-        if (!result.canceled) setImageUri(result.assets[0].uri);
+        if (!result.canceled) pickedUri = result.assets[0].uri;
       }
-    } catch (error) { console.error('Ürün fotoğrafı yüklenemedi:', error); showToast(t('product_photo_failed'), 'error'); }
+
+      if (!pickedUri) return;
+      const persisted = await persistProductImage(pickedUri);
+      if (!persisted) {
+        showToast(t('product_photo_persist_failed'), 'error');
+        return;
+      }
+      setImageUri(persisted);
+    } catch (error) {
+      console.error('Ürün fotoğrafı yüklenemedi:', error);
+      showToast(t('product_photo_failed'), 'error');
+    }
   };
 
   const saveProduct = async (finalDate) => {

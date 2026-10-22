@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, RefreshCo
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import TimePickerModal from '../components/TimePickerModal';
-import { requestPermissions, scheduleDailyReminder, cancelAllReminders, sendTestNotification, getScheduledNotifications, isNotificationsAvailable } from '../utils/notifications';
+import { requestPermissions, scheduleDailyReminder, cancelDailyReminder, sendTestNotification, getScheduledNotifications, isNotificationsAvailable } from '../utils/notifications';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
@@ -45,7 +45,7 @@ export default function NotificationsScreen({ navigation }) {
     if (value) {
       const granted = await requestPermissions();
       if (!granted) { showToast(t('notification_permission_denied'), 'error'); return; }
-      const [h, m] = settings.reminderTime.split(':').map(n => parseInt(n));
+      const [h, m] = settings.reminderTime.split(':').map(n => parseInt(n, 10));
       const id = await scheduleDailyReminder(h, m, notificationMessage, locale);
       if (id) {
         updateSettings('dailyReminder', true);
@@ -53,7 +53,7 @@ export default function NotificationsScreen({ navigation }) {
         loadScheduledCount();
       } else { showToast(t('notification_schedule_failed'), 'error'); }
     } else {
-      const cancelled = await cancelAllReminders();
+      const cancelled = await cancelDailyReminder();
       if (!cancelled) {
         showToast(t('notification_cancel_failed'), 'error');
         return;
@@ -67,17 +67,31 @@ export default function NotificationsScreen({ navigation }) {
   const handleTimeChange = async (newTime) => {
     updateSettings('reminderTime', newTime);
     if (settings.dailyReminder) {
-      const [h, m] = newTime.split(':').map(n => parseInt(n));
+      const [h, m] = newTime.split(':').map(n => parseInt(n, 10));
       const id = await scheduleDailyReminder(h, m, notificationMessage, locale);
-      if (id) { showToast(t('notification_time_updated', { time: newTime }), 'success'); loadScheduledCount(); }
-    } else { showToast(t('notification_time_saved', { time: newTime }), 'info'); }
+      if (id) {
+        showToast(t('notification_time_updated', { time: newTime }), 'success');
+        loadScheduledCount();
+      } else {
+        showToast(t('notification_schedule_failed'), 'error');
+      }
+    } else {
+      showToast(t('notification_time_saved', { time: newTime }), 'info');
+    }
   };
 
   const handleMessageBlur = async () => {
     updateSettings('notificationMessage', notificationMessage);
     if (settings.dailyReminder) {
-      const [h, m] = settings.reminderTime.split(':').map(n => parseInt(n));
-      await scheduleDailyReminder(h, m, notificationMessage, locale);
+      const [h, m] = settings.reminderTime.split(':').map(n => parseInt(n, 10));
+      const id = await scheduleDailyReminder(h, m, notificationMessage, locale);
+      if (id) {
+        showToast(t('notification_message_saved'), 'success');
+        loadScheduledCount();
+      } else {
+        showToast(t('notification_schedule_failed'), 'error');
+      }
+      return;
     }
     showToast(t('notification_message_saved'), 'success');
   };

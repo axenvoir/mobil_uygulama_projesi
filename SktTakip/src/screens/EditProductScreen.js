@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo } from 'react';
+import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Image, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -10,28 +10,54 @@ import { notifySuccess, notifyError } from '../utils/haptics';
 import { shareSingleProduct } from '../utils/shareUtils';
 import { addProductToCalendar } from '../utils/calendarUtils';
 import { isValidDateString, isValidQuantity, sanitizeInput } from '../utils/validators';
+import { persistProductImage } from '../utils/imagePersistence';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatDate } from '../utils/formatters';
 
 export default function EditProductScreen({ route, navigation }) {
-  const { product } = route.params;
-  const { updateProduct, deleteProduct, showToast, settings } = useContext(AppContext);
+  const productId = route.params?.productId ?? route.params?.product?.id;
+  const { products, updateProduct, deleteProduct, showToast, settings } = useContext(AppContext);
+  const product = products.find((item) => item.id === productId) || route.params?.product || null;
   const { colors } = useTheme();
   const { t, locale } = useTranslation();
   const responsive = useResponsive();
   const { isTablet, scale } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
 
-  const [name, setName] = useState(product.name || '');
-  const [productCode, setProductCode] = useState(product.productCode || '');
-  const [category, setCategory] = useState(product.category || '');
-  const [expDate, setExpDate] = useState(product.expDate || '');
-  const [quantity, setQuantity] = useState(product.quantity || '');
-  const [note, setNote] = useState(product.note || '');
-  const [imageUri, setImageUri] = useState(product.imageUri || null);
+  const [name, setName] = useState(product?.name || '');
+  const [productCode, setProductCode] = useState(product?.productCode || '');
+  const [category, setCategory] = useState(product?.category || '');
+  const [expDate, setExpDate] = useState(product?.expDate || '');
+  const [quantity, setQuantity] = useState(product?.quantity || '');
+  const [note, setNote] = useState(product?.note || '');
+  const [imageUri, setImageUri] = useState(product?.imageUri || null);
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  useEffect(() => {
+    if (!product) {
+      showToast(t('product_not_found'), 'error');
+      navigation.goBack();
+    }
+  }, [product, navigation, showToast, t]);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (!product) return;
+    setName(product.name || '');
+    setProductCode(product.productCode || '');
+    setCategory(product.category || '');
+    setExpDate(product.expDate || '');
+    setQuantity(product.quantity || '');
+    setNote(product.note || '');
+    setImageUri(product.imageUri || null);
+  }, [product]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  if (!product) {
+    return <View style={[styles.container, { backgroundColor: colors.background }]} />;
+  }
 
   const handleUpdate = async () => {
     if (!name.trim()) { if (settings.hapticsEnabled) await notifyError(); showToast(t('product_name_required'), 'error'); return; }
@@ -83,20 +109,32 @@ export default function EditProductScreen({ route, navigation }) {
 
   const pickImage = async (fromCamera = false) => {
     try {
+      let pickedUri = null;
       if (fromCamera) {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') { showToast(t('product_camera_permission'), 'error'); return; }
         const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.7 });
-        if (!result.canceled) setImageUri(result.assets[0].uri);
+        if (!result.canceled) pickedUri = result.assets[0].uri;
       } else {
         if (Platform.OS === 'ios') {
           const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
           if (status !== 'granted') { showToast(t('product_photo_permission'), 'error'); return; }
         }
         const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.7 });
-        if (!result.canceled) setImageUri(result.assets[0].uri);
+        if (!result.canceled) pickedUri = result.assets[0].uri;
       }
-    } catch (error) { console.error('Ürün fotoğrafı yüklenemedi:', error); showToast(t('product_photo_failed'), 'error'); }
+
+      if (!pickedUri) return;
+      const persisted = await persistProductImage(pickedUri);
+      if (!persisted) {
+        showToast(t('product_photo_persist_failed'), 'error');
+        return;
+      }
+      setImageUri(persisted);
+    } catch (error) {
+      console.error('Ürün fotoğrafı yüklenemedi:', error);
+      showToast(t('product_photo_failed'), 'error');
+    }
   };
 
   const photoSize = scale(isTablet ? 180 : 140);

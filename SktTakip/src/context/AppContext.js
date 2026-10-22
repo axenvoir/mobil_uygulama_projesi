@@ -2,6 +2,8 @@ import React, { createContext, useState, useEffect, useRef, useCallback } from '
 import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from '../utils/i18n';
+import { normalizeNoteList, normalizeProductList } from '../utils/validators';
+import { syncRemindersFromSettings } from '../utils/notifications';
 
 const DEFAULT_SETTINGS = {
   dailyReminder: false,
@@ -30,6 +32,36 @@ const parseStoredValue = (value, key, fallback) => {
   }
 };
 
+const normalizeSettings = (loadedSettings) => {
+  const merged = { ...DEFAULT_SETTINGS, ...(loadedSettings || {}) };
+  if (typeof merged.dailyReminder !== 'boolean') merged.dailyReminder = DEFAULT_SETTINGS.dailyReminder;
+  if (typeof merged.instantNotifications !== 'boolean') merged.instantNotifications = DEFAULT_SETTINGS.instantNotifications;
+  if (typeof merged.hapticsEnabled !== 'boolean') merged.hapticsEnabled = DEFAULT_SETTINGS.hapticsEnabled;
+  if (
+    typeof merged.reminderTime !== 'string'
+    || !/^\d{2}:\d{2}$/.test(merged.reminderTime)
+    || Number(merged.reminderTime.slice(0, 2)) > 23
+    || Number(merged.reminderTime.slice(3, 5)) > 59
+  ) {
+    merged.reminderTime = DEFAULT_SETTINGS.reminderTime;
+  }
+  if (merged.notificationMessage !== undefined && typeof merged.notificationMessage !== 'string') {
+    delete merged.notificationMessage;
+  }
+  return merged;
+};
+
+const normalizeProfile = (loadedProfile) => {
+  const profile = { ...DEFAULT_PROFILE, ...(loadedProfile || {}) };
+  if (typeof profile.name !== 'string') profile.name = DEFAULT_PROFILE.name;
+  if (typeof profile.avatarColor !== 'string' || !/^#[\da-f]{6}$/i.test(profile.avatarColor)) {
+    profile.avatarColor = DEFAULT_PROFILE.avatarColor;
+  }
+  if (!['tr', 'en'].includes(profile.language)) profile.language = DEFAULT_PROFILE.language;
+  if (typeof profile.biometricsEnabled !== 'boolean') profile.biometricsEnabled = false;
+  return profile;
+};
+
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
@@ -51,6 +83,11 @@ export const AppProvider = ({ children }) => {
   const saveQueue = useRef(Promise.resolve());
   const appState = useRef(AppState.currentState);
   const backgroundTime = useRef(null);
+  const settingsRef = useRef(settings);
+  const localeRef = useRef(locale);
+
+  settingsRef.current = settings;
+  localeRef.current = locale;
 
   const showToast = useCallback((message, type = 'success', duration = 2500, action = null) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -104,12 +141,14 @@ export const AppProvider = ({ children }) => {
           throw new Error('Yerel profil kayıtlarının biçimi geçersiz.');
         }
 
-        setProducts(loadedProducts);
-        setNotes(loadedNotes);
-        setSettings({ ...DEFAULT_SETTINGS, ...loadedSettings });
+        const nextProducts = normalizeProductList(loadedProducts);
+        const nextNotes = normalizeNoteList(loadedNotes);
+        const nextSettings = normalizeSettings(loadedSettings);
+        const profile = normalizeProfile(loadedProfile);
 
-        const profile = { ...DEFAULT_PROFILE, ...loadedProfile };
-        if (!['tr', 'en'].includes(profile.language)) profile.language = DEFAULT_PROFILE.language;
+        setProducts(nextProducts);
+        setNotes(nextNotes);
+        setSettings(nextSettings);
         setUserProfile(profile);
         i18n.locale = profile.language || 'tr';
         setLocale(i18n.locale);
@@ -136,6 +175,24 @@ export const AppProvider = ({ children }) => {
     }
   }, [products, notes, settings, userProfile, isLoading, loadError, showToast]);
 
+  // Align OS reminders once after each successful load attempt.
+  useEffect(() => {
+    if (isLoading || loadError) return undefined;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        await syncRemindersFromSettings(settingsRef.current, localeRef.current);
+      } catch (error) {
+        if (!cancelled) console.error('Hatırlatıcılar senkronize edilemedi:', error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoading, loadError, loadAttempt]);
+
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
@@ -161,26 +218,29 @@ export const AppProvider = ({ children }) => {
   const addProduct = (product) => setProducts(current => [...current, { ...product, id: createId() }]);
 
   const deleteProduct = (id, options = {}) => {
-    const deleted = products.find(product => product.id === id);
-    if (!deleted) return;
-    setProducts(current => current.filter(product => product.id !== id));
+    let deleted = null;
+    setProducts(current => {
+      deleted = current.find(product => product.id === id) || null;
+      if (!deleted) return current;
+      return current.filter(product => product.id !== id);
+    });
 
-    if (options.withUndo) {
-      undoStack.current = { type: 'product', data: deleted };
-      if (undoTimer.current) clearTimeout(undoTimer.current);
-      showToast(`"${deleted.name}" silindi`, 'info', 5000, {
-        label: 'Geri Al',
-        onPress: () => {
-          if (undoStack.current?.type === 'product') {
-            const product = undoStack.current.data;
-            setProducts(current => current.some(item => item.id === product.id) ? current : [...current, product]);
-            undoStack.current = null;
-            showToast('Geri alındı', 'success');
-          }
-        },
-      });
-      undoTimer.current = setTimeout(() => { undoStack.current = null; }, 5000);
-    }
+    if (!deleted || !options.withUndo) return;
+
+    undoStack.current = { type: 'product', data: deleted };
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+    showToast(`"${deleted.name}" silindi`, 'info', 5000, {
+      label: 'Geri Al',
+      onPress: () => {
+        if (undoStack.current?.type === 'product') {
+          const product = undoStack.current.data;
+          setProducts(current => current.some(item => item.id === product.id) ? current : [...current, product]);
+          undoStack.current = null;
+          showToast('Geri alındı', 'success');
+        }
+      },
+    });
+    undoTimer.current = setTimeout(() => { undoStack.current = null; }, 5000);
   };
 
   const updateProduct = (id, updatedProduct) => {
@@ -195,26 +255,29 @@ export const AppProvider = ({ children }) => {
   }]);
 
   const deleteNote = (id, options = {}) => {
-    const deleted = notes.find(note => note.id === id);
-    if (!deleted) return;
-    setNotes(current => current.filter(note => note.id !== id));
+    let deleted = null;
+    setNotes(current => {
+      deleted = current.find(note => note.id === id) || null;
+      if (!deleted) return current;
+      return current.filter(note => note.id !== id);
+    });
 
-    if (options.withUndo) {
-      undoStack.current = { type: 'note', data: deleted };
-      if (undoTimer.current) clearTimeout(undoTimer.current);
-      showToast(`"${deleted.title}" silindi`, 'info', 5000, {
-        label: 'Geri Al',
-        onPress: () => {
-          if (undoStack.current?.type === 'note') {
-            const note = undoStack.current.data;
-            setNotes(current => current.some(item => item.id === note.id) ? current : [...current, note]);
-            undoStack.current = null;
-            showToast('Geri alındı', 'success');
-          }
-        },
-      });
-      undoTimer.current = setTimeout(() => { undoStack.current = null; }, 5000);
-    }
+    if (!deleted || !options.withUndo) return;
+
+    undoStack.current = { type: 'note', data: deleted };
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+    showToast(`"${deleted.title}" silindi`, 'info', 5000, {
+      label: 'Geri Al',
+      onPress: () => {
+        if (undoStack.current?.type === 'note') {
+          const note = undoStack.current.data;
+          setNotes(current => current.some(item => item.id === note.id) ? current : [...current, note]);
+          undoStack.current = null;
+          showToast('Geri alındı', 'success');
+        }
+      },
+    });
+    undoTimer.current = setTimeout(() => { undoStack.current = null; }, 5000);
   };
 
   const updateNote = (id, updatedNote) => {
@@ -229,11 +292,12 @@ export const AppProvider = ({ children }) => {
   const updateProfile = (key, value) => setUserProfile(current => ({ ...current, [key]: value }));
 
   const replaceAppData = async (data = {}) => {
+    const nextLocaleCandidate = data.userProfile?.language;
     const nextData = {
-      products: Array.isArray(data.products) ? data.products : [],
-      notes: Array.isArray(data.notes) ? data.notes : [],
-      settings: { ...DEFAULT_SETTINGS, ...(data.settings || {}) },
-      userProfile: { ...DEFAULT_PROFILE, ...(data.userProfile || {}) },
+      products: normalizeProductList(Array.isArray(data.products) ? data.products : []),
+      notes: normalizeNoteList(Array.isArray(data.notes) ? data.notes : []),
+      settings: normalizeSettings(data.settings || {}),
+      userProfile: normalizeProfile(data.userProfile || {}),
     };
 
     await queueSave(nextData);
@@ -243,16 +307,19 @@ export const AppProvider = ({ children }) => {
     setUserProfile(nextData.userProfile);
     const nextLocale = ['tr', 'en'].includes(nextData.userProfile.language)
       ? nextData.userProfile.language
-      : DEFAULT_PROFILE.language;
+      : (['tr', 'en'].includes(nextLocaleCandidate) ? nextLocaleCandidate : DEFAULT_PROFILE.language);
     setLocale(nextLocale);
     i18n.locale = nextLocale;
     setSelectedCategory('Tümü');
     setIsLocked(false);
+
+    const syncResult = await syncRemindersFromSettings(nextData.settings, nextLocale);
+    return syncResult;
   };
 
   const resetAppData = async () => {
     await AsyncStorage.removeItem('@searchHistory');
-    await replaceAppData();
+    return replaceAppData();
   };
 
   const retryLoadData = useCallback(() => setLoadAttempt(attempt => attempt + 1), []);
@@ -266,8 +333,8 @@ export const AppProvider = ({ children }) => {
     setUserProfile(prev => ({ ...prev, language: lang }));
   };
 
-  const lockApp = () => setIsLocked(true);
-  const unlockApp = () => setIsLocked(false);
+  const lockApp = useCallback(() => setIsLocked(true), []);
+  const unlockApp = useCallback(() => setIsLocked(false), []);
 
   return (
     <AppContext.Provider value={{

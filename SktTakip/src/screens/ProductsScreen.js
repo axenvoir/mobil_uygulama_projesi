@@ -204,7 +204,7 @@ export default function ProductsScreen({ route, navigation }) {
     } catch (error) { console.error('Toplu kategori güncellenemedi:', error); showToast('Kategori güncellenemedi.', 'error'); }
   };
 
-  const openDetail = (item) => { navigation.navigate('ProductDetail', { product: item }); };
+  const openDetail = (item) => { navigation.navigate('ProductDetail', { productId: item.id }); };
 
   const renderRightActions = (progress, dragX, item) => {
     const trans = dragX.interpolate({ inputRange: [-100, 0], outputRange: [0, 100], extrapolate: 'clamp' });
@@ -544,5 +544,8 @@ const createStyles = (colors, responsive) => {
     modalCategoryRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: scale(14), borderBottomWidth: 1, borderBottomColor: colors.border },
     modalCategoryIcon: { width: scale(44), height: scale(44), borderRadius: scale(22), justifyContent: 'center', alignItems: 'center', marginRight: scale(14) },
     modalCategoryText: { flex: 1, fontSize: moderateScale(TYPOGRAPHY.body, 0.3), fontWeight: '700', color: colors.text },
+    swipeDelete: { width: scale(88), justifyContent: 'center', alignItems: 'center', borderRadius: scale(20), marginBottom: scale(12), marginLeft: scale(8) },
+    swipeEdit: { width: scale(88), justifyContent: 'center', alignItems: 'center', borderRadius: scale(20), marginBottom: scale(12), marginRight: scale(8) },
+    swipeDeleteText: { color: colors.white, fontSize: moderateScale(TYPOGRAPHY.small, 0.3), fontWeight: '800', marginTop: scale(4) },
   });
 };

@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
@@ -47,12 +47,20 @@ function MainTabs() {
 function AppContent() {
   const { isLoading, loadError, retryLoadData, toast, userProfile, isLocked, lockApp, hideToast } = useContext(AppContext);
   const { colors, isDark } = useTheme();
+  // Lock only after cold/reload data load — not when the user enables biometrics mid-session.
+  const shouldLockWhenReady = useRef(true);
 
   useEffect(() => {
-    if (!isLoading && userProfile.biometricsEnabled) {
+    if (isLoading) {
+      shouldLockWhenReady.current = true;
+      return;
+    }
+    if (loadError) return;
+    if (shouldLockWhenReady.current && userProfile.biometricsEnabled) {
       lockApp();
     }
-  }, [isLoading, userProfile.biometricsEnabled]);
+    shouldLockWhenReady.current = false;
+  }, [isLoading, loadError, userProfile.biometricsEnabled, lockApp]);
 
   if (isLoading) return <LoadingScreen />;
   if (loadError) {

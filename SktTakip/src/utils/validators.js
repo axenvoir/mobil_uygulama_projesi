@@ -28,3 +28,83 @@ export const sanitizeInput = (text) => {
   if (!text) return '';
   return text.trim();
 };
+
+const isValidHexColor = (value) => typeof value === 'string' && /^#[\da-f]{6}$/i.test(value);
+
+/** Normalize a stored product; returns null if it cannot be safely used. */
+export const normalizeProduct = (product, index = 0) => {
+  if (!product || typeof product !== 'object' || Array.isArray(product)) return null;
+
+  const name = typeof product.name === 'string' ? product.name.trim() : '';
+  if (!name) return null;
+  if (!isValidDateString(product.expDate)) return null;
+
+  const id = (typeof product.id === 'string' && product.id.trim())
+    || (typeof product.id === 'number' && Number.isFinite(product.id) ? String(product.id) : '')
+    || `recovered-product-${Date.now()}-${index}`;
+
+  return {
+    id: String(id),
+    name,
+    productCode: typeof product.productCode === 'string' ? product.productCode : '',
+    category: typeof product.category === 'string' && product.category.trim()
+      ? product.category.trim()
+      : 'Diğer',
+    expDate: product.expDate,
+    quantity: typeof product.quantity === 'string' || typeof product.quantity === 'number'
+      ? String(product.quantity)
+      : '',
+    note: typeof product.note === 'string' ? product.note : '',
+    imageUri: typeof product.imageUri === 'string' && product.imageUri.trim()
+      ? product.imageUri
+      : null,
+  };
+};
+
+/** Normalize a stored note; returns null if it cannot be safely used. */
+export const normalizeNote = (note, index = 0) => {
+  if (!note || typeof note !== 'object' || Array.isArray(note)) return null;
+
+  const title = typeof note.title === 'string' ? note.title.trim() : '';
+  const desc = typeof note.desc === 'string' ? note.desc.trim() : '';
+  if (!title && !desc) return null;
+
+  const id = (typeof note.id === 'string' && note.id.trim())
+    || (typeof note.id === 'number' && Number.isFinite(note.id) ? String(note.id) : '')
+    || `recovered-note-${Date.now()}-${index}`;
+
+  return {
+    id: String(id),
+    title: title || 'Not',
+    desc,
+    pinned: Boolean(note.pinned),
+    color: isValidHexColor(note.color) ? note.color : '#14B8A6',
+    date: typeof note.date === 'string' ? note.date : '',
+  };
+};
+
+export const normalizeProductList = (products) => {
+  if (!Array.isArray(products)) return [];
+  const seen = new Set();
+  const normalized = [];
+  products.forEach((product, index) => {
+    const item = normalizeProduct(product, index);
+    if (!item || seen.has(item.id)) return;
+    seen.add(item.id);
+    normalized.push(item);
+  });
+  return normalized;
+};
+
+export const normalizeNoteList = (notes) => {
+  if (!Array.isArray(notes)) return [];
+  const seen = new Set();
+  const normalized = [];
+  notes.forEach((note, index) => {
+    const item = normalizeNote(note, index);
+    if (!item || seen.has(item.id)) return;
+    seen.add(item.id);
+    normalized.push(item);
+  });
+  return normalized;
+};
