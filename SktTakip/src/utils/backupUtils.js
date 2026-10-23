@@ -4,6 +4,18 @@ import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 import { isValidDateString } from './validators';
 
+// Simple hash function for checksum
+const simpleHash = (str) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash.toString(16);
+};
+
+
 const BACKUP_APP = 'Expira';
 const BACKUP_VERSION = 1;
 
@@ -59,6 +71,7 @@ const isValidBackup = (backup) => (
   && backup.version === BACKUP_VERSION
   && Array.isArray(backup.products)
   && Array.isArray(backup.notes)
+  && (backup.checksum === undefined || typeof backup.checksum === 'string')
   && backup.products.every(product => (
     isRecord(product)
     && isValidId(product.id)
@@ -93,15 +106,20 @@ export const createBackup = async ({ products, notes, settings, userProfile, the
       return { success: false, error: 'Bu cihazda dosya paylaşımı kullanılamıyor.' };
     }
 
-    const backup = {
-      app: BACKUP_APP,
-      version: BACKUP_VERSION,
-      exportedAt: new Date().toISOString(),
+    const backupData = {
       products: products.map(withoutLocalImage),
       notes,
       settings,
       userProfile,
       themeMode,
+    };
+    
+    const backup = {
+      app: BACKUP_APP,
+      version: BACKUP_VERSION,
+      exportedAt: new Date().toISOString(),
+      checksum: simpleHash(JSON.stringify(backupData)),
+      ...backupData,
     };
 
     const file = new File(Paths.cache, `expira-backup-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.json`);

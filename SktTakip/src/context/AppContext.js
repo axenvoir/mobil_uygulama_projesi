@@ -27,8 +27,8 @@ const parseStoredValue = (value, key, fallback) => {
   try {
     return JSON.parse(value);
   } catch (error) {
-    console.error(`Yerel veri okunamadı (${key}):`, error);
-    throw error;
+    if (__DEV__) if (__DEV__) console.error(`Yerel veri okunamadı (${key}):`, error);
+    return fallback;
   }
 };
 
@@ -103,16 +103,19 @@ export const AppProvider = ({ children }) => {
     setToast(null);
   }, []);
 
-  const queueSave = (data) => {
-    const entries = [
-      ['@products', JSON.stringify(data.products)],
-      ['@notes', JSON.stringify(data.notes)],
-      ['@settings', JSON.stringify(data.settings)],
-      ['@userProfile', JSON.stringify(data.userProfile)],
-    ];
-    const save = saveQueue.current.catch(() => {}).then(() => AsyncStorage.multiSet(entries));
-    saveQueue.current = save;
-    return save;
+  const queueSave = async (data) => {
+    try {
+      const entries = [
+        ['@products', JSON.stringify(data.products)],
+        ['@notes', JSON.stringify(data.notes)],
+        ['@settings', JSON.stringify(data.settings)],
+        ['@userProfile', JSON.stringify(data.userProfile)],
+      ];
+      await AsyncStorage.multiSet(entries);
+    } catch (error) {
+      if (__DEV__) if (__DEV__) console.error('Veri kaydı hatası:', error);
+      throw error;
+    }
   };
 
   useEffect(() => {
@@ -153,7 +156,7 @@ export const AppProvider = ({ children }) => {
         i18n.locale = profile.language || 'tr';
         setLocale(i18n.locale);
       } catch (error) {
-        console.error('Uygulama verileri yüklenemedi:', error);
+        if (__DEV__) if (__DEV__) console.error('Uygulama verileri yüklenemedi:', error);
         if (mounted) setLoadError(error);
       } finally {
         if (mounted) setIsLoading(false);
@@ -169,7 +172,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     if (!isLoading && !loadError) {
       queueSave({ products, notes, settings, userProfile }).catch((error) => {
-        console.error('Uygulama verileri kaydedilemedi:', error);
+        if (__DEV__) if (__DEV__) console.error('Uygulama verileri kaydedilemedi:', error);
         showToast('Veriler cihaza kaydedilemedi. Uygulamayı kapatmadan tekrar deneyin.', 'error');
       });
     }
@@ -184,7 +187,7 @@ export const AppProvider = ({ children }) => {
       try {
         await syncRemindersFromSettings(settingsRef.current, localeRef.current);
       } catch (error) {
-        if (!cancelled) console.error('Hatırlatıcılar senkronize edilemedi:', error);
+        if (__DEV__ && !cancelled) if (__DEV__) console.error('Hatırlatıcılar senkronize edilemedi:', error);
       }
     })();
 
@@ -198,7 +201,7 @@ export const AppProvider = ({ children }) => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
         if (userProfile.biometricsEnabled) {
           const now = Date.now();
-          if (backgroundTime.current && now - backgroundTime.current > 30000) {
+          if (backgroundTime.current && now - backgroundTime.current > 5000) {
             setIsLocked(true);
           }
         }

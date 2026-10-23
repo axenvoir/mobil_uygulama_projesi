@@ -98,7 +98,7 @@ export const generateInventoryPDF = async (products, userName = 'Kullanıcı') =
     }
     return { success: true, uri };
   } catch (e) {
-    console.error('PDF oluşturma hatası:', e);
+    if (__DEV__) console.error('PDF oluşturma hatası:', e);
     return { success: false, error: e.message };
   }
 };
