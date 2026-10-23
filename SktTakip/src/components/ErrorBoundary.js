@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Updates from 'expo-updates';
+import i18n from '../utils/i18n';
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -33,14 +34,14 @@ export default class ErrorBoundary extends React.Component {
           <View style={styles.iconContainer}>
             <Ionicons name="warning" size={60} color="#EF4444" />
           </View>
-          <Text style={styles.title}>An Error Occurred</Text>
-          <Text style={styles.subtitle}>
-            The application encountered an unexpected error. Do not worry, your data is safe!
+          <Text style={styles.title} maxFontSizeMultiplier={2}>{i18n.t('error_title')}</Text>
+          <Text style={styles.subtitle} maxFontSizeMultiplier={2}>
+            {i18n.t('error_message')}
           </Text>
 
           <TouchableOpacity style={styles.button} onPress={this.handleRestart}>
             <Ionicons name="refresh" size={20} color="#FFFFFF" />
-            <Text style={styles.buttonText}>Restart Application</Text>
+            <Text style={styles.buttonText} maxFontSizeMultiplier={2}>{i18n.t('error_restart')}</Text>
           </TouchableOpacity>
         </View>
       );

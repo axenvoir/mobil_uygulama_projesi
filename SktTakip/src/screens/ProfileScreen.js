@@ -50,12 +50,12 @@ export default function ProfileScreen({ navigation }) {
     if (value) {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-      if (!hasHardware || !isEnrolled) { showToast('Biometric authentication is not available on this device.', 'error'); return; }
+      if (!hasHardware || !isEnrolled) { showToast(t('biometrics_unavailable'), 'error'); return; }
       const result = await LocalAuthentication.authenticateAsync({ promptMessage: 'Enable biometric lock' });
-      if (result.success) { updateProfile('biometricsEnabled', true); showToast('Biometric lock is enabled.', 'success'); }
+      if (result.success) { updateProfile('biometricsEnabled', true); showToast(t('biometrics_enabled'), 'success'); }
     } else {
       updateProfile('biometricsEnabled', false);
-      showToast('Biometric lock is disabled.', 'info');
+      showToast(t('biometrics_disabled'), 'info');
     }
   };
 
@@ -92,19 +92,19 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const handleExportPDF = async () => {
-    if (products.length === 0) { showToast('Add a product first for PDF.', 'error'); return; }
-    showToast('Creating PDF...', 'info');
+    if (products.length === 0) { showToast(t('pdf_empty'), 'error'); return; }
+    showToast(t('pdf_creating'), 'info');
     const result = await generateInventoryPDF(products, userProfile.name);
-    if (result.success) showToast('PDF is ready!', 'success');
-    else showToast(`PDF could not be created: ${result.error || 'Unknown error'}`, 'error');
+    if (result.success) showToast(t('pdf_ready'), 'success');
+    else showToast(t('pdf_failed', { error: result.error || t('unknown_error') }), 'error');
   };
 
   const handleCopyUserId = async () => {
     try {
       const info = `Expira v${Application.nativeApplicationVersion} (${Application.nativeBuildVersion})\nPackage: ${Application.applicationId}`;
       await Clipboard.setStringAsync(info);
-      showToast('Copied!', 'success');
-    } catch (error) { if (__DEV__) console.error('Profile info could not be copied to clipboard:', error); showToast('Could not copy.', 'error'); }
+      showToast(t('copied'), 'success');
+    } catch (error) { if (__DEV__) console.error('Profile info could not be copied to clipboard:', error); showToast(t('copy_failed'), 'error'); }
   };
 
   const cycleTheme = () => {

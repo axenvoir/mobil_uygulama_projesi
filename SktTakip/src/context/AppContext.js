@@ -174,7 +174,7 @@ export const AppProvider = ({ children }) => {
     if (!isLoading && !loadError) {
       queueSave({ products, notes, settings, userProfile }).catch((error) => {
         if (__DEV__) console.error('Application data could not be saved:', error);
-        showToast('Data could not be saved to device. Please try again without closing the app.', 'error');
+        showToast(i18n.t('data_save_failed'), 'error');
       });
     }
   }, [products, notes, settings, userProfile, isLoading, loadError, showToast]);
@@ -229,25 +229,21 @@ export const AppProvider = ({ children }) => {
   const addProduct = (product) => setProducts(current => [...current, { ...product, id: createId() }]);
 
   const deleteProduct = (id, options = {}) => {
-    let deleted = null;
-    setProducts(current => {
-      deleted = current.find(product => product.id === id) || null;
-      if (!deleted) return current;
-      return current.filter(product => product.id !== id);
-    });
+    const deleted = products.find(product => product.id === id) || null;
+    setProducts(current => current.filter(product => product.id !== id));
 
     if (!deleted || !options.withUndo) return;
 
     undoStack.current = { type: 'product', data: deleted };
     if (undoTimer.current) clearTimeout(undoTimer.current);
-    showToast(`"${deleted.name}" silindi`, 'info', 5000, {
-      label: 'Geri Al',
+    showToast(i18n.t('undo_product_deleted', { name: deleted.name }), 'info', 5000, {
+      label: i18n.t('undo_action'),
       onPress: () => {
         if (undoStack.current?.type === 'product') {
           const product = undoStack.current.data;
           setProducts(current => current.some(item => item.id === product.id) ? current : [...current, product]);
           undoStack.current = null;
-          showToast('Undone', 'success');
+          showToast(i18n.t('undo_done'), 'success');
         }
       },
     });
@@ -266,25 +262,21 @@ export const AppProvider = ({ children }) => {
   }]);
 
   const deleteNote = (id, options = {}) => {
-    let deleted = null;
-    setNotes(current => {
-      deleted = current.find(note => note.id === id) || null;
-      if (!deleted) return current;
-      return current.filter(note => note.id !== id);
-    });
+    const deleted = notes.find(note => note.id === id) || null;
+    setNotes(current => current.filter(note => note.id !== id));
 
     if (!deleted || !options.withUndo) return;
 
     undoStack.current = { type: 'note', data: deleted };
     if (undoTimer.current) clearTimeout(undoTimer.current);
-    showToast(`"${deleted.title}" silindi`, 'info', 5000, {
-      label: 'Geri Al',
+    showToast(i18n.t('undo_note_deleted', { title: deleted.title }), 'info', 5000, {
+      label: i18n.t('undo_action'),
       onPress: () => {
         if (undoStack.current?.type === 'note') {
           const note = undoStack.current.data;
           setNotes(current => current.some(item => item.id === note.id) ? current : [...current, note]);
           undoStack.current = null;
-          showToast('Undone', 'success');
+          showToast(i18n.t('undo_done'), 'success');
         }
       },
     });

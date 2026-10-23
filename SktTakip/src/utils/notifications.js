@@ -1,4 +1,6 @@
 import { isRunningInExpoGo } from 'expo';
+import tr from '../translations/tr.json';
+import en from '../translations/en.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
@@ -123,13 +125,10 @@ export const scheduleDailyReminder = async (hour, minute, customMessage = null, 
   try {
     if (!(await cancelDailyReminder())) return null;
 
+    const strings = locale === 'en' ? en : tr;
     const content = {
-      title: locale === 'en' ? '⏰ Expira Reminder' : '⏰ Expira Reminder',
-      body: customMessage || (
-        locale === 'en'
-          ? "Don't forget to check your fridge! Some products may be close to expiry."
-          : "Don't forget to check your fridge! Some products may be close to expiry."
-      ),
+      title: strings.notification_reminder_title,
+      body: customMessage || strings.notification_reminder_body,
       sound: true,
     };
 
@@ -191,12 +190,8 @@ export const sendTestNotification = async (customMessage = null, locale = 'tr') 
   try {
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: locale === 'en' ? '🎉 Expira Test Notification' : '🎉 Expira Test Notification',
-        body: customMessage || (
-          locale === 'en'
-            ? 'Notifications are working! You can now keep track of your product expiry dates.'
-            : 'Great! Your notifications are working. You can now track your product expiry dates.'
-        ),
+        title: (locale === 'en' ? en : tr).notification_test_title,
+        body: customMessage || (locale === 'en' ? en : tr).notification_test_body,
         sound: true,
         ...(Platform.OS === 'android' ? { channelId: 'default' } : {}),
       },
