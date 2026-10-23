@@ -27,11 +27,13 @@
       "channel": "production",
       "distribution": "store",
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "withoutCredentials": false
       },
       "env": {
         "EXPO_USE_HERMES": "0",
-        "ANDROID_PROGUARD_MAPPING": "true"
+        "ANDROID_PROGUARD_MAPPING": "true",
+        "ANDROID_PROGUARD_RULES": "proguard-rules.pro"
       }
     }
   },
