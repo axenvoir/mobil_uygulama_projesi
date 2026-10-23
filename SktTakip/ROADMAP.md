@@ -10,16 +10,29 @@ This document outlines the comprehensive update plan for Expira app from v1.1.3 
 ### Completed Fixes
 - [x] Google Play Console version code conflict resolved (versionCode: 1 → 30)
 - [x] ProGuard/R8 mapping file configuration added (`ANDROID_PROGUARD_MAPPING: "true"`)
-- [x] POST_NOTIFICATIONS permission syntax fixed
+- [x] POST_NOTIFICATIONS permission verified correct in `app.json`
 - [x] GitHub Actions dependencies updated (setup-node@v4→v5, setup-java@v4→v5, Node.js 20→22)
 - [x] All Turkish comments removed from source code
 - [x] All double `__DEV__` checks fixed to single
 - [x] All console statements properly wrapped with `if (__DEV__)`
+- [x] Version aligned to 1.1.3 across `app.json`, `package.json`, `package-lock.json` and release docs
+- [x] System (device) language is now the default; the app re-resolves locale on foreground return
+- [x] Accessibility: `maxFontSizeMultiplier`, screen-reader labels/states, WCAG AA tab contrast
+- [x] deleteProduct/deleteNote state-updater race condition fixed (undo toast now reliable)
+- [x] LoadingScreen Animated.loop leak fixed (animations stopped on unmount)
+- [x] Daily reminder and test notification content localized (TR/EN)
+- [x] Calendar permission cache given a 5-minute TTL (revocation detected)
+- [x] 40+ hardcoded UI strings migrated to i18n (TR/EN parity enforced by tests)
+- [x] Backup restore verifies checksums; corrupted files rejected
+- [x] Bulk category change batched into a single state update (`updateProducts`)
+- [x] Jest test infrastructure added (59 tests: validators, formatters, translation parity)
+- [x] `Tests` CI workflow added (lint + jest on PRs and on `main`)
 
 ### Known Issues
-- [x] POST_NOTIFICATIONS permission verified correct in app.json
-- [ ] Design system not yet implemented
+- [ ] Design system v2.0 not yet implemented (`src/theme.js` remains the source of truth for the shipped UI)
 - [ ] v1.2.0 features not yet developed
+- [ ] Component/integration tests not yet covered (current suites are pure-logic only)
+
 
 ---
 
