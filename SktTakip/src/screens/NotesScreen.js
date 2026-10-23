@@ -56,7 +56,7 @@ export default function NotesScreen({ navigation }) {
         <TouchableOpacity
           onPress={() => {
             togglePin(note.id);
-            showToast(note.pinned ? 'Sabitleme kaldırıldı.' : 'Not sabitlendi.', 'info');
+            showToast(note.pinned ? 'Unpinned.' : 'Note pinned.', 'info');
           }}
           accessibilityRole="button"
           accessibilityLabel={t(note.pinned ? 'notes_unpin' : 'notes_pin')}

@@ -36,8 +36,8 @@ export default function UpdateModal({ visible, status, onUpdate, onCancel, error
         return (
           <>
             <ActivityIndicator size="large" color={colors.primary} style={{ marginBottom: scale(16) }} />
-            <Text style={styles.title}>Güncellemeler Kontrol Ediliyor...</Text>
-            <Text style={styles.message}>Lütfen bekleyin, sunucuya bağlanılıyor.</Text>
+            <Text style={styles.title}>Checking for Updates...</Text>
+            <Text style={styles.message}>Please wait, connecting to the server.</Text>
           </>
         );
       case 'available':
@@ -46,14 +46,14 @@ export default function UpdateModal({ visible, status, onUpdate, onCancel, error
             <View style={[styles.iconBox, { backgroundColor: colors.primary + '15' }]}>
               <Ionicons name="cloud-download-outline" size={scale(40)} color={colors.primary} />
             </View>
-            <Text style={styles.title}>Yeni Güncelleme Hazır!</Text>
-            <Text style={styles.message}>Expira&apos;nın yeni sürümü mevcut. Performans ve hata düzeltmeleri için güncellemeniz önerilir.</Text>
+            <Text style={styles.title}>New Update Available!</Text>
+            <Text style={styles.message}>A new version of Expira is available. We recommend updating for performance improvements and bug fixes.</Text>
             <View style={styles.btnRow}>
               <TouchableOpacity style={[styles.btn, styles.cancelBtn, { borderColor: colors.border }]} onPress={onCancel}>
-                <Text style={[styles.btnText, { color: colors.textLight }]}>Daha Sonra</Text>
+                <Text style={[styles.btnText, { color: colors.textLight }]}>Later</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.btn, styles.confirmBtn, { backgroundColor: colors.primary }]} onPress={onUpdate}>
-                <Text style={[styles.btnText, { color: colors.onPrimary }]}>İndir ve Kur</Text>
+                <Text style={[styles.btnText, { color: colors.onPrimary }]}>Download & Install</Text>
               </TouchableOpacity>
             </View>
           </>
@@ -62,8 +62,8 @@ export default function UpdateModal({ visible, status, onUpdate, onCancel, error
         return (
           <>
             <ActivityIndicator size="large" color={colors.warning} style={{ marginBottom: scale(16) }} />
-            <Text style={styles.title}>Güncelleme İndiriliyor...</Text>
-            <Text style={styles.message}>Lütfen uygulamayı kapatmayın. İndirme tamamlandığında yeniden başlatmanız istenecek.</Text>
+            <Text style={styles.title}>Downloading Update...</Text>
+            <Text style={styles.message}>Please do not close the app. You will be prompted to restart once the download is complete.</Text>
           </>
         );
       case 'ready':
@@ -72,14 +72,14 @@ export default function UpdateModal({ visible, status, onUpdate, onCancel, error
             <View style={[styles.iconBox, { backgroundColor: colors.success + '15' }]}>
               <Ionicons name="checkmark-circle-outline" size={scale(40)} color={colors.success} />
             </View>
-            <Text style={styles.title}>Güncelleme İndirildi!</Text>
-            <Text style={styles.message}>Yeni sürümü kullanmaya başlamak için uygulamayı yeniden başlatmalısınız.</Text>
+            <Text style={styles.title}>Update Downloaded!</Text>
+            <Text style={styles.message}>To start using the new version, you need to restart the app.</Text>
             <View style={styles.btnRow}>
               <TouchableOpacity style={[styles.btn, styles.cancelBtn, { borderColor: colors.border }]} onPress={onCancel}>
-                <Text style={[styles.btnText, { color: colors.textLight }]}>Daha Sonra</Text>
+                <Text style={[styles.btnText, { color: colors.textLight }]}>Later</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.btn, styles.confirmBtn, { backgroundColor: colors.success }]} onPress={onUpdate}>
-                <Text style={[styles.btnText, { color: colors.onSuccess }]}>Yeniden Başlat</Text>
+                <Text style={[styles.btnText, { color: colors.onSuccess }]}>Restart</Text>
               </TouchableOpacity>
             </View>
           </>
@@ -90,11 +90,11 @@ export default function UpdateModal({ visible, status, onUpdate, onCancel, error
             <View style={[styles.iconBox, { backgroundColor: colors.danger + '15' }]}>
               <Ionicons name="warning-outline" size={scale(40)} color={colors.danger} />
             </View>
-            <Text style={styles.title}>Güncelleme Hatası</Text>
-            <Text style={styles.message}>{errorMessage || 'Güncelleme kontrol edilirken bir hata oluştu. İnternet bağlantınızı kontrol edin.'}</Text>
+            <Text style={styles.title}>Update Error</Text>
+            <Text style={styles.message}>{errorMessage || 'An error occurred while checking for updates. Please check your internet connection.'}</Text>
             <View style={styles.btnRow}>
               <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surfaceAlt }]} onPress={onCancel}>
-                <Text style={[styles.btnText, { color: colors.text }]}>Kapat</Text>
+                <Text style={[styles.btnText, { color: colors.text }]}>Close</Text>
               </TouchableOpacity>
             </View>
           </>
@@ -105,11 +105,11 @@ export default function UpdateModal({ visible, status, onUpdate, onCancel, error
             <View style={[styles.iconBox, { backgroundColor: colors.success + '15' }]}>
               <Ionicons name="checkmark-done-circle-outline" size={scale(40)} color={colors.success} />
             </View>
-            <Text style={styles.title}>Uygulamanız Güncel!</Text>
-            <Text style={styles.message}>Şu anda kullanabileceğiniz en son sürüme sahipsiniz.</Text>
+            <Text style={styles.title}>Your App is Up to Date!</Text>
+            <Text style={styles.message}>You have the latest version available.</Text>
             <View style={styles.btnRow}>
               <TouchableOpacity style={[styles.btn, { backgroundColor: colors.primary }]} onPress={onCancel}>
-                <Text style={[styles.btnText, { color: colors.onPrimary }]}>Tamam</Text>
+                <Text style={[styles.btnText, { color: colors.onPrimary }]}>OK</Text>
               </TouchableOpacity>
             </View>
           </>

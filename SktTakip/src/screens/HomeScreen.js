@@ -37,7 +37,7 @@ export default function HomeScreen({ navigation }) {
     ? upcomingProducts
     : products.slice(-3).reverse();
   const openProducts = (filter) => {
-    setSelectedCategory('Tümü');
+    setSelectedCategory('All');
     navigation.navigate('Products', { filter });
   };
 

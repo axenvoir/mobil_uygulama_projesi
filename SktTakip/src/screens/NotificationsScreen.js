@@ -105,7 +105,7 @@ export default function NotificationsScreen({ navigation }) {
   };
 
   const openProducts = (filter) => {
-    setSelectedCategory('Tümü');
+    setSelectedCategory('All');
     navigation.navigate('Products', { filter });
   };
 

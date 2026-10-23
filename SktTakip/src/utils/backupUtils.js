@@ -100,10 +100,10 @@ const isValidBackup = (backup) => (
 export const createBackup = async ({ products, notes, settings, userProfile, themeMode }) => {
   try {
     if (Platform.OS === 'web') {
-      return { success: false, error: 'Yedek dosyası paylaşımı web sürümünde desteklenmiyor.' };
+      return { success: false, error: 'Sharing backup files is not supported on the web version.' };
     }
     if (!(await Sharing.isAvailableAsync())) {
-      return { success: false, error: 'Bu cihazda dosya paylaşımı kullanılamıyor.' };
+      return { success: false, error: 'File sharing is not available on this device.' };
     }
 
     const backupData = {
@@ -127,11 +127,11 @@ export const createBackup = async ({ products, notes, settings, userProfile, the
     file.write(JSON.stringify(backup, null, 2));
     await Sharing.shareAsync(file.uri, {
       mimeType: 'application/json',
-      dialogTitle: 'Expira yedeğini paylaş',
+      dialogTitle: 'Share Expira Backup',
     });
     return { success: true };
   } catch (error) {
-    return { success: false, error: error.message || 'Yedek dosyası oluşturulamadı.' };
+    return { success: false, error: error.message || 'Backup file could not be created.' };
   }
 };
 
@@ -149,7 +149,7 @@ export const restoreBackup = async () => {
       : new File(asset.uri).textSync();
     const backup = JSON.parse(contents);
     if (!isValidBackup(backup)) {
-      return { success: false, error: 'Dosya geçerli bir Expira yedeği değil veya biçimi desteklenmiyor.' };
+      return { success: false, error: 'File is not a valid Expira backup or format is not supported.' };
     }
 
     return {
@@ -162,6 +162,6 @@ export const restoreBackup = async () => {
       stats: { products: backup.products.length, notes: backup.notes.length },
     };
   } catch (error) {
-    return { success: false, error: error.message || 'Yedek dosyası okunamadı.' };
+    return { success: false, error: error.message || 'Backup file could not be read.' };
   }
 };

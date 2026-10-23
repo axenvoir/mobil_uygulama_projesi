@@ -1,7 +1,9 @@
 import { Share } from 'react-native';
 import { getDaysLeft } from './formatters';
 
-const MONTHS_TR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+// Turkish month names kept for reference
+// const MONTHS_TR = ['Ocak', 'Subat', 'Mart', 'Nisan', 'Mayis', 'Haziran', 'Temmuz', 'Agustos', 'Eylul', 'Ekim', 'Kasim', 'Aralik'];
+
 
 export const shareProductList = async (products, userName = 'User') => {
   const today = new Date();
@@ -9,14 +11,14 @@ export const shareProductList = async (products, userName = 'User') => {
 
   const lines = sortedProducts.map((p, i) => {
     const days = getDaysLeft(p.expDate, today);
-    const status = days < 0 ? '⚠️ Geçmiş' : days <= 7 ? '⏰ Yaklaşıyor' : '✅ Taze';
+    const status = days < 0 ? '⚠️ Expired' : days <= 7 ? '⏰ Expiring Soon' : '✅ Fresh';
     const code = p.productCode ? ` [${p.productCode}]` : '';
     return `${i + 1}. ${p.name}${code}\n   SKT: ${p.expDate} ${status}`;
   }).join('\n\n');
 
   const dateStr = `${today.getDate()} ${MONTHS_TR[today.getMonth()]} ${today.getFullYear()}`;
 
-  const message = `🧊 Expira - Fridge Inventory\n👤 ${userName}\n📅 ${dateStr}\n📦 Toplam ${products.length} ürün\n\n${lines}\n\n_Created with Expira app._`;
+  const message = `🧊 Expira - Fridge Inventory\n👤 ${userName}\n📅 ${dateStr}\n📦 Total ${products.length} products\n\n${lines}\n\n_Created with Expira app._`;
 
   try {
     const result = await Share.share({

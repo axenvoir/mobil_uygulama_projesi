@@ -27,7 +27,7 @@ const parseStoredValue = (value, key, fallback) => {
   try {
     return JSON.parse(value);
   } catch (error) {
-    if (__DEV__) console.error(`Yerel veri okunamadı (${key}):`, error);
+    if (__DEV__) console.error(`Local data could not be read (${key}):`, error);
     return fallback;
   }
 };
@@ -75,7 +75,7 @@ export const AppProvider = ({ children }) => {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [toast, setToast] = useState(null);
   const [isLocked, setIsLocked] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('Tümü');
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   const undoStack = useRef(null);
   const undoTimer = useRef(null);
@@ -113,7 +113,7 @@ export const AppProvider = ({ children }) => {
       ];
       await AsyncStorage.multiSet(entries);
     } catch (error) {
-      if (__DEV__) console.error('Veri kaydı hatası:', error);
+      if (__DEV__) console.error('Data save error:', error);
       throw error;
     }
   };
@@ -135,13 +135,13 @@ export const AppProvider = ({ children }) => {
         const loadedProfile = parseStoredValue(stored['@userProfile'], '@userProfile', {});
 
         if (!Array.isArray(loadedProducts) || !Array.isArray(loadedNotes)) {
-          throw new Error('Yerel ürün veya not kayıtlarının biçimi geçersiz.');
+          throw new Error('Invalid local product or note data format.');
         }
         if (!loadedSettings || typeof loadedSettings !== 'object' || Array.isArray(loadedSettings)) {
-          throw new Error('Yerel ayar kayıtlarının biçimi geçersiz.');
+          throw new Error('Invalid local settings data format.');
         }
         if (!loadedProfile || typeof loadedProfile !== 'object' || Array.isArray(loadedProfile)) {
-          throw new Error('Yerel profil kayıtlarının biçimi geçersiz.');
+          throw new Error('Invalid local profile data format.');
         }
 
         const nextProducts = normalizeProductList(loadedProducts);
@@ -156,7 +156,7 @@ export const AppProvider = ({ children }) => {
         i18n.locale = profile.language || 'tr';
         setLocale(i18n.locale);
       } catch (error) {
-        if (__DEV__) console.error('Uygulama verileri yüklenemedi:', error);
+        if (__DEV__) console.error('Application data could not be loaded:', error);
         if (mounted) setLoadError(error);
       } finally {
         if (mounted) setIsLoading(false);
@@ -172,8 +172,8 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     if (!isLoading && !loadError) {
       queueSave({ products, notes, settings, userProfile }).catch((error) => {
-        if (__DEV__) console.error('Uygulama verileri kaydedilemedi:', error);
-        showToast('Veriler cihaza kaydedilemedi. Uygulamayı kapatmadan tekrar deneyin.', 'error');
+        if (__DEV__) console.error('Application data could not be saved:', error);
+        showToast('Data could not be saved to device. Please try again without closing the app.', 'error');
       });
     }
   }, [products, notes, settings, userProfile, isLoading, loadError, showToast]);
@@ -239,7 +239,7 @@ export const AppProvider = ({ children }) => {
           const product = undoStack.current.data;
           setProducts(current => current.some(item => item.id === product.id) ? current : [...current, product]);
           undoStack.current = null;
-          showToast('Geri alındı', 'success');
+          showToast('Undone', 'success');
         }
       },
     });
@@ -276,7 +276,7 @@ export const AppProvider = ({ children }) => {
           const note = undoStack.current.data;
           setNotes(current => current.some(item => item.id === note.id) ? current : [...current, note]);
           undoStack.current = null;
-          showToast('Geri alındı', 'success');
+          showToast('Undone', 'success');
         }
       },
     });
@@ -313,7 +313,7 @@ export const AppProvider = ({ children }) => {
       : (['tr', 'en'].includes(nextLocaleCandidate) ? nextLocaleCandidate : DEFAULT_PROFILE.language);
     setLocale(nextLocale);
     i18n.locale = nextLocale;
-    setSelectedCategory('Tümü');
+    setSelectedCategory('All');
     setIsLocked(false);
 
     const syncResult = await syncRemindersFromSettings(nextData.settings, nextLocale);

@@ -49,12 +49,12 @@ export default function ProfileScreen({ navigation }) {
     if (value) {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-      if (!hasHardware || !isEnrolled) { showToast('Bu cihazda biyometrik doğrulama yok.', 'error'); return; }
-      const result = await LocalAuthentication.authenticateAsync({ promptMessage: 'Biyometrik kilidi etkinleştir' });
+      if (!hasHardware || !isEnrolled) { showToast('Biometric authentication is not available on this device.', 'error'); return; }
+      const result = await LocalAuthentication.authenticateAsync({ promptMessage: 'Enable biometric lock' });
       if (result.success) { updateProfile('biometricsEnabled', true); showToast('Biyometrik kilit aktif.', 'success'); }
     } else {
       updateProfile('biometricsEnabled', false);
-      showToast('Biyometrik kilit kapalı.', 'info');
+      showToast('Biometric lock is disabled.', 'info');
     }
   };
 
@@ -91,19 +91,19 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const handleExportPDF = async () => {
-    if (products.length === 0) { showToast('PDF için önce ürün ekle.', 'error'); return; }
-    showToast('PDF oluşturuluyor...', 'info');
+    if (products.length === 0) { showToast('Add a product first for PDF.', 'error'); return; }
+    showToast('Creating PDF...', 'info');
     const result = await generateInventoryPDF(products, userProfile.name);
-    if (result.success) showToast('PDF hazır!', 'success');
-    else showToast(`PDF oluşturulamadı: ${result.error || 'Bilinmeyen hata'}`, 'error');
+    if (result.success) showToast('PDF is ready!', 'success');
+    else showToast(`PDF could not be created: ${result.error || 'Unknown error'}`, 'error');
   };
 
   const handleCopyUserId = async () => {
     try {
       const info = `Expira v${Application.nativeApplicationVersion} (${Application.nativeBuildVersion})\nPaket: ${Application.applicationId}`;
       await Clipboard.setStringAsync(info);
-      showToast('Kopyalandı!', 'success');
-    } catch (error) { if (__DEV__) console.error('Profil bilgisi panoya kopyalanamadı:', error); showToast('Kopyalanamadı.', 'error'); }
+      showToast('Copied!', 'success');
+    } catch (error) { if (__DEV__) console.error('Profile info could not be copied to clipboard:', error); showToast('Could not copy.', 'error'); }
   };
 
   const cycleTheme = () => {
@@ -135,7 +135,7 @@ export default function ProfileScreen({ navigation }) {
               <View style={[styles.avatarBig, { backgroundColor: color }]}>
                 <Text style={[styles.avatarBigText, { color: avatarTextColor }]}>{initial}</Text>
               </View>
-              <Text style={styles.avatarName} numberOfLines={1} adjustsFontSizeToFit>{name || 'İsimsiz'}</Text>
+              <Text style={styles.avatarName} numberOfLines={1} adjustsFontSizeToFit>{name || 'Anonymous'}</Text>
               <Text style={styles.avatarSub}>{t('profile_member')}</Text>
             </View>
 

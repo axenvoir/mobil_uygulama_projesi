@@ -54,7 +54,7 @@ export const addProductToCalendar = async (product) => {
     endDate.setHours(11, 0, 0, 0);
 
     const eventId = await Calendar.createEventAsync(calendarId, {
-      title: `⏰ ${product.name} - SKT yaklaşıyor`,
+      title: `⏰ ${product.name} - Expiry approaching`,
       notes: `${product.name}${product.productCode ? ` [${product.productCode}]` : ''} product expiry date: ${product.expDate}`,
       startDate,
       endDate,

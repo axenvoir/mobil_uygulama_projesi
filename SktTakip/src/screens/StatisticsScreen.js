@@ -138,7 +138,7 @@ export default function StatisticsScreen({ navigation }) {
                     <Text style={styles.upcomingDate} numberOfLines={1}>{formatDate(item.expDate, locale)}</Text>
                   </View>
                   <View style={[styles.upcomingBadge, { backgroundColor: isUrgent ? colors.danger + '15' : colors.primary + '15' }]}>
-                    <Text style={[styles.upcomingDays, { color: isUrgent ? colors.danger : colors.primary }]}>{days === 0 ? 'Bugün' : days < 0 ? `${Math.abs(days)}g geçti` : `${days}g kaldı`}</Text>
+                    <Text style={[styles.upcomingDays, { color: isUrgent ? colors.danger : colors.primary }]}>{days === 0 ? 'Today' : days < 0 ? `${Math.abs(days)}d ago` : `${days}d remaining`}</Text>
                   </View>
                 </View>
               );

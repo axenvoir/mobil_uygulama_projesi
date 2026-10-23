@@ -67,7 +67,7 @@ export default function EditProductScreen({ route, navigation }) {
     updateProduct(product.id, {
       name: sanitizeInput(name),
       productCode: sanitizeInput(productCode),
-      category: category || 'Diğer',
+      category: category || 'Other',
       expDate,
       quantity: sanitizeInput(quantity),
       note: sanitizeInput(note),
@@ -132,7 +132,7 @@ export default function EditProductScreen({ route, navigation }) {
       }
       setImageUri(persisted);
     } catch (error) {
-      if (__DEV__) console.error('Ürün fotoğrafı yüklenemedi:', error);
+      if (__DEV__) console.error('Product photo could not be uploaded:', error);
       showToast(t('product_photo_failed'), 'error');
     }
   };

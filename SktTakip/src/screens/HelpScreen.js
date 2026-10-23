@@ -7,15 +7,15 @@ import { SHADOWS, TYPOGRAPHY } from '../theme';
 import { AppContext } from '../context/AppContext';
 
 const FAQ = [
-  { q: 'Ürün nasıl eklerim?', a: 'Alt menüdeki "+" butonuna bas, ürün bilgilerini doldur ve "Kaydet"e bas. Ürün adı zorunludur, diğer alanlar isteğe bağlıdır.' },
-  { q: 'Son kullanma tarihi ne anlama geliyor?', a: 'Ürünün güvenle tüketilebileceği son tarihtir. Bu tarih geçtikten sonra ürünün bozulma riski vardır.' },
-  { q: 'Bildirimleri nasıl ayarlarım?', a: 'Bildirimler sekmesinden günlük hatırlatmayı açabilir, saatini değiştirebilirsin.' },
-  { q: 'Verilerim nerede saklanıyor?', a: 'Tüm verilerin yalnızca senin telefonunda, güvenli bir şekilde saklanır. Hiçbir sunucuya gönderilmez.' },
-  { q: 'Ürünü nasıl silerim?', a: 'Ürünlerim sekmesinde ürünün yanındaki çöp kutusu ikonuna bas ya da ürünü sola kaydır ve "Sil"e bas.' },
-  { q: 'İstatistikler ne işe yarar?', a: 'Hangi kategoride kaç ürünün olduğunu, taze/yaklaşan/geçmiş dağılımını gösterir. Böylece israfı önlemek için önlem alabilirsin.' },
-  { q: 'Yedekleme nasıl yapılır?', a: 'Profilim → Yedekleme ve Geri Yükleme bölümünden JSON dosyası olarak yedek alabilirsin. Bu yedeği WhatsApp/e-posta ile saklayabilirsin.' },
-  { q: 'Tema nasıl değiştirilir?', a: 'Profilim → Tema satırına dokunarak Sistem/Açık/Karanlık arasında geçiş yapabilirsin.' },
-  { q: 'Notlar ne için kullanılır?', a: 'Alışveriş listesi, buzdolabı kontrolü, bakliyat stoğu gibi hatırlatmalar için kullanabilirsin. Notları sabitleyebilirsin.' },
+  { q: 'How do I add a product?', a: 'Press the "+" button in the bottom menu, fill in the product information, and press "Save". The product name is required; other fields are optional.' },
+  { q: 'What does expiry date mean?', a: 'It is the last date by which the product can be safely consumed. After this date, there is a risk of spoilage.' },
+  { q: 'How do I set up notifications?', a: 'You can set up daily reminders and change the time from the Notifications tab.' },
+  { q: 'Where is my data stored?', a: 'All your data is stored securely only on your phone. It is not sent to any server.' },
+  { q: 'How do I delete a product?', a: 'Press the trash can icon next to the product in the My Products tab, or swipe the product left and tap Delete.' },
+  { q: 'What are statistics useful for?', a: 'It shows how many products are in each category and their distribution (fresh/upcoming/expired). This way, you can take measures to prevent waste.' },
+  { q: 'How do I backup?', a: 'You can backup as a JSON file from Profile → Backup & Restore. You can save this backup via WhatsApp/email.' },
+  { q: 'How do I change the theme?', a: 'You can switch between System/Light/Dark by tapping the Theme row in Profile.' },
+  { q: 'What are notes used for?', a: 'You can use notes for shopping lists, fridge checks, pantry stock reminders, etc. You can pin important notes.' },
 ];
 
 export default function HelpScreen({ navigation }) {
@@ -30,7 +30,7 @@ export default function HelpScreen({ navigation }) {
 
   const openEmail = () => {
     Linking.openURL('mailto:axenvoir@yahoo.com?subject=Expira Destek').catch(() => {
-      showToast('E-posta uygulaması bulunamadı.', 'error');
+      showToast('Email app not found.', 'error');
     });
   };
 
@@ -41,7 +41,7 @@ export default function HelpScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
             <Ionicons name="arrow-back" size={scale(24)} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Yardım ve Destek</Text>
+          <Text style={styles.headerTitle}>Help & Support</Text>
           <View style={{ width: scale(24) }} />
         </View>
 
@@ -49,11 +49,11 @@ export default function HelpScreen({ navigation }) {
           <View style={styles.heroIconBox}>
             <Ionicons name="help-buoy-outline" size={scale(32)} color={colors.onPrimary} />
           </View>
-          <Text style={styles.heroTitle}>Sana nasıl yardımcı olabiliriz?</Text>
-          <Text style={styles.heroSub}>Aşağıdaki sık sorulan sorulara göz at veya bize ulaş.</Text>
+          <Text style={styles.heroTitle}>How can we help you?</Text>
+          <Text style={styles.heroSub}>Browse the FAQ below or contact us.</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Sık Sorulan Sorular ({FAQ.length})</Text>
+        <Text style={styles.sectionTitle}>Frequently Asked Questions ({FAQ.length})</Text>
 
         {FAQ.map((item, index) => (
           <TouchableOpacity key={index} style={styles.faqCard} onPress={() => toggleExpand(index)} activeOpacity={0.7}>
@@ -72,33 +72,33 @@ export default function HelpScreen({ navigation }) {
           </TouchableOpacity>
         ))}
 
-        <Text style={styles.sectionTitle}>Bize Ulaş</Text>
+        <Text style={styles.sectionTitle}>Contact Us</Text>
 
         <TouchableOpacity style={styles.contactCard} onPress={openEmail} activeOpacity={0.7}>
           <View style={[styles.contactIcon, { backgroundColor: colors.primary + '15' }]}>
             <Ionicons name="mail-outline" size={scale(22)} color={colors.primary} />
           </View>
           <View style={{ flex: 1, marginLeft: scale(14), marginRight: scale(8) }}>
-            <Text style={styles.contactTitle}>E-posta ile Destek</Text>
+            <Text style={styles.contactTitle}>Email Support</Text>
             <Text style={styles.contactDesc} numberOfLines={1}>axenvoir@yahoo.com</Text>
           </View>
           <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.contactCard} onPress={() => showToast('Uygulama mağazada yayınlandığında puanlama aktif olacak!', 'info')} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.contactCard} onPress={() => showToast('Rating will be available when the app is published on the store!', 'info')} activeOpacity={0.7}>
           <View style={[styles.contactIcon, { backgroundColor: colors.warning + '15' }]}>
             <Ionicons name="star-outline" size={scale(22)} color={colors.warning} />
           </View>
           <View style={{ flex: 1, marginLeft: scale(14), marginRight: scale(8) }}>
-            <Text style={styles.contactTitle}>Uygulamayı Puanla</Text>
-            <Text style={styles.contactDesc}>Görüşlerin bizim için değerli</Text>
+            <Text style={styles.contactTitle}>Rate the App</Text>
+            <Text style={styles.contactDesc}>Your feedback is valuable to us</Text>
           </View>
           <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />
         </TouchableOpacity>
 
         <View style={styles.versionBox}>
           <Text style={styles.versionText}>Expira v1.0.0</Text>
-          <Text style={styles.versionSub}>© 2026 Expira. Tüm hakları saklıdır.</Text>
+          <Text style={styles.versionSub}>© 2026 Expira. All rights reserved.</Text>
         </View>
 
         <View style={{ height: scale(60) }} />

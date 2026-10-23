@@ -124,7 +124,7 @@ export const scheduleDailyReminder = async (hour, minute, customMessage = null, 
     if (!(await cancelDailyReminder())) return null;
 
     const content = {
-      title: locale === 'en' ? '⏰ Expira Reminder' : '⏰ Expira Hatırlatması',
+      title: locale === 'en' ? '⏰ Expira Reminder' : '⏰ Expira Reminder',
       body: customMessage || (
         locale === 'en'
           ? "Don't forget to check your fridge! Some products may be close to expiry."
@@ -215,7 +215,7 @@ export const getScheduledNotifications = async () => {
   try {
     return await Notifications.getAllScheduledNotificationsAsync();
   } catch (error) {
-    if (__DEV__) console.error('Planlanmış bildirimler okunamadı:', error);
+    if (__DEV__) console.error('Scheduled notifications could not be read:', error);
     return [];
   }
 };

@@ -49,7 +49,7 @@ export const normalizeProduct = (product, index = 0) => {
     productCode: typeof product.productCode === 'string' ? product.productCode : '',
     category: typeof product.category === 'string' && product.category.trim()
       ? product.category.trim()
-      : 'Diğer',
+      : 'Other',
     expDate: product.expDate,
     quantity: typeof product.quantity === 'string' || typeof product.quantity === 'number'
       ? String(product.quantity)

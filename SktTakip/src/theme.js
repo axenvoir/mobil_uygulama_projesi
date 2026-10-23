@@ -86,16 +86,16 @@ export const SHADOWS = {
 };
 
 export const CATEGORIES = [
-  { id: 'all', name: 'Tümü', icon: 'apps-outline' },
-  { id: 'dairy', name: 'Süt Ürünleri', icon: 'water-outline' },
-  { id: 'meat', name: 'Et & Tavuk', icon: 'restaurant-outline' },
-  { id: 'grain', name: 'Bakliyat', icon: 'leaf-outline' },
-  { id: 'breakfast', name: 'Kahvaltılık', icon: 'cafe-outline' },
-  { id: 'veggie', name: 'Sebze & Meyve', icon: 'nutrition-outline' },
-  { id: 'drink', name: 'İçecek', icon: 'beer-outline' },
-  { id: 'frozen', name: 'Dondurulmuş', icon: 'snow-outline' },
-  { id: 'snack', name: 'Atıştırmalık', icon: 'fast-food-outline' },
-  { id: 'other', name: 'Diğer', icon: 'ellipsis-horizontal-outline' },
+  { id: 'all', name: 'All', icon: 'apps-outline' },
+  { id: 'dairy', name: 'Dairy', icon: 'water-outline' },
+  { id: 'meat', name: 'Meat & Poultry', icon: 'restaurant-outline' },
+  { id: 'grain', name: 'Legumes', icon: 'leaf-outline' },
+  { id: 'breakfast', name: 'Breakfast', icon: 'cafe-outline' },
+  { id: 'veggie', name: 'Vegetables & Fruits', icon: 'nutrition-outline' },
+  { id: 'drink', name: 'Drinks', icon: 'beer-outline' },
+  { id: 'frozen', name: 'Frozen', icon: 'snow-outline' },
+  { id: 'snack', name: 'Snacks', icon: 'fast-food-outline' },
+  { id: 'other', name: 'Other', icon: 'ellipsis-horizontal-outline' },
 ];
 
 export const CATEGORY_TRANSLATION_KEYS = {

@@ -33,8 +33,8 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
                 key={index}
                 activeOpacity={0.8}
                 accessibilityRole="button"
-                accessibilityLabel="Ürün ekle"
-                accessibilityHint="Yeni Ürün eklemek için dokunun"
+                accessibilityLabel="Add product"
+                accessibilityHint="Tap to add a new product"
                 style={[styles.plusButton, {
                   width: plusSize, height: plusSize, borderRadius: plusSize / 2,
                   backgroundColor: colors.primary,

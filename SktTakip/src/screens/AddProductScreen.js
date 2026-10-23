@@ -16,20 +16,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatDate } from '../utils/formatters';
 
 const NAME_CATEGORY_MAP = {
-  'süt': 'Süt Ürünleri', 'yoğurt': 'Süt Ürünleri', 'peynir': 'Süt Ürünleri', 'kefir': 'Süt Ürünleri',
-  'tereyağı': 'Süt Ürünleri', 'kaymak': 'Süt Ürünleri', 'ayran': 'Süt Ürünleri',
-  'et': 'Et & Tavuk', 'tavuk': 'Et & Tavuk', 'kıyma': 'Et & Tavuk', 'balık': 'Et & Tavuk',
+  'sut': 'Dairy', 'yogurt': 'Dairy', 'peynir': 'Dairy', 'kefir': 'Dairy',
+  'tereyagi': 'Dairy', 'kaymak': 'Dairy', 'ayran': 'Dairy',
+  'et': 'Meat & Poultry', 'tavuk': 'Meat & Poultry', 'kima': 'Meat & Poultry', 'balik': 'Meat & Poultry',
   'sucuk': 'Et & Tavuk', 'salam': 'Et & Tavuk', 'sosis': 'Et & Tavuk', 'hindi': 'Et & Tavuk',
-  'yumurta': 'Kahvaltılık', 'zeytin': 'Kahvaltılık', 'bal': 'Kahvaltılık', 'reçel': 'Kahvaltılık',
-  'tahin': 'Kahvaltılık', 'pekmez': 'Kahvaltılık', 'makarna': 'Bakliyat', 'pirinç': 'Bakliyat', 'bulgur': 'Bakliyat', 'mercimek': 'Bakliyat',
-  'nohut': 'Bakliyat', 'fasulye': 'Bakliyat', 'un': 'Bakliyat', 'şeker': 'Bakliyat', 'tuz': 'Bakliyat',
-  'domates': 'Sebze & Meyve', 'salatalık': 'Sebze & Meyve', 'biber': 'Sebze & Meyve',
-  'patates': 'Sebze & Meyve', 'soğan': 'Sebze & Meyve', 'elma': 'Sebze & Meyve',
+  'yumurta': 'Breakfast', 'zeytin': 'Breakfast', 'bal': 'Breakfast', 'recel': 'Breakfast',
+  'tahin': 'Breakfast', 'pekmez': 'Breakfast', 'makarna': 'Legumes', 'pirinc': 'Legumes', 'bulgur': 'Legumes', 'mercimek': 'Legumes',
+  'nohut': 'Legumes', 'fasulye': 'Legumes', 'un': 'Legumes', 'seker': 'Legumes', 'tuz': 'Legumes',
+  'domates': 'Vegetables & Fruits', 'salatalik': 'Vegetables & Fruits', 'biber': 'Vegetables & Fruits',
+  'patates': 'Vegetables & Fruits', 'sogan': 'Vegetables & Fruits', 'elma': 'Vegetables & Fruits',
   'muz': 'Sebze & Meyve', 'portakal': 'Sebze & Meyve', 'limon': 'Sebze & Meyve', 'marul': 'Sebze & Meyve',
-  'su': 'İçecek', 'meyve suyu': 'İçecek', 'kola': 'İçecek', 'çay': 'İçecek', 'kahve': 'İçecek', 'soda': 'İçecek',
-  'dondurma': 'Dondurulmuş', 'pizza': 'Dondurulmuş', 'mısır': 'Dondurulmuş',
-  'cips': 'Atıştırmalık', 'çikolata': 'Atıştırmalık', 'bisküvi': 'Atıştırmalık', 'kek': 'Atıştırmalık',
-  'kraker': 'Atıştırmalık', 'kuruyemiş': 'Atıştırmalık', 'fındık': 'Atıştırmalık', 'leblebi': 'Atıştırmalık',
+  'su': 'Drinks', 'meyve_suyu': 'Drinks', 'kola': 'Drinks', 'cay': 'Drinks', 'kahve': 'Drinks', 'soda': 'Drinks',
+  'dondurma': 'Frozen', 'pizza': 'Frozen', 'misir': 'Frozen',
+  'cips': 'Snacks', 'cikolata': 'Snacks', 'biskuvi': 'Snacks', 'kek': 'Snacks',
+  'kraker': 'Snacks', 'kuruyemis': 'Snacks', 'findik': 'Snacks', 'leblebi': 'Snacks',
 };
 
 const guessCategory = (name) => {
@@ -123,7 +123,7 @@ export default function AddProductScreen({ navigation }) {
       }
       setImageUri(persisted);
     } catch (error) {
-      if (__DEV__) console.error('Ürün fotoğrafı yüklenemedi:', error);
+      if (__DEV__) console.error('Product photo could not be uploaded:', error);
       showToast(t('product_photo_failed'), 'error');
     }
   };
@@ -135,7 +135,7 @@ export default function AddProductScreen({ navigation }) {
     const newProduct = {
       name: sanitizeInput(name),
       productCode: sanitizeInput(productCode),
-      category: category || 'Diğer',
+      category: category || 'Other',
       expDate: finalDate,
       quantity: sanitizeInput(quantity),
       note: sanitizeInput(note),
@@ -155,7 +155,7 @@ export default function AddProductScreen({ navigation }) {
       }
       navigation.goBack();
     } catch (error) {
-      if (__DEV__) console.error('Ürün kaydedilemedi:', error);
+      if (__DEV__) console.error('Product could not be saved:', error);
       showToast(t('product_save_failed'), 'error');
       savingRef.current = false;
       setIsSaving(false);

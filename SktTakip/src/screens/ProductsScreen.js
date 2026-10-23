@@ -93,18 +93,18 @@ export default function ProductsScreen({ route, navigation }) {
   };
 
   const handleClearHistory = () => {
-    openConfirm('danger', 'Arama Geçmişi', 'Tüm arama geçmişi silinsin mi?', 'Sil', async () => {
+    openConfirm('danger', 'Search History', 'Delete all search history?', 'Delete', async () => {
       setModalVisible(false);
       const updated = await clearSearchHistory();
       setSearchHistory(updated);
-      showToast('Geçmiş temizlendi.', 'info');
+      showToast('History cleared.', 'info');
     });
   };
 
   const filteredProducts = products.filter(p => {
     const daysLeft = getDaysLeft(p.expDate);
     const matchesSearch = p.name.toLowerCase().includes(debouncedSearch.toLowerCase()) || (p.productCode && p.productCode.toLowerCase().includes(debouncedSearch.toLowerCase()));
-    const matchesCategory = selectedCategory === 'Tümü' || p.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
     if (activeTab === 'today') return daysLeft === 0 && matchesSearch && matchesCategory;
     if (activeTab === 'approaching') return daysLeft >= 0 && daysLeft <= 7 && matchesSearch && matchesCategory;
     if (activeTab === 'expired') return daysLeft < 0 && matchesSearch && matchesCategory;
@@ -129,9 +129,9 @@ export default function ProductsScreen({ route, navigation }) {
     }
     openConfirm(
       'danger',
-      'Ürünü Sil',
-      `"${item.name}" adlı ürünü silmek istediğine emin misin?`,
-      'Sil',
+      'Add Product',
+      `"${item.name}" - Are you sure you want to delete this product?`,
+      'Delete',
       async () => {
         setModalVisible(false);
         await deleteProduct(item.id, { withUndo: true });
@@ -143,35 +143,35 @@ export default function ProductsScreen({ route, navigation }) {
   const handleBulkDelete = () => {
     if (selectedIds.length === 0) return;
     const count = selectedIds.length;
-    openConfirm('danger', 'Toplu Sil', `${count} ürün silinsin mi? Bu işlem geri alınamaz.`, 'Sil', async () => {
+    openConfirm('danger', 'Bulk Delete', `Delete these ${count} products? This action cannot be undone.`, 'Delete', async () => {
       setModalVisible(false);
       selectedIds.forEach(id => deleteProduct(id));
       setSelectedIds([]);
       setSelectionMode(false);
       if (settings.hapticsEnabled) await notifySuccess();
-      showToast(`${count} ürün silindi.`, 'info');
+      showToast(`${count} products deleted.`, 'info');
     });
   };
 
   const handleShare = async () => {
-    if (products.length === 0) { showToast('Paylaşacak ürün yok.', 'error'); return; }
+    if (products.length === 0) { showToast('No products to share.', 'error'); return; }
     const result = await shareProductList(products, userProfile.name);
-    if (!result.success) showToast('Paylaşım başarısız.', 'error');
+    if (!result.success) showToast('Sharing failed.', 'error');
   };
 
   const handleShareSMS = async () => {
-    if (products.length === 0) { showToast('Paylaşacak ürün yok.', 'error'); return; }
+    if (products.length === 0) { showToast('No products to share.', 'error'); return; }
     const isAvailable = await SMS.isAvailableAsync();
-    if (!isAvailable) { showToast('SMS bu cihazda kullanılamıyor.', 'error'); return; }
+    if (!isAvailable) { showToast('SMS is not available on this device.', 'error'); return; }
     const lines = products.map((p, i) => `${i + 1}. ${p.name} - ${t('expiry_date_short')}: ${formatDate(p.expDate, locale)}`).join('\n');
-    try { await SMS.sendSMSAsync([], `🧊 Expira Envanteri\n${lines}`); } catch (error) { if (__DEV__) console.error('SMS gönderilemedi:', error); showToast('SMS gönderilemedi.', 'error'); }
+    try { await SMS.sendSMSAsync([], `🧊 Expira Envanteri\n${lines}`); } catch (error) { if (__DEV__) console.error('SMS could not be sent:', error); showToast('SMS could not be sent.', 'error'); }
   };
 
   const handleExportPDF = async () => {
-    if (products.length === 0) { showToast('PDF için ürün ekle.', 'error'); return; }
-    showToast('PDF oluşturuluyor...', 'info');
+    if (products.length === 0) { showToast('Add a product first for PDF.', 'error'); return; }
+    showToast('Creating PDF...', 'info');
     const result = await generateInventoryPDF(products, userProfile.name);
-    if (result.success) showToast('PDF hazır!', 'success');
+    if (result.success) showToast('PDF is ready!', 'success');
   };
 
   const toggleSelection = (id) => {
@@ -184,23 +184,23 @@ export default function ProductsScreen({ route, navigation }) {
     const selected = products.filter(p => selectedIds.includes(p.id));
     const text = selected.map(p => `${p.name}${p.productCode ? ` [${p.productCode}]` : ''} - ${t('expiry_date_short')}: ${formatDate(p.expDate, locale)}`).join('\n');
     await Clipboard.setStringAsync(text);
-    showToast(`${selectedIds.length} ürün kopyalandı!`, 'success');
+    showToast(`${selectedIds.length} products copied!`, 'success');
     setSelectionMode(false);
     setSelectedIds([]);
   };
 
   const handleBulkCategoryChange = (newCategory) => {
-    if (selectedIds.length === 0) { showToast('Önce ürün seç.', 'info'); return; }
+    if (selectedIds.length === 0) { showToast('Select a product first.', 'info'); return; }
     try {
       selectedIds.forEach(id => {
         const product = products.find(p => p.id === id);
         if (product) updateProduct(id, { ...product, category: newCategory });
       });
-      showToast(`${selectedIds.length} ürünün kategorisi "${newCategory}" olarak güncellendi.`, 'success');
+      showToast(`Category for ${selectedIds.length} products updated to "${newCategory}".`, 'success');
       setSelectionMode(false);
       setSelectedIds([]);
       setShowCategoryModal(false);
-    } catch (error) { if (__DEV__) console.error('Toplu kategori güncellenemedi:', error); showToast('Kategori güncellenemedi.', 'error'); }
+    } catch (error) { if (__DEV__) console.error('Bulk category update error:', error); showToast('Category could not be updated.', 'error'); }
   };
 
   const openDetail = (item) => { navigation.navigate('ProductDetail', { productId: item.id }); };
@@ -211,7 +211,7 @@ export default function ProductsScreen({ route, navigation }) {
       <TouchableOpacity style={[styles.swipeDelete, { backgroundColor: colors.danger }]} onPress={() => handleDelete(item)}>
         <Animated.View style={{ transform: [{ translateX: trans }], alignItems: 'center' }}>
           <Ionicons name="trash" size={scale(24)} color={colors.onDanger} />
-          <Text style={styles.swipeDeleteText}>Sil</Text>
+          <Text style={styles.swipeDeleteText}>Delete</Text>
         </Animated.View>
       </TouchableOpacity>
     );
@@ -223,7 +223,7 @@ export default function ProductsScreen({ route, navigation }) {
       <TouchableOpacity style={[styles.swipeEdit, { backgroundColor: colors.primary }]} onPress={() => { swipeRefs.current[item.id]?.close(); openDetail(item); }}>
         <Animated.View style={{ transform: [{ translateX: trans }], alignItems: 'center' }}>
           <Ionicons name="eye" size={scale(24)} color={colors.onPrimary} />
-          <Text style={styles.swipeDeleteText}>Görüntüle</Text>
+          <Text style={styles.swipeDeleteText}>Visible</Text>
         </Animated.View>
       </TouchableOpacity>
     );
@@ -234,9 +234,9 @@ export default function ProductsScreen({ route, navigation }) {
       return (
         <EmptyState
           icon="cube-outline"
-          title="Henüz ürün eklemedin"
-          description="Buzdolabındaki ürünleri ekleyerek son kullanma tarihlerini takip etmeye başla."
-          actionText="İlk Ürünü Ekle"
+          title="You haven't added any products yet"
+          description="Start tracking expiry dates by adding the products in your fridge."
+          actionText="Add First Product"
           onAction={() => navigation.navigate('AddProduct')}
         />
       );
@@ -244,8 +244,8 @@ export default function ProductsScreen({ route, navigation }) {
     return (
       <EmptyState
         icon="search-outline"
-        title="Sonuç bulunamadı"
-        description={debouncedSearch ? `"${debouncedSearch}" için sonuç bulunamadı. Farklı bir kelime deneyin.` : 'Filtreyi değiştirerek tekrar deneyin.'}
+        title="No results found"
+        description={debouncedSearch ? `No results for "${debouncedSearch}". Try a different keyword.` : 'Try again by changing the filter.'}
       />
     );
   };
@@ -474,10 +474,10 @@ export default function ProductsScreen({ route, navigation }) {
         <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.7)' }]}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Kategori Değiştir</Text>
+              <Text style={styles.modalTitle}>Change Category</Text>
               <TouchableOpacity onPress={() => setShowCategoryModal(false)}><Ionicons name="close" size={scale(24)} color={colors.text} /></TouchableOpacity>
             </View>
-            <Text style={styles.modalDesc}>Seçili {selectedIds.length} ürünün kategorisini değiştir:</Text>
+            <Text style={styles.modalDesc}>Change category for selected ${selectedIds.length} products:</Text>
             <ScrollView style={{ maxHeight: scale(400) }}>
               {CATEGORIES.filter(c => c.id !== 'all').map((cat) => (
                 <TouchableOpacity key={cat.id} style={styles.modalCategoryRow} onPress={() => handleBulkCategoryChange(cat.name)} activeOpacity={0.7}>
