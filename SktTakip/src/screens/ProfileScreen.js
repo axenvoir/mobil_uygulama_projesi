@@ -181,8 +181,8 @@ export default function ProfileScreen({ navigation }) {
                 </View>
               </View>
               <View style={styles.languageOptions}>
-                {['en', 'tr'].map((language) => {
-                  const selected = locale === language;
+                {['system', 'en', 'tr'].map((language) => {
+                  const selected = userProfile.language === language;
                   return (
                     <TouchableOpacity
                       key={language}
@@ -192,7 +192,7 @@ export default function ProfileScreen({ navigation }) {
                       style={[styles.languageOption, selected && { backgroundColor: colors.primary, borderColor: colors.primary }]}
                     >
                       <Text style={[styles.languageOptionText, selected && { color: colors.onPrimary }]}>
-                        {language === 'en' ? t('english') : t('turkish')}
+                        {language === 'system' ? t('system_language') : language === 'en' ? t('english') : t('turkish')}
                       </Text>
                     </TouchableOpacity>
                   );

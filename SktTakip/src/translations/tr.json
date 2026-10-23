@@ -356,5 +356,6 @@
   "lock_unexpected_error": "Beklenmeyen hata: {{message}}",
   "backup_restored_notification_warning": "Yedek yüklendi ({{products}} ürün, {{notes}} not) ancak günlük hatırlatıcı yeniden planlanamadı. Bildirimler sekmesinden tekrar aç.",
   "product_not_found": "Ürün bulunamadı.",
-  "product_photo_persist_failed": "Fotoğraf kalıcı olarak kaydedilemedi. Tekrar dene."
+  "product_photo_persist_failed": "Fotoğraf kalıcı olarak kaydedilemedi. Tekrar dene.",
+  "system_language": "Sistem (cihaz dili)"
 }

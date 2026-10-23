@@ -356,5 +356,6 @@
   "lock_unexpected_error": "Unexpected error: {{message}}",
   "backup_restored_notification_warning": "Backup restored ({{products}} products, {{notes}} notes) but the daily reminder could not be rescheduled. Re-enable it in Notifications.",
   "product_not_found": "Product not found.",
-  "product_photo_persist_failed": "Could not save the photo permanently. Please try again."
+  "product_photo_persist_failed": "Could not save the photo permanently. Please try again.",
+  "system_language": "System (device language)"
 }

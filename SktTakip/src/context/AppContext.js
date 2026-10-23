@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useRef, useCallback } from 'react';
 import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import i18n from '../utils/i18n';
+import i18n, { resolveLocale, resolveDeviceLocale } from '../utils/i18n';
 import { normalizeNoteList, normalizeProductList } from '../utils/validators';
 import { syncRemindersFromSettings } from '../utils/notifications';
 
@@ -15,7 +15,7 @@ const DEFAULT_SETTINGS = {
 const DEFAULT_PROFILE = {
   name: i18n.t('default_profile_name'),
   avatarColor: '#14B8A6',
-  language: i18n.locale,
+  language: 'system',
   biometricsEnabled: false,
 };
 
@@ -57,7 +57,7 @@ const normalizeProfile = (loadedProfile) => {
   if (typeof profile.avatarColor !== 'string' || !/^#[\da-f]{6}$/i.test(profile.avatarColor)) {
     profile.avatarColor = DEFAULT_PROFILE.avatarColor;
   }
-  if (!['tr', 'en'].includes(profile.language)) profile.language = DEFAULT_PROFILE.language;
+  if (!['system', 'tr', 'en'].includes(profile.language)) profile.language = DEFAULT_PROFILE.language;
   if (typeof profile.biometricsEnabled !== 'boolean') profile.biometricsEnabled = false;
   return profile;
 };
@@ -154,7 +154,7 @@ export const AppProvider = ({ children }) => {
         setNotes(nextNotes);
         setSettings(nextSettings);
         setUserProfile(profile);
-        i18n.locale = profile.language || 'tr';
+        i18n.locale = resolveLocale(profile.language);
         setLocale(i18n.locale);
       } catch (error) {
         if (__DEV__) console.error('Application data could not be loaded:', error);
@@ -200,6 +200,13 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        if (userProfile.language === 'system') {
+          const resolved = resolveDeviceLocale();
+          if (i18n.locale !== resolved) {
+            i18n.locale = resolved;
+            setLocale(resolved);
+          }
+        }
         if (userProfile.biometricsEnabled) {
           const now = Date.now();
           if (backgroundTime.current && now - backgroundTime.current > 5000) {
@@ -212,7 +219,7 @@ export const AppProvider = ({ children }) => {
       appState.current = nextAppState;
     });
     return () => subscription.remove();
-  }, [userProfile.biometricsEnabled]);
+  }, [userProfile.biometricsEnabled, userProfile.language]);
 
   useEffect(() => () => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -309,9 +316,11 @@ export const AppProvider = ({ children }) => {
     setNotes(nextData.notes);
     setSettings(nextData.settings);
     setUserProfile(nextData.userProfile);
-    const nextLocale = ['tr', 'en'].includes(nextData.userProfile.language)
-      ? nextData.userProfile.language
-      : (['tr', 'en'].includes(nextLocaleCandidate) ? nextLocaleCandidate : DEFAULT_PROFILE.language);
+    const nextLocale = resolveLocale(
+      ['system', 'tr', 'en'].includes(nextData.userProfile.language)
+        ? nextData.userProfile.language
+        : (['tr', 'en'].includes(nextLocaleCandidate) ? nextLocaleCandidate : DEFAULT_PROFILE.language)
+    );
     setLocale(nextLocale);
     i18n.locale = nextLocale;
     setSelectedCategory('All');
@@ -329,11 +338,12 @@ export const AppProvider = ({ children }) => {
   const retryLoadData = useCallback(() => setLoadAttempt(attempt => attempt + 1), []);
 
   const changeLanguage = (lang) => {
-    if (!['tr', 'en'].includes(lang)) {
+    if (!['system', 'tr', 'en'].includes(lang)) {
       throw new Error(`Unsupported language: ${lang}`);
     }
-    i18n.locale = lang;
-    setLocale(lang);
+    const resolved = resolveLocale(lang);
+    i18n.locale = resolved;
+    setLocale(resolved);
     setUserProfile(prev => ({ ...prev, language: lang }));
   };
 
