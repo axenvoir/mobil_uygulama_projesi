@@ -1,9 +1,10 @@
 import React, { useState, useContext, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { AppContext } from '../context/AppContext';
 import { CATEGORIES, CATEGORY_TRANSLATION_KEYS, SHADOWS, TYPOGRAPHY } from '../theme';
+import { Input } from '../components';
 import DatePickerModal from '../components/DatePickerModal';
 import { notifySuccess, notifyError } from '../utils/haptics';
 import { addProductToCalendar } from '../utils/calendarUtils';
@@ -221,11 +222,16 @@ export default function AddProductScreen({ navigation }) {
               )}
             </View>
 
-            <Text style={styles.label}>{t('product_name')} *</Text>
-            <View style={styles.inputContainer}>
-              <TextInput style={styles.input} accessibilityLabel={t('product_name')} placeholder={t('product_name_example')} placeholderTextColor={colors.textLight} value={name} onChangeText={handleNameChange} onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} />
-              <Ionicons name="pricetag-outline" size={scale(20)} color={colors.textLight} />
-            </View>
+            <Input
+              label={t('product_name') + ' *'}
+              placeholder={t('product_name_example')}
+              value={name}
+              onChangeText={handleNameChange}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              icon={<Ionicons name="pricetag-outline" size={scale(20)} color={colors.textLight} />}
+              autoCapitalize="words"
+              accessibilityLabel={t('product_name')}
+            />
 
             {showSuggestions && suggestions.length > 0 && (
               <View style={styles.suggestionsBox}>
@@ -246,11 +252,16 @@ export default function AddProductScreen({ navigation }) {
               </View>
             )}
 
-            <Text style={styles.label}>{t('product_code_optional')}</Text>
-            <View style={styles.inputContainer}>
-              <TextInput style={styles.input} accessibilityLabel={t('product_code')} placeholder={t('product_code_example')} placeholderTextColor={colors.textLight} value={productCode} onChangeText={setProductCode} autoCapitalize="characters" />
-              <Ionicons name="pricetags-outline" size={scale(20)} color={colors.textLight} />
-            </View>
+            <Input
+              label={t('product_code_optional')}
+              placeholder={t('product_code_example')}
+              value={productCode}
+              onChangeText={setProductCode}
+              icon={<Ionicons name="pricetags-outline" size={scale(20)} color={colors.textLight} />}
+              keyboardType="default"
+              autoCapitalize="characters"
+              accessibilityLabel={t('product_code')}
+            />
 
             {category ? ( <View style={styles.autoRow}><Ionicons name="sparkles" size={scale(16)} color={colors.primary} /><Text style={styles.autoText} numberOfLines={1}>{t('product_category_auto')}: <Text style={{ fontWeight: '800' }}>{t(CATEGORY_TRANSLATION_KEYS[CATEGORIES.find(item => item.name === category)?.id] || 'category_other')}</Text></Text><TouchableOpacity accessibilityRole="button" onPress={() => setShowDetails(true)}><Text style={styles.autoChange}>{t('product_change')}</Text></TouchableOpacity></View> ) : null}
             <Text style={styles.label}>{t('expiry_date')} *</Text>

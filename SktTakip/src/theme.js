@@ -54,6 +54,41 @@ export const DARK_COLORS = {
   statusBarStyle: 'light-content',
 };
 
+// ============================================
+// SEMANTIC COLORS (for better readability)
+// ============================================
+export const SEMANTIC_COLORS = {
+  // Status colors
+  success: {
+    light: '#D1FAE5',
+    DEFAULT: '#34D399',
+    dark: '#065F46',
+    text: '#065F46',
+    border: '#A7F3D0',
+  },
+  warning: {
+    light: '#FEF3C7',
+    DEFAULT: '#F59E0B',
+    dark: '#92400E',
+    text: '#92400E',
+    border: '#FDE68A',
+  },
+  danger: {
+    light: '#FEE2E2',
+    DEFAULT: '#EF4444',
+    dark: '#991B1B',
+    text: '#991B1B',
+    border: '#FCA5A5',
+  },
+  info: {
+    light: '#DBEAFE',
+    DEFAULT: '#3B82F6',
+    dark: '#1E40AF',
+    text: '#1E40AF',
+    border: '#93C5FD',
+  },
+};
+
 export const COLORS = LIGHT_COLORS;
 
 export const getContrastingTextColor = (hexColor) => {
@@ -69,14 +104,74 @@ export const getContrastingTextColor = (hexColor) => {
   return luminance > 0.179 ? '#000000' : '#FFFFFF';
 };
 
+// ============================================
+// TYPOGRAPHY SYSTEM
+// ============================================
 export const TYPOGRAPHY = {
-  display: 36,
-  h1: 32,
-  h2: 26,
-  h3: 22,
-  body: 16,
-  caption: 14,
-  small: 13,
+  // Headings
+  display: 36,   // Large display text
+  h1: 32,        // Screen titles
+  h2: 26,        // Section titles
+  h3: 22,        // Card titles
+  h4: 20,        // Subsection titles
+  
+  // Body text
+  body: 16,      // Primary text
+  bodySmall: 14, // Secondary text
+  
+  // Small text
+  caption: 14,   // Captions
+  small: 12,     // Helper text, labels
+  tiny: 10,      // Micro text
+};
+
+// Font weights mapping
+export const FONT_WEIGHTS = {
+  regular: '400',
+  medium: '500',
+  semiBold: '600',
+  bold: '700',
+  extraBold: '800',
+  black: '900',
+};
+
+// Font families (using system fonts as fallback)
+export const FONTS = {
+  regular: 'Inter-Regular',
+  medium: 'Inter-Medium',
+  semiBold: 'Inter-SemiBold',
+  bold: 'Inter-Bold',
+};
+
+
+
+// ============================================
+// SPACING SYSTEM (4px base grid)
+// ============================================
+export const SPACING = {
+  none: 0,
+  xs: 4,    // 4px  - Micro spacing (icon-text gap)
+  sm: 8,    // 8px  - Small spacing (compact elements)
+  md: 16,   // 16px - Medium spacing (standard padding)
+  lg: 24,   // 24px - Large spacing (cards, sections)
+  xl: 32,   // 32px - Extra large (section gaps)
+  '2xl': 48, // 48px - 2x large (major sections)
+  '3xl': 64, // 64px - 3x large (page margins)
+};
+
+// Spacing with scale function helper
+export const getSpacing = (key, scaleFn) => {
+  const spacingMap = {
+    none: 0,
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    '2xl': 48,
+    '3xl': 64
+  };
+  return scaleFn ? scaleFn(spacingMap[key] || spacingMap.md) : spacingMap[key];
 };
 
 export const SHADOWS = {

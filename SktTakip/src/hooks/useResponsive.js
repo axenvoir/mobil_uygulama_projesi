@@ -24,6 +24,33 @@ export const useResponsive = () => {
     const contentMaxWidth = isWideScreen ? 1080 : isTablet ? 840 : width;
     const itemColumns = width >= 1200 ? 3 : isTablet ? 2 : 1;
 
+    // ============================================
+    // SPACING HELPERS (4px base grid)
+    // ============================================
+    const spacingMap = {
+      none: 0,
+      xs: 4,
+      sm: 8,
+      md: 16,
+      lg: 24,
+      xl: 32,
+      '2xl': 48,
+      '3xl': 64
+    };
+
+    const getSpacing = (key) => spacingMap[key] || spacingMap.md;
+    
+    // Pre-scaled spacing values for common use cases
+    const scaledSpacing = {
+      xs: scale(4),
+      sm: scale(8),
+      md: scale(16),
+      lg: scale(24),
+      xl: scale(32),
+      '2xl': scale(48),
+      '3xl': scale(64)
+    };
+
     return {
       width,
       height,
@@ -39,6 +66,9 @@ export const useResponsive = () => {
       fontSize,
       icon,
       spacing,
+      getSpacing,
+      scaledSpacing,
+      spacingMap,
       horizontalPadding: isWideScreen ? scale(40) : isTablet ? scale(32) : isSmall ? scale(16) : scale(20),
       contentMaxWidth,
       itemColumns,
