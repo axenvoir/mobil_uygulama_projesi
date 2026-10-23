@@ -39,14 +39,14 @@ export const persistProductImage = async (sourceUri) => {
     const source = new File(sourceUri);
 
     if (!source.exists) {
-      console.warn('Ürün fotoğrafı kaynağı bulunamadı:', sourceUri);
+      if (__DEV__) console.warn('Ürün fotoğrafı kaynağı bulunamadı:', sourceUri);
       return null;
     }
 
     await source.copy(destination);
     return destination.uri;
   } catch (error) {
-    console.error('Ürün fotoğrafı kalıcı depolamaya kopyalanamadı:', error);
+    if (__DEV__) console.error('Ürün fotoğrafı kalıcı depolamaya kopyalanamadı:', error);
     return null;
   }
 };

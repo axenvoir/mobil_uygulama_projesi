@@ -165,7 +165,7 @@ export default function ProductsScreen({ route, navigation }) {
     const isAvailable = await SMS.isAvailableAsync();
     if (!isAvailable) { showToast('SMS bu cihazda kullanılamıyor.', 'error'); return; }
     const lines = products.map((p, i) => `${i + 1}. ${p.name} - ${t('expiry_date_short')}: ${formatDate(p.expDate, locale)}`).join('\n');
-    try { await SMS.sendSMSAsync([], `🧊 Expira Envanteri\n${lines}`); } catch (error) { console.error('SMS gönderilemedi:', error); showToast('SMS gönderilemedi.', 'error'); }
+    try { await SMS.sendSMSAsync([], `🧊 Expira Envanteri\n${lines}`); } catch (error) { if (__DEV__) console.error('SMS gönderilemedi:', error); showToast('SMS gönderilemedi.', 'error'); }
   };
 
   const handleExportPDF = async () => {
@@ -201,7 +201,7 @@ export default function ProductsScreen({ route, navigation }) {
       setSelectionMode(false);
       setSelectedIds([]);
       setShowCategoryModal(false);
-    } catch (error) { console.error('Toplu kategori güncellenemedi:', error); showToast('Kategori güncellenemedi.', 'error'); }
+    } catch (error) { if (__DEV__) console.error('Toplu kategori güncellenemedi:', error); showToast('Kategori güncellenemedi.', 'error'); }
   };
 
   const openDetail = (item) => { navigation.navigate('ProductDetail', { productId: item.id }); };
