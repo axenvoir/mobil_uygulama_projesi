@@ -52,7 +52,7 @@ export default function ProfileScreen({ navigation }) {
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
       if (!hasHardware || !isEnrolled) { showToast('Biometric authentication is not available on this device.', 'error'); return; }
       const result = await LocalAuthentication.authenticateAsync({ promptMessage: 'Enable biometric lock' });
-      if (result.success) { updateProfile('biometricsEnabled', true); showToast('Biyometrik kilit aktif.', 'success'); }
+      if (result.success) { updateProfile('biometricsEnabled', true); showToast('Biometric lock is enabled.', 'success'); }
     } else {
       updateProfile('biometricsEnabled', false);
       showToast('Biometric lock is disabled.', 'info');
@@ -101,7 +101,7 @@ export default function ProfileScreen({ navigation }) {
 
   const handleCopyUserId = async () => {
     try {
-      const info = `Expira v${Application.nativeApplicationVersion} (${Application.nativeBuildVersion})\nPaket: ${Application.applicationId}`;
+      const info = `Expira v${Application.nativeApplicationVersion} (${Application.nativeBuildVersion})\nPackage: ${Application.applicationId}`;
       await Clipboard.setStringAsync(info);
       showToast('Copied!', 'success');
     } catch (error) { if (__DEV__) console.error('Profile info could not be copied to clipboard:', error); showToast('Could not copy.', 'error'); }
@@ -270,11 +270,11 @@ export default function ProfileScreen({ navigation }) {
             {showAbout && (
               <View style={styles.aboutBox}>
                 <View style={styles.aboutRow}>
-                  <Text style={styles.aboutLabel}>Uygulama</Text>
+                  <Text style={styles.aboutLabel}>Application</Text>
                   <Text style={styles.aboutValue}>Expira</Text>
                 </View>
                 <View style={styles.aboutRow}>
-                  <Text style={styles.aboutLabel}>Versiyon</Text>
+                  <Text style={styles.aboutLabel}>Version</Text>
                   <Text style={styles.aboutValue}>{Application.nativeApplicationVersion || '1.0.0'}</Text>
                 </View>
                 <View style={styles.aboutRow}>
@@ -283,7 +283,7 @@ export default function ProfileScreen({ navigation }) {
                 </View>
                 <TouchableOpacity style={[styles.copyInfoBtn, { backgroundColor: colors.primary + '15' }]} onPress={handleCopyUserId} activeOpacity={0.7}>
                   <Ionicons name="copy-outline" size={scale(16)} color={colors.primary} />
-                  <Text style={[styles.copyInfoText, { color: colors.primary }]}>Bilgileri Kopyala</Text>
+                  <Text style={[styles.copyInfoText, { color: colors.primary }]}>Copy Info</Text>
                 </TouchableOpacity>
               </View>
             )}
