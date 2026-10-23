@@ -187,7 +187,7 @@ export const AppProvider = ({ children }) => {
       try {
         await syncRemindersFromSettings(settingsRef.current, localeRef.current);
       } catch (error) {
-        if (__DEV__ && !cancelled) if (__DEV__) console.error('Hatırlatıcılar senkronize edilemedi:', error);
+        if (__DEV__ && !cancelled) console.error('Reminders could not be synchronized:', error);
       }
     })();
 
