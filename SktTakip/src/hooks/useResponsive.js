@@ -8,8 +8,6 @@ export const useResponsive = () => {
 
   return useMemo(() => {
     const isSmall = width < 360;
-    const isMedium = width >= 360 && width < 600;
-    const isLarge = width >= 600;
     const isTablet = width >= 768;
     const isWideScreen = width >= 1200;
     const isLandscape = width > height;
@@ -20,7 +18,7 @@ export const useResponsive = () => {
     const scale = (size) => widthScale * size;
     const verticalScale = (size) => heightScale * size;
     const moderateScale = (size, factor = 0.5) => size + (scale(size) - size) * factor;
-    const fontSize = (base) => Math.max(12, Math.round(moderateScale(base, 0.35)));
+    const fontSize = (base) => Math.max(14, Math.round(moderateScale(base, 0.35)));
     const icon = (base) => Math.max(18, Math.round(moderateScale(base, 0.4)));
     const spacing = (base) => Math.round(moderateScale(base, 0.5));
     const contentMaxWidth = isWideScreen ? 1080 : isTablet ? 840 : width;
@@ -31,8 +29,6 @@ export const useResponsive = () => {
       height,
       fontScale,
       isSmall,
-      isMedium,
-      isLarge,
       isTablet,
       isWideScreen,
       isLandscape,

@@ -455,6 +455,10 @@ export default function ProductsScreen({ route, navigation }) {
         </View>
 
         <FlatList
+        initialNumToRender={10}
+        maxToRenderPerBatch={5}
+        removeClippedSubviews={true}
+        windowSize={11}
           data={filteredProducts}
           keyExtractor={item => item.id}
           key={`columns-${itemColumns}`}
