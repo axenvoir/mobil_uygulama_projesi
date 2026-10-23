@@ -1,9 +1,13 @@
 import * as Calendar from 'expo-calendar';
 import { Platform } from 'react-native';
 
+let hasCalendarPermission = null;
+
 const getCalendarPermissions = async () => {
+  if (hasCalendarPermission !== null) return hasCalendarPermission;
   const { status } = await Calendar.requestCalendarPermissionsAsync();
-  return status === 'granted';
+  hasCalendarPermission = status === 'granted';
+  return hasCalendarPermission;
 };
 
 const getDefaultCalendarId = async () => {
@@ -19,7 +23,7 @@ const getDefaultCalendarId = async () => {
     const local = calendars.find(c => c.source?.name === 'Local' || c.isLocalAccount);
     return (local || calendars[0]).id;
   } catch (e) {
-    console.error('Takvim bulunamadı:', e);
+    if (__DEV__) console.error('Takvim bulunamadı:', e);
     return null;
   }
 };
@@ -62,7 +66,7 @@ export const addProductToCalendar = async (product) => {
 
     return { success: true, eventId };
   } catch (e) {
-    console.error('Takvim etkinliği ekleme hatası:', e);
+    if (__DEV__) console.error('Takvim etkinliği ekleme hatası:', e);
     return { success: false, error: e.message };
   }
 };

@@ -2,6 +2,10 @@ import 'react-native-gesture-handler';
 import React, { useContext, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+// Define __DEV__ for production builds
+const __DEV__ = process.env.NODE_ENV === 'development';
+
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';

@@ -30,7 +30,7 @@ const getStoredReminderId = async () => {
   try {
     return await AsyncStorage.getItem(REMINDER_ID_KEY);
   } catch (error) {
-    console.error('Hatırlatıcı kimliği okunamadı:', error);
+    if (__DEV__) console.error('Hatırlatıcı kimliği okunamadı:', error);
     return null;
   }
 };
@@ -40,7 +40,7 @@ const setStoredReminderId = async (id) => {
     if (id) await AsyncStorage.setItem(REMINDER_ID_KEY, id);
     else await AsyncStorage.removeItem(REMINDER_ID_KEY);
   } catch (error) {
-    console.error('Hatırlatıcı kimliği kaydedilemedi:', error);
+    if (__DEV__) console.error('Hatırlatıcı kimliği kaydedilemedi:', error);
   }
 };
 
@@ -52,7 +52,10 @@ export const requestPermissions = async () => {
     let finalStatus = existingStatus;
 
     if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
+      const { status } = await Notifications.requestPermissionsAsync({
+        ios: { allowAlert: true, allowSound: true },
+        android: { allowAlert: true, allowSound: true }
+      });
       finalStatus = status;
     }
 
@@ -71,10 +74,11 @@ export const requestPermissions = async () => {
 
     return true;
   } catch (e) {
-    console.error('Bildirim izni hatası:', e);
+    if (__DEV__) console.error('Bildirim izni hatası:', e);
     return false;
   }
 };
+
 
 /** Cancels only the tracked daily reminder (not other scheduled notifications). */
 export const cancelDailyReminder = async () => {
@@ -91,7 +95,7 @@ export const cancelDailyReminder = async () => {
     await setStoredReminderId(null);
     return true;
   } catch (e) {
-    console.error('Günlük hatırlatıcı iptal hatası:', e);
+    if (__DEV__) console.error('Günlük hatırlatıcı iptal hatası:', e);
     return false;
   }
 };
@@ -108,7 +112,7 @@ export const cancelAllReminders = async () => {
     await setStoredReminderId(null);
     return true;
   } catch (e) {
-    console.error('Bildirim iptal hatası:', e);
+    if (__DEV__) console.error('Bildirim iptal hatası:', e);
     return false;
   }
 };
@@ -142,7 +146,7 @@ export const scheduleDailyReminder = async (hour, minute, customMessage = null, 
     await setStoredReminderId(id);
     return id;
   } catch (e) {
-    console.error('Bildirim planlama hatası:', e);
+    if (__DEV__) console.error('Bildirim planlama hatası:', e);
     await setStoredReminderId(null);
     return null;
   }
@@ -200,7 +204,7 @@ export const sendTestNotification = async (customMessage = null, locale = 'tr') 
     });
     return true;
   } catch (e) {
-    console.error('Test bildirim hatası:', e);
+    if (__DEV__) console.error('Test bildirim hatası:', e);
     return false;
   }
 };
@@ -211,7 +215,7 @@ export const getScheduledNotifications = async () => {
   try {
     return await Notifications.getAllScheduledNotificationsAsync();
   } catch (error) {
-    console.error('Planlanmış bildirimler okunamadı:', error);
+    if (__DEV__) console.error('Planlanmış bildirimler okunamadı:', error);
     return [];
   }
 };
