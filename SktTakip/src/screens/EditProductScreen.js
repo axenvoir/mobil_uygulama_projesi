@@ -132,7 +132,7 @@ export default function EditProductScreen({ route, navigation }) {
       }
       setImageUri(persisted);
     } catch (error) {
-      if (__DEV__) if (__DEV__) console.error('Ürün fotoğrafı yüklenemedi:', error);
+      if (__DEV__) console.error('Ürün fotoğrafı yüklenemedi:', error);
       showToast(t('product_photo_failed'), 'error');
     }
   };

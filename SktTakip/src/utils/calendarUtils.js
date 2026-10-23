@@ -16,14 +16,13 @@ const getDefaultCalendarId = async () => {
       const defaultCalendar = await Calendar.getDefaultCalendarAsync();
       return defaultCalendar?.id || null;
     }
-    // Android: ilk uygun takvimi bul
+    
     const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
     if (calendars.length === 0) return null;
-    // Öncelik: local, sonra google
     const local = calendars.find(c => c.source?.name === 'Local' || c.isLocalAccount);
     return (local || calendars[0]).id;
   } catch (e) {
-    if (__DEV__) if (__DEV__) console.error('Takvim bulunamadı:', e);
+    if (__DEV__) console.error('Takvim bulunamadı:', e);
     return null;
   }
 };
@@ -40,13 +39,11 @@ export const addProductToCalendar = async (product) => {
       return { success: false, error: 'Uygun takvim bulunamadı.' };
     }
 
-    // SKT'den 3 gün önce hatırlatma etkinliği oluştur
     const [year, month, day] = product.expDate.split('-').map(Number);
     const expDate = new Date(year, month - 1, day);
     const reminderDate = new Date(expDate);
     reminderDate.setDate(reminderDate.getDate() - 3);
 
-    // Eğer hatırlatma tarihi geçmişte kaldıysa, SKT günü etkinlik oluştur
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const targetDate = reminderDate < today ? expDate : reminderDate;
@@ -66,7 +63,7 @@ export const addProductToCalendar = async (product) => {
 
     return { success: true, eventId };
   } catch (e) {
-    if (__DEV__) if (__DEV__) console.error('Takvim etkinliği ekleme hatası:', e);
+    if (__DEV__) console.error('Takvim etkinliği ekleme hatası:', e);
     return { success: false, error: e.message };
   }
 };

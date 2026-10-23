@@ -69,7 +69,6 @@ export const getContrastingTextColor = (hexColor) => {
   return luminance > 0.179 ? '#000000' : '#FFFFFF';
 };
 
-// YAZI BOYUTLARI BÜYÜTÜLDÜ
 export const TYPOGRAPHY = {
   display: 36,
   h1: 32,

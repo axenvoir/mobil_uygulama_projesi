@@ -5,7 +5,7 @@ import en from '../translations/en.json';
 
 const i18n = new I18n({ tr, en });
 
-// Varsayılan dil: cihaz diline göre
+
 const deviceLocale = Localization.getLocales()[0]?.languageCode || 'tr';
 i18n.defaultLocale = 'tr';
 i18n.locale = deviceLocale === 'tr' ? 'tr' : 'en';

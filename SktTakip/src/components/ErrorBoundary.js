@@ -14,15 +14,15 @@ export default class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    if (__DEV__) if (__DEV__) console.error("Uygulama Hatası:", error, errorInfo);
+    if (__DEV__) console.error("Uygulama Hatası:", error, errorInfo);
   }
 
   handleRestart = async () => {
     try {
       await Updates.reloadAsync();
     } catch (error) {
-      if (__DEV__) if (__DEV__) console.error('Uygulama yeniden başlatılamadı:', error);
-      this.setState({ hasError: false }); // Eğer reload çalışmazsa state'i sıfırla
+      if (__DEV__) console.error('Uygulama yeniden başlatılamadı:', error);
+      this.setState({ hasError: false }); 
     }
   };
 

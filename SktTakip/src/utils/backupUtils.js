@@ -4,13 +4,13 @@ import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 import { isValidDateString } from './validators';
 
-// Simple hash function for checksum
+
 const simpleHash = (str) => {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash; 
   }
   return hash.toString(16);
 };

@@ -23,9 +23,9 @@ export const generateInventoryPDF = async (products, userName = 'Kullanıcı') =
   };
 
   const getStatusColor = (daysLeft) => {
-    if (daysLeft < 0) return '#EF4444'; // Kırmızı
-    if (daysLeft <= 7) return '#F59E0B'; // Sarı
-    return '#10B981'; // Yeşil
+    if (daysLeft < 0) return '#EF4444'; 
+    if (daysLeft <= 7) return '#F59E0B'; 
+    return '#10B981'; 
   };
 
   const rows = products.map((p) => {
@@ -98,7 +98,7 @@ export const generateInventoryPDF = async (products, userName = 'Kullanıcı') =
     }
     return { success: true, uri };
   } catch (e) {
-    if (__DEV__) if (__DEV__) console.error('PDF oluşturma hatası:', e);
+    if (__DEV__) console.error('PDF oluşturma hatası:', e);
     return { success: false, error: e.message };
   }
 };

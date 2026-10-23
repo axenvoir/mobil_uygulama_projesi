@@ -18,7 +18,7 @@ export const ThemeProvider = ({ children }) => {
           setMode(stored);
         }
       } catch (e) {
-        if (__DEV__) if (__DEV__) console.warn('Theme load error:', e);
+        if (__DEV__) console.warn('Theme load error:', e);
       }
       setLoaded(true);
     })();
@@ -29,7 +29,7 @@ export const ThemeProvider = ({ children }) => {
     try {
       await AsyncStorage.setItem('@themeMode', newMode);
     } catch (e) {
-      if (__DEV__) if (__DEV__) console.warn('Theme save error:', e);
+      if (__DEV__) console.warn('Theme save error:', e);
     }
   };
 

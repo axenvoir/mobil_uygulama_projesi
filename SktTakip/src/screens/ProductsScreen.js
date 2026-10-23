@@ -35,7 +35,6 @@ export default function ProductsScreen({ route, navigation }) {
   const [showHistory, setShowHistory] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
 
-  // Onay Modal State'leri
   const [modalVisible, setModalVisible] = useState(false);
   const [modalConfig, setModalConfig] = useState({ type: 'warning', title: '', message: '', confirmText: 'Evet', onConfirm: null });
 
@@ -62,7 +61,7 @@ export default function ProductsScreen({ route, navigation }) {
     setSearchHistory(h);
   }, []);
 
-  // Hydrate the search-history UI from local storage on first display.
+  
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { loadSearchHistory(); }, [loadSearchHistory]);
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -123,7 +122,7 @@ export default function ProductsScreen({ route, navigation }) {
     return { text: t('status_fresh'), color: colors.success, bg: colors.success + '15' };
   };
 
-  // SİLME FONKSİYONU DÜZELTİLDİ
+  
   const handleDelete = (item) => {
     if (swipeRefs.current[item.id]) {
       swipeRefs.current[item.id].close();
@@ -165,7 +164,7 @@ export default function ProductsScreen({ route, navigation }) {
     const isAvailable = await SMS.isAvailableAsync();
     if (!isAvailable) { showToast('SMS bu cihazda kullanılamıyor.', 'error'); return; }
     const lines = products.map((p, i) => `${i + 1}. ${p.name} - ${t('expiry_date_short')}: ${formatDate(p.expDate, locale)}`).join('\n');
-    try { await SMS.sendSMSAsync([], `🧊 Expira Envanteri\n${lines}`); } catch (error) { if (__DEV__) if (__DEV__) console.error('SMS gönderilemedi:', error); showToast('SMS gönderilemedi.', 'error'); }
+    try { await SMS.sendSMSAsync([], `🧊 Expira Envanteri\n${lines}`); } catch (error) { if (__DEV__) console.error('SMS gönderilemedi:', error); showToast('SMS gönderilemedi.', 'error'); }
   };
 
   const handleExportPDF = async () => {
@@ -201,7 +200,7 @@ export default function ProductsScreen({ route, navigation }) {
       setSelectionMode(false);
       setSelectedIds([]);
       setShowCategoryModal(false);
-    } catch (error) { if (__DEV__) if (__DEV__) console.error('Toplu kategori güncellenemedi:', error); showToast('Kategori güncellenemedi.', 'error'); }
+    } catch (error) { if (__DEV__) console.error('Toplu kategori güncellenemedi:', error); showToast('Kategori güncellenemedi.', 'error'); }
   };
 
   const openDetail = (item) => { navigation.navigate('ProductDetail', { productId: item.id }); };

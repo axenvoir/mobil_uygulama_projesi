@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; // YENİ EKLENDİ
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
@@ -12,7 +11,6 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
   const { t } = useTranslation();
   const responsive = useResponsive();
   const { isTablet, scale, icon, fontSize } = responsive;
-  const insets = useSafeAreaInsets(); // Çentik/Gesture bar yüksekliği
 
   const height = scale(isTablet ? 85 : 75);
   const iconSize = icon(isTablet ? 26 : 23);
@@ -20,7 +18,7 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
 
   if (state.routes[state.index]?.name === 'AddProduct') return null;
 
-  // Alt menünün toplam yüksekliği = Kendi boyu + Telefonun alt çentiği
+  
   const totalHeight = height + insets.bottom;
 
   return (
@@ -102,9 +100,8 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
 const styles = StyleSheet.create({
   outerContainer: {
     width: '100%',
-    position: 'absolute', // İçeriğin üzerine binmesi için
-    bottom: 0, // En alta sabitle
-    zIndex: 1000, // Her zaman en üstte kalması için
+    bottom: 0, 
+    zIndex: 1000, 
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     overflow: 'hidden',
@@ -123,6 +120,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 5,
-    zIndex: 2000, // Butonu en üst katmana çıkar
+    zIndex: 2000, 
   },
 });

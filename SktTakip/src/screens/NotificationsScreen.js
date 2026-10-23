@@ -36,7 +36,7 @@ export default function NotificationsScreen({ navigation }) {
     setScheduledCount(scheduled.length);
   }, []);
 
-  // Read the OS notification store when this screen opens.
+  
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { loadScheduledCount(); }, [loadScheduledCount]);
   /* eslint-enable react-hooks/set-state-in-effect */

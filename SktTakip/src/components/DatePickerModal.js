@@ -30,7 +30,7 @@ export default function DatePickerModal({ visible, onClose, onSelect, initialDat
   useEffect(() => {
     if (visible) {
       const d = parseInitialDate(initialDate);
-      // Reinitialize the selection when the modal is reopened.
+      
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedDate(d);
       setCurrentDate(d);

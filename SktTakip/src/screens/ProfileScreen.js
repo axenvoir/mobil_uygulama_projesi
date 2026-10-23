@@ -11,7 +11,6 @@ import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
 import { generateInventoryPDF } from '../utils/pdfExport';
 import { SHADOWS, TYPOGRAPHY, getContrastingTextColor } from '../theme';
-import UpdateModal from '../components/UpdateModal'; // YENİ EKLENDİ
 
 const AVATAR_COLORS = ['#14B8A6', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6', '#EC4899', '#10B981', '#0F172A'];
 
@@ -27,13 +26,13 @@ export default function ProfileScreen({ navigation }) {
   const [color, setColor] = useState(userProfile.avatarColor);
   const [showAbout, setShowAbout] = useState(false);
 
-  // Güncelleme State'leri
+  
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [updateStatus, setUpdateStatus] = useState('checking');
   const [updateError, setUpdateError] = useState('');
 
   useEffect(() => {
-    // Keep the form in sync if profile data is restored while this screen is mounted.
+    
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setName(userProfile.name);
     setColor(userProfile.avatarColor);
@@ -104,7 +103,7 @@ export default function ProfileScreen({ navigation }) {
       const info = `Expira v${Application.nativeApplicationVersion} (${Application.nativeBuildVersion})\nPaket: ${Application.applicationId}`;
       await Clipboard.setStringAsync(info);
       showToast('Kopyalandı!', 'success');
-    } catch (error) { if (__DEV__) if (__DEV__) console.error('Profil bilgisi panoya kopyalanamadı:', error); showToast('Kopyalanamadı.', 'error'); }
+    } catch (error) { if (__DEV__) console.error('Profil bilgisi panoya kopyalanamadı:', error); showToast('Kopyalanamadı.', 'error'); }
   };
 
   const cycleTheme = () => {

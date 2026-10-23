@@ -38,7 +38,7 @@ export default function BiometricLockScreen() {
     }
   }, [unlockApp, t]);
 
-  // Automatically prompt for biometric authentication when the lock screen opens.
+  
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, tension: 60 }).start();

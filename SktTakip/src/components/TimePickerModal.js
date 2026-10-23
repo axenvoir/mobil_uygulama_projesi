@@ -29,7 +29,7 @@ export default function TimePickerModal({ visible, onClose, onSelect, initialTim
   useEffect(() => {
     if (visible) {
       const t = parseInitialTime(initialTime);
-      // Reinitialize the selection when the modal is reopened.
+      
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setHour(t.hour);
       setMinute(t.minute);
