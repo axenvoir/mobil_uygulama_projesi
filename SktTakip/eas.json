@@ -30,7 +30,8 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_USE_HERMES": "0"
+        "EXPO_USE_HERMES": "0",
+        "ANDROID_PROGUARD_MAPPING": "true"
       }
     }
   },

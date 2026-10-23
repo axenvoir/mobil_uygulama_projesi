@@ -2,7 +2,7 @@
   "expo": {
     "name": "Expira",
     "slug": "expira",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "description": "Track product expiry dates, organize your pantry, and get timely reminders.",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
@@ -22,7 +22,7 @@
     },
     "android": {
       "package": "com.expira.app.tr",
-      "versionCode": 1,
+      "versionCode": 29,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png",
