@@ -399,5 +399,7 @@
   "loading_tagline": "Son kullanma tarihini asla unutma",
   "error_title": "Bir Hata Oluştu",
   "error_message": "Uygulama beklenmeyen bir hatayla karşılaştı. Merak etme, verilerin güvende!",
-  "error_restart": "Uygulamayı Yeniden Başlat"
+  "error_restart": "Uygulamayı Yeniden Başlat",
+  "backup_invalid": "Dosya geçerli bir Expira yedeği değil veya biçim desteklenmiyor.",
+  "backup_corrupted": "Yedek dosyası bozuk görünüyor veya dışarıdan değiştirilmiş."
 }

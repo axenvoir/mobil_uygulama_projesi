@@ -50,16 +50,28 @@ export default function ConfirmModal({ visible, title, message, type = 'warning'
             <Ionicons name={config.icon} size={scale(36)} color={config.color} />
           </View>
 
-          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-          <Text style={[styles.message, { color: colors.textLight }]}>{message}</Text>
+          <Text style={[styles.title, { color: colors.text }]} maxFontSizeMultiplier={2}>{title}</Text>
+          <Text style={[styles.message, { color: colors.textLight }]} maxFontSizeMultiplier={2}>{message}</Text>
 
           <View style={styles.btnRow}>
-            <TouchableOpacity style={[styles.cancelBtn, { borderColor: colors.border }]} onPress={onCancel} activeOpacity={0.7}>
-              <Text style={[styles.cancelText, { color: colors.textLight }]}>{cancelText}</Text>
+            <TouchableOpacity
+              style={[styles.cancelBtn, { borderColor: colors.border }]}
+              onPress={onCancel}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={cancelText}
+            >
+              <Text style={[styles.cancelText, { color: colors.textLight }]} maxFontSizeMultiplier={2}>{cancelText}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.confirmBtn, { backgroundColor: config.color }]} onPress={onConfirm} activeOpacity={0.8}>
-              <Text style={[styles.confirmText, { color: config.textColor }]}>{confirmText}</Text>
+            <TouchableOpacity
+              style={[styles.confirmBtn, { backgroundColor: config.color }]}
+              onPress={onConfirm}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={confirmText}
+            >
+              <Text style={[styles.confirmText, { color: config.textColor }]} maxFontSizeMultiplier={2}>{confirmText}</Text>
             </TouchableOpacity>
           </View>
 

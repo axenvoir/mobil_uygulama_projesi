@@ -399,5 +399,7 @@
   "loading_tagline": "Never forget the expiry date",
   "error_title": "An Error Occurred",
   "error_message": "The application encountered an unexpected error. Do not worry, your data is safe!",
-  "error_restart": "Restart Application"
+  "error_restart": "Restart Application",
+  "backup_invalid": "File is not a valid Expira backup or format is not supported.",
+  "backup_corrupted": "Backup file appears to be corrupted or was modified externally."
 }

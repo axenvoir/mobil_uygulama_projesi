@@ -254,6 +254,13 @@ export const AppProvider = ({ children }) => {
     setProducts(current => current.map(product => product.id === id ? { ...updatedProduct, id } : product));
   };
 
+  const updateProducts = (ids, updates) => {
+    const idSet = new Set(ids);
+    setProducts(current => current.map(product => (
+      idSet.has(product.id) ? { ...product, ...updates, id: product.id } : product
+    )));
+  };
+
   const addNote = (note) => setNotes(current => [...current, {
     ...note,
     id: createId(),
@@ -346,7 +353,7 @@ export const AppProvider = ({ children }) => {
     <AppContext.Provider value={{
       products, notes, settings, userProfile, isLoading, loadError, retryLoadData, toast, isLocked, locale,
       selectedCategory, setSelectedCategory,
-      addProduct, deleteProduct, updateProduct,
+      addProduct, deleteProduct, updateProduct, updateProducts,
       addNote, deleteNote, updateNote, togglePin,
       updateSettings, updateProfile, replaceAppData, resetAppData, showToast, hideToast,
       changeLanguage, lockApp, unlockApp,

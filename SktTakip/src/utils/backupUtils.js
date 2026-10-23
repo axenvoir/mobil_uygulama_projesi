@@ -3,6 +3,7 @@ import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 import { isValidDateString } from './validators';
+import i18n from './i18n';
 
 
 const simpleHash = (str) => {
@@ -149,7 +150,20 @@ export const restoreBackup = async () => {
       : new File(asset.uri).textSync();
     const backup = JSON.parse(contents);
     if (!isValidBackup(backup)) {
-      return { success: false, error: 'File is not a valid Expira backup or format is not supported.' };
+      return { success: false, error: i18n.t('backup_invalid') };
+    }
+
+    if (typeof backup.checksum === 'string') {
+      const payload = {
+        products: backup.products,
+        notes: backup.notes,
+        settings: backup.settings,
+        userProfile: backup.userProfile,
+        themeMode: backup.themeMode,
+      };
+      if (backup.checksum !== simpleHash(JSON.stringify(payload))) {
+        return { success: false, error: i18n.t('backup_corrupted') };
+      }
     }
 
     return {

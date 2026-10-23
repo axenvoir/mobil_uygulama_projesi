@@ -19,7 +19,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import EmptyState from '../components/EmptyState';
 
 export default function ProductsScreen({ route, navigation }) {
-  const { products, deleteProduct, updateProduct, showToast, userProfile, settings, selectedCategory, setSelectedCategory } = useContext(AppContext);
+  const { products, deleteProduct, updateProducts, showToast, userProfile, settings, selectedCategory, setSelectedCategory } = useContext(AppContext);
   const { colors } = useTheme();
   const { t, locale } = useTranslation();
   const responsive = useResponsive();
@@ -193,10 +193,7 @@ export default function ProductsScreen({ route, navigation }) {
   const handleBulkCategoryChange = (newCategory) => {
     if (selectedIds.length === 0) { showToast(t('select_product_first'), 'info'); return; }
     try {
-      selectedIds.forEach(id => {
-        const product = products.find(p => p.id === id);
-        if (product) updateProduct(id, { ...product, category: newCategory });
-      });
+      updateProducts(selectedIds, { category: newCategory });
       showToast(t('bulk_category_updated', { count: selectedIds.length, category: newCategory }), 'success');
       setSelectionMode(false);
       setSelectedIds([]);
