@@ -22,7 +22,7 @@ export const LIGHT_COLORS = {
   border: '#E1E8E3',
   tabBar: '#FFFFFF',
   tabBarActive: '#267968',
-  tabBarInactive: '#7D8D85',
+  tabBarInactive: '#5F6F67',
   statusBarStyle: 'dark-content',
 };
 

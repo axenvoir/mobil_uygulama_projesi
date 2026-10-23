@@ -13,7 +13,7 @@ const DEFAULT_SETTINGS = {
 };
 
 const DEFAULT_PROFILE = {
-  name: 'Merve',
+  name: i18n.t('default_profile_name'),
   avatarColor: '#14B8A6',
   language: i18n.locale,
   biometricsEnabled: false,
