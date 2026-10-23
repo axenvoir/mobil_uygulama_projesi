@@ -128,7 +128,7 @@ export const scheduleDailyReminder = async (hour, minute, customMessage = null, 
       body: customMessage || (
         locale === 'en'
           ? "Don't forget to check your fridge! Some products may be close to expiry."
-          : 'Don't forget to check your fridge! Some products may be close to expiry.'
+          : "Don't forget to check your fridge! Some products may be close to expiry."
       ),
       sound: true,
     };

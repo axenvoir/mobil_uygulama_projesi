@@ -7,6 +7,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
 import ConfirmModal from '../components/ConfirmModal';
+import EmptyState from '../components/EmptyState';
 import { notifySuccess } from '../utils/haptics';
 
 export default function NotesScreen({ navigation }) {

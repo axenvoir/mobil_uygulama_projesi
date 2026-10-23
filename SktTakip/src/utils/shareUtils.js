@@ -16,7 +16,8 @@ export const shareProductList = async (products, userName = 'User') => {
     return `${i + 1}. ${p.name}${code}\n   SKT: ${p.expDate} ${status}`;
   }).join('\n\n');
 
-  const dateStr = `${today.getDate()} ${MONTHS_TR[today.getMonth()]} ${today.getFullYear()}`;
+  const MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const dateStr = `${today.getDate()} ${MONTHS_EN[today.getMonth()]} ${today.getFullYear()}`;
 
   const message = `🧊 Expira - Fridge Inventory\n👤 ${userName}\n📅 ${dateStr}\n📦 Total ${products.length} products\n\n${lines}\n\n_Created with Expira app._`;
 

@@ -35,7 +35,7 @@ export default class ErrorBoundary extends React.Component {
           </View>
           <Text style={styles.title}>An Error Occurred</Text>
           <Text style={styles.subtitle}>
-            The application encountered an unexpected error. Don't worry, your data is safe!
+            The application encountered an unexpected error. Do not worry, your data is safe!
           </Text>
 
           <TouchableOpacity style={styles.button} onPress={this.handleRestart}>

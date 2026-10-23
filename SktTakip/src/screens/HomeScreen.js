@@ -7,6 +7,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatDate, getDaysLeft } from '../utils/formatters';
+import EmptyState from '../components/EmptyState';
 
 export default function HomeScreen({ navigation }) {
   const { products, userProfile, setSelectedCategory } = useContext(AppContext);

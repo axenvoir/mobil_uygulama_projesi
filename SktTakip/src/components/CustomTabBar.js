@@ -2,6 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
 import { SHADOWS } from '../theme';
@@ -11,6 +12,7 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
   const { t } = useTranslation();
   const responsive = useResponsive();
   const { isTablet, scale, icon, fontSize } = responsive;
+  const insets = useSafeAreaInsets();
 
   const height = scale(isTablet ? 85 : 75);
   const iconSize = icon(isTablet ? 26 : 23);
@@ -40,7 +42,8 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
                   backgroundColor: colors.primary,
                   borderColor: colors.background,
                   marginTop: -plusSize / 2 - scale(5),
-                }, SHADOWS.medium, elevation: 10]}
+                  elevation: 10
+                }, SHADOWS.medium]}
                 onPress={() => navigation.navigate('AddProduct')}
               >
                 <Ionicons name="add" size={icon(isTablet ? 38 : 32)} color={colors.onPrimary} />

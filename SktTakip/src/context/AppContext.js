@@ -80,14 +80,15 @@ export const AppProvider = ({ children }) => {
   const undoStack = useRef(null);
   const undoTimer = useRef(null);
   const toastTimer = useRef(null);
-  const saveQueue = useRef(Promise.resolve());
   const appState = useRef(AppState.currentState);
   const backgroundTime = useRef(null);
   const settingsRef = useRef(settings);
   const localeRef = useRef(locale);
 
-  settingsRef.current = settings;
-  localeRef.current = locale;
+  useEffect(() => {
+    settingsRef.current = settings;
+    localeRef.current = locale;
+  }, [settings, locale]);
 
   const showToast = useCallback((message, type = 'success', duration = 2500, action = null) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);

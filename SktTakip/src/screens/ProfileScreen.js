@@ -11,6 +11,7 @@ import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
 import { generateInventoryPDF } from '../utils/pdfExport';
 import { SHADOWS, TYPOGRAPHY, getContrastingTextColor } from '../theme';
+import UpdateModal from '../components/UpdateModal';
 
 const AVATAR_COLORS = ['#14B8A6', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6', '#EC4899', '#10B981', '#0F172A'];
 

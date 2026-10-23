@@ -16,7 +16,8 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, character 
 
 export const generateInventoryPDF = async (products, userName = 'User') => {
   const today = new Date();
-  const dateStr = `${today.getDate()} ${MONTHS_TR[today.getMonth()]} ${today.getFullYear()}`;
+  const MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const dateStr = `${today.getDate()} ${MONTHS_EN[today.getMonth()]} ${today.getFullYear()}`;
 
   const getStatusText = (daysLeft) => {
     if (daysLeft < 0) return 'Expired';

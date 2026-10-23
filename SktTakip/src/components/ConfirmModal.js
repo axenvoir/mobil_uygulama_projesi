@@ -5,7 +5,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { SHADOWS, TYPOGRAPHY } from '../theme';
 
-export default function ConfirmModal({ visible, title, message, type = 'warning', confirmText = 'Yes't', cancelText = 'Cancel', onConfirm, onCancel }) {
+export default function ConfirmModal({ visible, title, message, type = 'warning', confirmText = 'Yes', cancelText = 'Cancel', onConfirm, onCancel }) {
   const { colors } = useTheme();
   const responsive = useResponsive();
   const { scale } = responsive;
