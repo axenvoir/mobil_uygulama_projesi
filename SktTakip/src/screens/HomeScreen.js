@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { CATEGORIES, CATEGORY_TRANSLATION_KEYS, SHADOWS, TYPOGRAPHY } from '../theme';
@@ -7,6 +7,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatDate, getDaysLeft } from '../utils/formatters';
+import { Button, Card } from '../components';
 import EmptyState from '../components/EmptyState';
 
 export default function HomeScreen({ navigation }) {
@@ -54,9 +55,7 @@ export default function HomeScreen({ navigation }) {
               <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.headerTitle, { flexShrink: 1, minWidth: 0 }]}>Expira</Text>
               <Text numberOfLines={1} style={styles.headerSubtitle}>{t('tagline')}</Text>
             </View>
-            <TouchableOpacity style={[styles.bellIcon, { padding: scale(8) }]} onPress={() => navigation.navigate('Statistics')} activeOpacity={0.7}>
-              <Ionicons name="stats-chart-outline" size={scale(22)} color={colors.text} />
-            </TouchableOpacity>
+            <Button type="ghost" size="small" icon={<Ionicons name="stats-chart-outline" size={scale(22)} color={colors.text} />} onPress={() => navigation.navigate('Statistics')} style={[styles.bellIcon, { padding: scale(8) }]} />
           </View>
 
           <View style={styles.greetingRow}>
@@ -67,22 +66,16 @@ export default function HomeScreen({ navigation }) {
               <Text numberOfLines={1} adjustsFontSizeToFit style={styles.greeting}>{t('greeting', { name: userProfile.name })} 👋</Text>
               <Text numberOfLines={1} style={styles.greetingSub}>{t('greeting_sub')}</Text>
             </View>
-            <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddProduct')} activeOpacity={0.8}>
-              <Ionicons name="add" size={scale(16)} color={colors.onPrimary} />
-              <Text style={styles.addButtonText}>{t('add')}</Text>
-            </TouchableOpacity>
+            <Button type="primary" size="small" icon={<Ionicons name="add" size={scale(16)} color={colors.onPrimary} />} title={t('add')} onPress={() => navigation.navigate('AddProduct')} style={styles.addButton} textStyle={styles.addButtonText} />
           </View>
 
-          <View style={styles.summaryCard}>
+          <Card shadow="medium" padding="large" style={styles.summaryCard}>
             <View style={styles.summaryTextContainer}>
               <Text style={styles.summaryTitle}>{t('home_upcoming_title')}</Text>
               <Text style={styles.summaryCount}>{approaching.length + todayItems.length}</Text>
               <Text style={styles.summarySub}>{t('home_product_count')}</Text>
               <Text style={styles.summaryDesc}>{t('home_next_seven_days')}</Text>
-              <TouchableOpacity style={styles.detailButton} onPress={() => openProducts('approaching')} activeOpacity={0.8}>
-                <Text style={styles.detailButtonText}>{t('home_view_details')}</Text>
-                <Ionicons name="chevron-forward" size={scale(16)} color={colors.onAccent} />
-              </TouchableOpacity>
+              <Button type="primary" size="small" title={t('home_view_details')} rightIcon={<Ionicons name="chevron-forward" size={scale(16)} color={colors.onPrimary} />} onPress={() => openProducts('approaching')} style={styles.detailButton} textStyle={styles.detailButtonText} />
             </View>
             <Ionicons
               name="calendar"
@@ -90,24 +83,24 @@ export default function HomeScreen({ navigation }) {
               color={colors.accent}
               style={{ opacity: 0.1, position: 'absolute', right: scale(5), bottom: scale(5) }}
             />
-          </View>
+          </Card>
 
           <View style={styles.statsRow}>
-            <TouchableOpacity style={[styles.statBox, { borderBottomColor: colors.primary }]} onPress={() => openProducts('today')} activeOpacity={0.8}>
+            <Card shadow="soft" style={[styles.statBox, { borderBottomColor: colors.primary }]} onPress={() => openProducts('today')}>
               <Text style={styles.statNumber}>{todayItems.length}</Text>
               <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>{t('home_today')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.statBox, { borderBottomColor: colors.warning }]} onPress={() => openProducts('approaching')} activeOpacity={0.8}>
+            </Card>
+            <Card shadow="soft" style={[styles.statBox, { borderBottomColor: colors.warning }]} onPress={() => openProducts('approaching')}>
               <Text style={styles.statNumber}>{approaching.length}</Text>
               <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>{t('home_this_week')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.statBox, { borderBottomColor: colors.danger }]} onPress={() => openProducts('expired')} activeOpacity={0.8}>
+            </Card>
+            <Card shadow="soft" style={[styles.statBox, { borderBottomColor: colors.danger }]} onPress={() => openProducts('expired')}>
               <Text style={styles.statNumber}>{overdue.length}</Text>
               <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>{t('home_overdue')}</Text>
-            </TouchableOpacity>
+            </Card>
           </View>
 
-          <TouchableOpacity style={styles.statsShortcut} onPress={() => navigation.navigate('Statistics')} activeOpacity={0.8}>
+          <Card shadow="soft" style={styles.statsShortcut} onPress={() => navigation.navigate('Statistics')}>
             <View style={styles.statsShortcutLeft}>
               <Ionicons name="bar-chart-outline" size={scale(26)} color={colors.primary} />
               <View style={{ marginLeft: scale(12), flex: 1 }}>
@@ -116,7 +109,7 @@ export default function HomeScreen({ navigation }) {
               </View>
             </View>
             <Ionicons name="chevron-forward" size={scale(20)} color={colors.primary} />
-          </TouchableOpacity>
+          </Card>
 
           {products.length === 0 ? (
             <EmptyState
@@ -132,16 +125,14 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.sectionTitle} numberOfLines={1}>
                   {upcomingProducts.length > 0 ? t('home_upcoming_products') : t('home_recent_products')}
                 </Text>
-                <TouchableOpacity onPress={() => openProducts('all')}>
-                  <Text style={styles.seeAll}>{t('home_view_all')} {'>'}</Text>
-                </TouchableOpacity>
+                <Button type="ghost" size="small" title={t('home_view_all') + ' >'} onPress={() => openProducts('all')} textStyle={styles.seeAll} />
               </View>
 
               <View style={isTablet ? styles.productGridTablet : null}>
                 {recentProducts.map((item) => {
                   const cat = CATEGORIES.find(c => c.name === item.category);
                   return (
-                    <TouchableOpacity key={item.id} style={[styles.productItem, isTablet && styles.productItemTablet]} onPress={() => navigation.navigate('ProductDetail', { productId: item.id })} activeOpacity={0.7}>
+                    <Card key={item.id} shadow="soft" style={[styles.productItem, isTablet && styles.productItemTablet]} onPress={() => navigation.navigate('ProductDetail', { productId: item.id })}>
                       <View style={styles.productIconBg}>
                         <Ionicons name={cat?.icon || 'cube-outline'} size={scale(22)} color={colors.primary} />
                       </View>
@@ -150,7 +141,7 @@ export default function HomeScreen({ navigation }) {
                         <Text numberOfLines={1} style={styles.productDate}>{formatDate(item.expDate, locale)} • {t(CATEGORY_TRANSLATION_KEYS[cat?.id] || 'category_other')}</Text>
                       </View>
                       <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />
-                    </TouchableOpacity>
+                    </Card>
                   );
                 })}
               </View>
