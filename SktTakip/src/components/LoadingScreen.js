@@ -47,8 +47,8 @@ export default function LoadingScreen() {
         <Ionicons name="hourglass" size={icon(54)} color={colors.onPrimary} />
       </Animated.View>
       <Text style={[styles.title, { color: colors.white }]}>Expira</Text>
-      <Text style={[styles.tagline, { color: colors.textLight }]}>Son kullanma tarihini unutma</Text>
-      <Text style={[styles.subtitle, { color: colors.textLight }]}>Yükleniyor...</Text>
+      <Text style={[styles.tagline, { color: colors.textLight }]}>Never forget the expiry date</Text>
+      <Text style={[styles.subtitle, { color: colors.textLight }]}>Loading...</Text>
       <View style={styles.dotsRow}>
         <Animated.View style={[styles.dot, { backgroundColor: colors.primary, opacity }]} />
         <View style={[styles.dot, { backgroundColor: colors.primary, opacity: 0.5 }]} />

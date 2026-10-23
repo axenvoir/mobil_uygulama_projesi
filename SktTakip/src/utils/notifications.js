@@ -30,7 +30,7 @@ const getStoredReminderId = async () => {
   try {
     return await AsyncStorage.getItem(REMINDER_ID_KEY);
   } catch (error) {
-    if (__DEV__) console.error('Hatırlatıcı kimliği okunamadı:', error);
+    if (__DEV__) console.error('Reminder ID could not be read:', error);
     return null;
   }
 };
@@ -40,7 +40,7 @@ const setStoredReminderId = async (id) => {
     if (id) await AsyncStorage.setItem(REMINDER_ID_KEY, id);
     else await AsyncStorage.removeItem(REMINDER_ID_KEY);
   } catch (error) {
-    if (__DEV__) console.error('Hatırlatıcı kimliği kaydedilemedi:', error);
+    if (__DEV__) console.error('Reminder ID could not be saved:', error);
   }
 };
 
@@ -74,7 +74,7 @@ export const requestPermissions = async () => {
 
     return true;
   } catch (e) {
-    if (__DEV__) console.error('Bildirim izni hatası:', e);
+    if (__DEV__) console.error('Notification permission error:', e);
     return false;
   }
 };
@@ -95,7 +95,7 @@ export const cancelDailyReminder = async () => {
     await setStoredReminderId(null);
     return true;
   } catch (e) {
-    if (__DEV__) console.error('Günlük hatırlatıcı iptal hatası:', e);
+    if (__DEV__) console.error('Daily reminder cancellation error:', e);
     return false;
   }
 };
@@ -112,7 +112,7 @@ export const cancelAllReminders = async () => {
     await setStoredReminderId(null);
     return true;
   } catch (e) {
-    if (__DEV__) console.error('Bildirim iptal hatası:', e);
+    if (__DEV__) console.error('Notification cancellation error:', e);
     return false;
   }
 };
@@ -128,7 +128,7 @@ export const scheduleDailyReminder = async (hour, minute, customMessage = null, 
       body: customMessage || (
         locale === 'en'
           ? "Don't forget to check your fridge! Some products may be close to expiry."
-          : 'Buzdolabını kontrol etmeyi unutma! Son kullanma tarihi yaklaşan ürünlerin olabilir.'
+          : 'Don't forget to check your fridge! Some products may be close to expiry.'
       ),
       sound: true,
     };
@@ -146,7 +146,7 @@ export const scheduleDailyReminder = async (hour, minute, customMessage = null, 
     await setStoredReminderId(id);
     return id;
   } catch (e) {
-    if (__DEV__) console.error('Bildirim planlama hatası:', e);
+    if (__DEV__) console.error('Notification scheduling error:', e);
     await setStoredReminderId(null);
     return null;
   }
@@ -191,11 +191,11 @@ export const sendTestNotification = async (customMessage = null, locale = 'tr') 
   try {
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: locale === 'en' ? '🎉 Expira Test Notification' : '🎉 Expira Test Bildirimi',
+        title: locale === 'en' ? '🎉 Expira Test Notification' : '🎉 Expira Test Notification',
         body: customMessage || (
           locale === 'en'
             ? 'Notifications are working! You can now keep track of your product expiry dates.'
-            : 'Harika! Bildirimlerin çalışıyor. Artık ürünlerinin SKT\'sini takip edebilirsin.'
+            : 'Great! Your notifications are working. You can now track your product expiry dates.'
         ),
         sound: true,
         ...(Platform.OS === 'android' ? { channelId: 'default' } : {}),
@@ -204,7 +204,7 @@ export const sendTestNotification = async (customMessage = null, locale = 'tr') 
     });
     return true;
   } catch (e) {
-    if (__DEV__) console.error('Test bildirim hatası:', e);
+    if (__DEV__) console.error('Test notification error:', e);
     return false;
   }
 };

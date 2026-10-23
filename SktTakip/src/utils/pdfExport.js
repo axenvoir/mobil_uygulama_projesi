@@ -12,7 +12,7 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, character 
   "'": '&#39;',
 }[character]));
 
-export const generateInventoryPDF = async (products, userName = 'Kullanıcı') => {
+export const generateInventoryPDF = async (products, userName = 'User') => {
   const today = new Date();
   const dateStr = `${today.getDate()} ${MONTHS_TR[today.getMonth()]} ${today.getFullYear()}`;
 
@@ -60,23 +60,23 @@ export const generateInventoryPDF = async (products, userName = 'Kullanıcı') =
       </style>
     </head>
     <body>
-      <h1>Expira - Buzdolabı Envanteri</h1>
-      <p class="subtitle">Son kullanma tarihini unutma.</p>
+      <h1>Expira - Fridge Inventory</h1>
+      <p class="subtitle">Never forget the expiry date.</p>
 
       <div class="header-info">
-        <p><strong>Kullanıcı:</strong> ${escapeHtml(userName)}</p>
+        <p><strong>User:</strong> ${escapeHtml(userName)}</p>
         <p><strong>Tarih:</strong> ${dateStr}</p>
-        <p><strong>Toplam Ürün:</strong> ${products.length}</p>
+        <p><strong>Total Products:</strong> ${products.length}</p>
       </div>
 
       <table>
         <thead>
           <tr>
-            <th>Ürün Adı</th>
-            <th>Ürün Kodu</th>
-            <th>Kategori</th>
-            <th>SKT</th>
-            <th>Durum</th>
+            <th>Product Name</th>
+            <th>Product Code</th>
+            <th>Category</th>
+            <th>Expiry Date</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>

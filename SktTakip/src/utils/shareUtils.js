@@ -3,7 +3,7 @@ import { getDaysLeft } from './formatters';
 
 const MONTHS_TR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 
-export const shareProductList = async (products, userName = 'Kullanıcı') => {
+export const shareProductList = async (products, userName = 'User') => {
   const today = new Date();
   const sortedProducts = [...products].sort((a, b) => a.expDate.localeCompare(b.expDate));
 
@@ -16,7 +16,7 @@ export const shareProductList = async (products, userName = 'Kullanıcı') => {
 
   const dateStr = `${today.getDate()} ${MONTHS_TR[today.getMonth()]} ${today.getFullYear()}`;
 
-  const message = `🧊 Expira - Buzdolabı Envanteri\n👤 ${userName}\n📅 ${dateStr}\n📦 Toplam ${products.length} ürün\n\n${lines}\n\n_Expira uygulaması ile oluşturuldu._`;
+  const message = `🧊 Expira - Fridge Inventory\n👤 ${userName}\n📅 ${dateStr}\n📦 Toplam ${products.length} ürün\n\n${lines}\n\n_Created with Expira app._`;
 
   try {
     const result = await Share.share({
@@ -25,7 +25,7 @@ export const shareProductList = async (products, userName = 'Kullanıcı') => {
     });
     return { success: true, result };
   } catch (e) {
-    if (__DEV__) console.error('Paylaşım hatası:', e);
+    if (__DEV__) console.error('Sharing error:', e);
     return { success: false, error: e.message };
   }
 };
@@ -33,9 +33,9 @@ export const shareProductList = async (products, userName = 'Kullanıcı') => {
 export const shareSingleProduct = async (product) => {
   const today = new Date();
   const days = getDaysLeft(product.expDate, today);
-  const status = days < 0 ? '⚠️ Son kullanma tarihi geçmiş!' : days === 0 ? '🔴 Bugün son gün!' : days <= 7 ? `⏰ ${days} gün kaldı` : `✅ ${days} gün kaldı`;
+  const status = days < 0 ? '⚠️ Expired!' : days === 0 ? '🔴 Last day!' : days <= 7 ? `⏰ ${days} days left` : `✅ ${days} days left`;
 
-  const message = `📦 ${product.name}\n${product.productCode ? `🏷️ Kod: ${product.productCode}\n` : ''}📁 Kategori: ${product.category || 'Belirtilmemiş'}\n📅 SKT: ${product.expDate}\n${status}\n\n_Expira ile takip ediliyor._`;
+  const message = `📦 ${product.name}\n${product.productCode ? `🏷️ Kod: ${product.productCode}\n` : ''}📁 Category: ${product.category || 'Not specified'}\n📅 Expiry: ${product.expDate}\n${status}\n\n_Tracked with Expira._`;
 
   try {
     await Share.share({ message, title: product.name });

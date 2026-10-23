@@ -22,7 +22,7 @@ const getDefaultCalendarId = async () => {
     const local = calendars.find(c => c.source?.name === 'Local' || c.isLocalAccount);
     return (local || calendars[0]).id;
   } catch (e) {
-    if (__DEV__) console.error('Takvim bulunamadı:', e);
+    if (__DEV__) console.error('Calendar not found:', e);
     return null;
   }
 };
@@ -31,12 +31,12 @@ export const addProductToCalendar = async (product) => {
   try {
     const granted = await getCalendarPermissions();
     if (!granted) {
-      return { success: false, error: 'Takvim izni verilmedi.' };
+      return { success: false, error: 'Calendar permission denied.' };
     }
 
     const calendarId = await getDefaultCalendarId();
     if (!calendarId) {
-      return { success: false, error: 'Uygun takvim bulunamadı.' };
+      return { success: false, error: 'No suitable calendar found.' };
     }
 
     const [year, month, day] = product.expDate.split('-').map(Number);
@@ -55,7 +55,7 @@ export const addProductToCalendar = async (product) => {
 
     const eventId = await Calendar.createEventAsync(calendarId, {
       title: `⏰ ${product.name} - SKT yaklaşıyor`,
-      notes: `${product.name}${product.productCode ? ` [${product.productCode}]` : ''} ürününün son kullanma tarihi: ${product.expDate}`,
+      notes: `${product.name}${product.productCode ? ` [${product.productCode}]` : ''} product expiry date: ${product.expDate}`,
       startDate,
       endDate,
       alarms: [{ relativeOffset: 0 }],
@@ -63,7 +63,7 @@ export const addProductToCalendar = async (product) => {
 
     return { success: true, eventId };
   } catch (e) {
-    if (__DEV__) console.error('Takvim etkinliği ekleme hatası:', e);
+    if (__DEV__) console.error('Calendar event addition error:', e);
     return { success: false, error: e.message };
   }
 };

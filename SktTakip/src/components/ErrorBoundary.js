@@ -14,14 +14,14 @@ export default class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    if (__DEV__) console.error("Uygulama Hatası:", error, errorInfo);
+    if (__DEV__) console.error("Application Error:", error, errorInfo);
   }
 
   handleRestart = async () => {
     try {
       await Updates.reloadAsync();
     } catch (error) {
-      if (__DEV__) console.error('Uygulama yeniden başlatılamadı:', error);
+      if (__DEV__) console.error('Application could not be restarted:', error);
       this.setState({ hasError: false }); 
     }
   };
@@ -33,14 +33,14 @@ export default class ErrorBoundary extends React.Component {
           <View style={styles.iconContainer}>
             <Ionicons name="warning" size={60} color="#EF4444" />
           </View>
-          <Text style={styles.title}>Bir Sorun Oluştu</Text>
+          <Text style={styles.title}>An Error Occurred</Text>
           <Text style={styles.subtitle}>
-            Uygulama beklenmedik bir hatayla karşılaştı. Endişelenme, verilerin güvende!
+            The application encountered an unexpected error. Don't worry, your data is safe!
           </Text>
 
           <TouchableOpacity style={styles.button} onPress={this.handleRestart}>
             <Ionicons name="refresh" size={20} color="#FFFFFF" />
-            <Text style={styles.buttonText}>Uygulamayı Yeniden Başlat</Text>
+            <Text style={styles.buttonText}>Restart Application</Text>
           </TouchableOpacity>
         </View>
       );
