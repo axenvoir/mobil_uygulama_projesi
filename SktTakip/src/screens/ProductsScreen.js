@@ -1,11 +1,12 @@
 import React, { useContext, useState, useRef, useMemo, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ScrollView, Image, Animated, Keyboard, Modal } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Image, Animated, Keyboard, Modal } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as SMS from 'expo-sms';
 import { AppContext } from '../context/AppContext';
 import { CATEGORIES, CATEGORY_TRANSLATION_KEYS, SHADOWS, TYPOGRAPHY } from '../theme';
+import { Button, Input, Card } from '../components';
 import { shareProductList } from '../utils/shareUtils';
 import { generateInventoryPDF } from '../utils/pdfExport';
 import { notifySuccess } from '../utils/haptics';
@@ -36,7 +37,7 @@ export default function ProductsScreen({ route, navigation }) {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalConfig, setModalConfig] = useState({ type: 'warning', title: '', message: '', confirmText: 'Evet', onConfirm: null });
+  const [modalConfig, setModalConfig] = useState({ type: 'warning', title: '', message: '', confirmText: 'Yes', onConfirm: null });
 
   const swipeRefs = useRef({});
   const searchRef = useRef(null);
@@ -257,12 +258,18 @@ export default function ProductsScreen({ route, navigation }) {
     const isSelected = selectedIds.includes(item.id);
 
     const cardContent = (
-      <TouchableOpacity
-        style={[styles.productCard, isSelected && { borderWidth: 2, borderColor: colors.primary }]}
-        onPress={() => selectionMode ? toggleSelection(item.id) : openDetail(item)}
-        onLongPress={() => { setSelectionMode(true); toggleSelection(item.id); }}
-        activeOpacity={0.7}
+      <Card
+        shadow={selectionMode || isTablet ? 'none' : 'soft'}
+        padding="none"
+        borderRadius={16}
+        style={[isSelected && { borderWidth: 2, borderColor: colors.primary }]}
       >
+        <TouchableOpacity
+          style={styles.productCardInner}
+          onPress={() => selectionMode ? toggleSelection(item.id) : openDetail(item)}
+          onLongPress={() => { setSelectionMode(true); toggleSelection(item.id); }}
+          activeOpacity={0.7}
+        >
         <View style={[styles.colorStrip, { backgroundColor: status.color }]} />
         {selectionMode && (
           <View style={[styles.checkbox, isSelected && { backgroundColor: colors.primary, borderColor: colors.primary }]}>
@@ -296,7 +303,8 @@ export default function ProductsScreen({ route, navigation }) {
         {!selectionMode && (
           <Ionicons name="chevron-forward" size={scale(18)} color={colors.textLight} style={{ marginLeft: scale(4) }} />
         )}
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </Card>
     );
 
     if (selectionMode || isTablet) return cardContent;
@@ -339,80 +347,65 @@ export default function ProductsScreen({ route, navigation }) {
           <View style={styles.headerActions}>
             {selectionMode ? (
               <>
-                <TouchableOpacity style={styles.iconBtn} onPress={() => setShowCategoryModal(true)}>
-                  <Ionicons name="folder-outline" size={scale(20)} color={colors.primary} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.iconBtn} onPress={handleBulkCopy}>
-                  <Ionicons name="copy-outline" size={scale(20)} color={colors.primary} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.iconBtn} onPress={handleBulkDelete}>
-                  <Ionicons name="trash-outline" size={scale(20)} color={colors.danger} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.iconBtn} onPress={() => { setSelectionMode(false); setSelectedIds([]); }}>
-                  <Ionicons name="close-outline" size={scale(22)} color={colors.text} />
-                </TouchableOpacity>
+                <Button type="secondary" size="small" icon={<Ionicons name="folder-outline" size={scale(20)} color={colors.primary} />} onPress={() => setShowCategoryModal(true)} style={styles.actionBtn} />
+                <Button type="secondary" size="small" icon={<Ionicons name="copy-outline" size={scale(20)} color={colors.primary} />} onPress={handleBulkCopy} style={styles.actionBtn} />
+                <Button type="danger" size="small" icon={<Ionicons name="trash-outline" size={scale(20)} color={colors.onDanger} />} onPress={handleBulkDelete} style={styles.actionBtn} />
+                <Button type="ghost" size="small" icon={<Ionicons name="close-outline" size={scale(22)} color={colors.text} />} onPress={() => { setSelectionMode(false); setSelectedIds([]); }} style={styles.actionBtn} />
               </>
             ) : (
               <>
                 {!isSmall && (
                   <>
-                    <TouchableOpacity style={styles.iconBtn} onPress={handleShareSMS}>
-                      <Ionicons name="chatbubble-outline" size={scale(20)} color={colors.primary} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.iconBtn} onPress={handleExportPDF}>
-                      <Ionicons name="document-text-outline" size={scale(20)} color={colors.primary} />
-                    </TouchableOpacity>
+                    <Button type="secondary" size="small" icon={<Ionicons name="chatbubble-outline" size={scale(20)} color={colors.primary} />} onPress={handleShareSMS} style={styles.actionBtn} />
+                    <Button type="secondary" size="small" icon={<Ionicons name="document-text-outline" size={scale(20)} color={colors.primary} />} onPress={handleExportPDF} style={styles.actionBtn} />
                   </>
                 )}
-                <TouchableOpacity style={styles.iconBtn} onPress={handleShare}>
-                  <Ionicons name="share-social-outline" size={scale(20)} color={colors.primary} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate('AddProduct')}>
-                  <Ionicons name="add" size={scale(20)} color={colors.primary} />
-                </TouchableOpacity>
+                <Button type="secondary" size="small" icon={<Ionicons name="share-social-outline" size={scale(20)} color={colors.primary} />} onPress={handleShare} style={styles.actionBtn} />
+                <Button type="primary" size="small" icon={<Ionicons name="add" size={scale(20)} color={colors.onPrimary} />} onPress={() => navigation.navigate('AddProduct')} style={styles.addBtn} />
               </>
             )}
           </View>
         </View>
 
         <View style={styles.searchWrapper}>
-          <View style={styles.searchContainer}>
-            <Ionicons name="search" size={scale(20)} color={colors.textLight} />
-            <TextInput
-              ref={searchRef}
-              style={styles.searchInput}
-              placeholder={t('products_search_placeholder')}
-              placeholderTextColor={colors.textLight}
-              value={searchText}
-              onChangeText={setSearchText}
-              onFocus={handleSearchFocus}
-              onBlur={handleSearchBlur}
-              onSubmitEditing={handleSearchSubmit}
-              returnKeyType="search"
-            />
-            {searchText.length > 0 && (
+          <Input
+            ref={searchRef}
+            placeholder={t('products_search_placeholder')}
+            value={searchText}
+            onChangeText={(text) => { setSearchText(text); if (text.trim().length >= 2) handleSearchSubmit(); }}
+            onFocus={handleSearchFocus}
+            onBlur={handleSearchBlur}
+            onSubmitEditing={handleSearchSubmit}
+            icon={<Ionicons name="search" size={scale(20)} color={colors.textLight} />}
+            rightIcon={searchText.length > 0 ? (
               <TouchableOpacity onPress={() => { setSearchText(''); setDebouncedSearch(''); searchRef.current?.focus(); }}>
                 <Ionicons name="close-circle" size={scale(20)} color={colors.textLight} />
               </TouchableOpacity>
-            )}
-          </View>
+            ) : null}
+            returnKeyType="search"
+            autoCapitalize="none"
+            style={styles.searchInputOverride}
+          />
 
           {showHistory && searchHistory.length > 0 && (
             <View style={styles.historyDropdown}>
               <View style={styles.historyDropdownHeader}>
                 <Text style={styles.historyDropdownTitle}>{t('products_recent_searches')}</Text>
-                <TouchableOpacity onPress={handleClearHistory}>
-                  <Text style={styles.historyClear}>{t('products_clear')}</Text>
-                </TouchableOpacity>
+                <Button type="ghost" size="small" title={t('products_clear')} onPress={handleClearHistory} textStyle={styles.historyClear} />
               </View>
               {searchHistory.map((term, i) => (
-                <TouchableOpacity key={i} style={styles.historyRow} onPress={() => handleHistoryItemPress(term)} activeOpacity={0.7}>
-                  <Ionicons name="time-outline" size={scale(16)} color={colors.textLight} />
-                  <Text style={styles.historyText} numberOfLines={1}>{term}</Text>
-                  <TouchableOpacity onPress={() => handleRemoveHistoryItem(term)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <Ionicons name="close" size={scale(16)} color={colors.textLight} />
-                  </TouchableOpacity>
-                </TouchableOpacity>
+                <Button
+                  key={i}
+                  type="ghost"
+                  size="small"
+                  icon={<Ionicons name="time-outline" size={scale(16)} color={colors.textLight} />}
+                  title={term}
+                  rightIcon={<Ionicons name="close" size={scale(16)} color={colors.textLight} />}
+                  onPress={() => handleHistoryItemPress(term)}
+                  style={styles.historyRow}
+                  textStyle={styles.historyText}
+                  onRightIconPress={() => handleRemoveHistoryItem(term)}
+                />
               ))}
             </View>
           )}
@@ -420,36 +413,57 @@ export default function ProductsScreen({ route, navigation }) {
 
         <View style={styles.tabContainer}>
           {tabs.map(tab => (
-            <TouchableOpacity key={tab.value} style={[styles.tab, activeTab === tab.value && { borderBottomColor: colors.primary }]} onPress={() => setActiveTab(tab.value)}>
-              <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.tabText, activeTab === tab.value && { color: colors.primary }]}>{tab.label}</Text>
-            </TouchableOpacity>
+            <Button
+              key={tab.value}
+              type={activeTab === tab.value ? 'primary' : 'ghost'}
+              size="small"
+              title={tab.label}
+              onPress={() => setActiveTab(tab.value)}
+              style={[styles.tabBtn, activeTab === tab.value && { borderBottomWidth: 2.5, borderBottomColor: colors.primary }]}
+              textStyle={[styles.tabText, activeTab === tab.value && { color: colors.primary }]}
+            />
           ))}
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll} contentContainerStyle={{ paddingRight: scale(20), alignItems: 'center' }}>
           {CATEGORIES.map((cat) => (
-            <TouchableOpacity key={cat.id} style={[styles.categoryChip, selectedCategory === cat.name && { backgroundColor: colors.primary, borderColor: colors.primary }]} onPress={() => setSelectedCategory(cat.name)} activeOpacity={0.7}>
-              <Ionicons name={cat.icon} size={scale(13)} color={selectedCategory === cat.name ? colors.onPrimary : colors.primary} />
-              <Text style={[styles.categoryText, selectedCategory === cat.name && { color: colors.onPrimary }]} numberOfLines={1} adjustsFontSizeToFit>{t(CATEGORY_TRANSLATION_KEYS[cat.id])}</Text>
-            </TouchableOpacity>
+            <Button
+              key={cat.id}
+              type={selectedCategory === cat.name ? 'primary' : 'secondary'}
+              size="small"
+              icon={<Ionicons name={cat.icon} size={scale(13)} color={selectedCategory === cat.name ? colors.onPrimary : colors.primary} />}
+              title={t(CATEGORY_TRANSLATION_KEYS[cat.id])}
+              onPress={() => setSelectedCategory(cat.name)}
+              style={styles.categoryChip}
+            />
           ))}
         </ScrollView>
 
         <View style={styles.sortRow}>
           <Text style={styles.resultCount}>{`${filteredProducts.length} ${t('products')}`}</Text>
           <View style={{ flexDirection: 'row' }}>
-            <TouchableOpacity style={styles.sortBtn} onPress={() => { setSelectionMode(!selectionMode); setSelectedIds([]); }}>
-              <Ionicons name="checkmark-done-outline" size={scale(16)} color={colors.primary} />
-              <Text style={styles.sortText}>{selectionMode ? t('cancel') : t('select')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.sortBtn} onPress={() => {
+            <Button
+              type="secondary"
+              size="small"
+              icon={<Ionicons name="checkmark-done-outline" size={scale(16)} color={colors.primary} />}
+              title={selectionMode ? t('cancel') : t('select')}
+              onPress={() => { setSelectionMode(!selectionMode); setSelectedIds([]); }}
+              style={styles.sortBtn}
+              textStyle={styles.sortText}
+            />
+            <Button
+              type="secondary"
+              size="small"
+              icon={<Ionicons name="swap-vertical-outline" size={scale(16)} color={colors.primary} />}
+              title={sortLabels[sortBy]}
+              onPress={() => {
                 const order = ['date', 'name', 'category', 'added'];
                 const next = order[(order.indexOf(sortBy) + 1) % order.length];
                 setSortBy(next);
-            }}>
-              <Ionicons name="swap-vertical-outline" size={scale(16)} color={colors.primary} />
-              <Text style={styles.sortText}>{sortLabels[sortBy]}</Text>
-            </TouchableOpacity>
+              }}
+              style={styles.sortBtn}
+              textStyle={styles.sortText}
+            />
           </View>
         </View>
 
@@ -475,16 +489,22 @@ export default function ProductsScreen({ route, navigation }) {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Change Category</Text>
-              <TouchableOpacity onPress={() => setShowCategoryModal(false)}><Ionicons name="close" size={scale(24)} color={colors.text} /></TouchableOpacity>
+              <Button type="ghost" size="small" icon={<Ionicons name="close" size={scale(24)} color={colors.text} />} onPress={() => setShowCategoryModal(false)} style={styles.closeBtn} />
             </View>
-            <Text style={styles.modalDesc}>Change category for selected ${selectedIds.length} products:</Text>
+            <Text style={styles.modalDesc}>{`Change category for selected ${selectedIds.length} products:`}</Text>
             <ScrollView style={{ maxHeight: scale(400) }}>
               {CATEGORIES.filter(c => c.id !== 'all').map((cat) => (
-                <TouchableOpacity key={cat.id} style={styles.modalCategoryRow} onPress={() => handleBulkCategoryChange(cat.name)} activeOpacity={0.7}>
-                  <View style={[styles.modalCategoryIcon, { backgroundColor: colors.primary + '15' }]}><Ionicons name={cat.icon} size={scale(20)} color={colors.primary} /></View>
-                  <Text style={styles.modalCategoryText} numberOfLines={1}>{t(CATEGORY_TRANSLATION_KEYS[cat.id])}</Text>
-                  <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />
-                </TouchableOpacity>
+                <Button
+                  key={cat.id}
+                  type="ghost"
+                  size="large"
+                  icon={<View style={[styles.modalCategoryIcon, { backgroundColor: colors.primary + '15' }]}><Ionicons name={cat.icon} size={scale(20)} color={colors.primary} /></View>}
+                  title={t(CATEGORY_TRANSLATION_KEYS[cat.id])}
+                  rightIcon={<Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />}
+                  onPress={() => handleBulkCategoryChange(cat.name)}
+                  style={styles.modalCategoryRow}
+                  textStyle={styles.modalCategoryText}
+                />
               ))}
             </ScrollView>
           </View>
@@ -509,6 +529,7 @@ const createStyles = (colors, responsive) => {
     searchWrapper: { position: 'relative', zIndex: 100, marginBottom: scale(16) },
     searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: scale(16), paddingHorizontal: scale(14), height: scale(52), ...SHADOWS.soft },
     searchInput: { flex: 1, marginLeft: scale(8), color: colors.text, fontSize: moderateScale(TYPOGRAPHY.body, 0.3) },
+    searchInputOverride: { marginBottom: 0, marginHorizontal: 0, paddingHorizontal: 0, backgroundColor: colors.surface, borderRadius: scale(16), height: scale(52), ...SHADOWS.soft },
     historyDropdown: { position: 'absolute', top: scale(58), left: 0, right: 0, backgroundColor: colors.surface, borderRadius: scale(16), padding: scale(10), ...SHADOWS.heavy, zIndex: 999 },
     historyDropdownHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: scale(8), paddingVertical: scale(8), borderBottomWidth: 1, borderBottomColor: colors.border, marginBottom: scale(6) },
     historyDropdownTitle: { fontSize: moderateScale(TYPOGRAPHY.small, 0.3), fontWeight: '800', color: colors.textLight, letterSpacing: 0.5 },
@@ -526,6 +547,7 @@ const createStyles = (colors, responsive) => {
     sortBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, paddingHorizontal: scale(12), paddingVertical: scale(7), borderRadius: scale(12), marginLeft: scale(8), ...SHADOWS.soft },
     sortText: { fontSize: moderateScale(TYPOGRAPHY.small, 0.3), color: colors.primary, fontWeight: '800', marginLeft: scale(5) },
     productCard: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: scale(20), padding: scale(14), marginBottom: scale(12), alignItems: 'center', ...SHADOWS.medium, flex: itemColumns > 1 ? 1 : undefined },
+    productCardInner: { flexDirection: 'row', backgroundColor: colors.surface, padding: scale(14), marginBottom: scale(12), alignItems: 'center', ...SHADOWS.medium, flex: itemColumns > 1 ? 1 : undefined },
     colorStrip: { width: scale(5), height: '80%', borderRadius: scale(3), position: 'absolute', left: 0, top: scale(14), bottom: scale(14) },
     checkbox: { width: scale(24), height: scale(24), borderRadius: scale(8), borderWidth: 2, borderColor: colors.border, justifyContent: 'center', alignItems: 'center', marginLeft: scale(8), marginRight: scale(4) },
     productImage: { width: scale(50), height: scale(50), borderRadius: scale(14), marginLeft: scale(8) },

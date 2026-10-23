@@ -29,6 +29,7 @@ const Button = ({
   loading = false,
   icon,
   rightIcon,
+  onRightIconPress,
   style,
   textStyle,
   ...props
@@ -143,7 +144,15 @@ const Button = ({
         <View style={styles.content}>
           {icon && <View style={styles.iconLeft}>{icon}</View>}
           <Text style={textStyles}>{title}</Text>
-          {rightIcon && <View style={styles.iconRight}>{rightIcon}</View>}
+          {rightIcon && (
+            <TouchableOpacity
+              onPress={onRightIconPress}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={styles.iconRight}
+            >
+              {rightIcon}
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </TouchableOpacity>

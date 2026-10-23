@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import { View, TextInput, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
-import { FONT_WEIGHTS, SEMANTIC_COLORS } from '../theme';
+import { FONT_WEIGHTS } from '../theme';
 
 /**
  * Input Component
