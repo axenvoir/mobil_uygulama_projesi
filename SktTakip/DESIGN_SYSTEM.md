@@ -1,13 +1,21 @@
 # Design System v2.0 - Expira App
 
 ## Overview
-Complete design system specification for Expira app redesign. This document outlines the visual language, component library, and implementation guidelines for v1.2.0 and beyond.
+Target design system specification for the Expira app redesign, planned for v1.2.0 and beyond.
+
+> **Status note:** This is a forward-looking spec and does not fully match the currently shipped UI. The implemented design lives in `src/theme.js` (light/dark palettes, `TYPOGRAPHY`, `FONT_WEIGHTS`, `SHADOWS`), `src/hooks/useResponsive.js` (4px base spacing grid, scaling helpers) and the shared components in `src/components/`. Current key differences:
+>
+> - **Colors:** The app ships a deep-green palette (light primary `#267968`, dark primary `#70CDB0`, accent `#C4D639`), not the teal `#14B8A6` ramp below. The semantic status colors (success/warning/danger/info) are also defined per light/dark mode in `src/theme.js`.
+> - **Fonts:** The app uses the system default sans-serif; no custom font (Inter) is loaded.
+> - **Spacing:** The app scales a 4px base grid responsively (`useResponsive().scaledSpacing`), not a fixed 8px grid.
+>
+> Sections below describe the v2.0 design direction; treat `src/theme.js` as the source of truth for the current build.
 
 ---
 
 ## 1. Color Palette
 
-### Primary Colors
+### Primary Colors (v2.0 target — see note above)
 | Name | Hex | Usage | Accessibility |
 |------|-----|-------|---------------|
 | Primary 500 | #14B8A6 | Main actions, buttons, accents | AA (4.5:1 white) |
@@ -62,9 +70,9 @@ Complete design system specification for Expira app redesign. This document outl
 
 ## 2. Typography
 
-### Font Family
-- **Primary**: Inter (loaded via `@expo-google-fonts/inter`)
-- **Fallback**: System default sans-serif
+### Font Family (v2.0 target — not yet implemented)
+- **Current**: System default sans-serif (no custom font loaded)
+- **Planned**: Inter (via `@expo-google-fonts/inter`) with system fallback
 
 ### Font Weights
 | Name | Weight | Usage |

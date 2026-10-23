@@ -18,7 +18,6 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
   const iconSize = icon(isTablet ? 26 : 23);
   const plusSize = scale(isTablet ? 70 : 60);
 
-  if (state.routes[state.index]?.name === 'AddProduct') return null;
 
   
   const totalHeight = height + insets.bottom;
