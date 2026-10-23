@@ -36,12 +36,13 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
                 activeOpacity={0.8}
                 accessibilityRole="button"
                 accessibilityLabel="Ürün ekle"
+                accessibilityHint="Yeni Ürün eklemek için dokunun"
                 style={[styles.plusButton, {
                   width: plusSize, height: plusSize, borderRadius: plusSize / 2,
                   backgroundColor: colors.primary,
                   borderColor: colors.background,
-                  marginTop: -plusSize / 2,
-                }, SHADOWS.medium]}
+                  marginTop: -plusSize / 2 - scale(5),
+                }, SHADOWS.medium, elevation: 10]}
                 onPress={() => navigation.navigate('AddProduct')}
               >
                 <Ionicons name="add" size={icon(isTablet ? 38 : 32)} color={colors.onPrimary} />
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
     zIndex: 1000, // Her zaman en üstte kalması için
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    // overflow: 'hidden' KALDIRILDI (Butonun taşması için)
+    overflow: 'hidden', (Butonun taşması için)
   },
   tabContainer: {
     flexDirection: 'row',

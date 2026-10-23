@@ -49,12 +49,12 @@ export default function HomeScreen({ navigation }) {
         contentContainerStyle={styles.content}
       >
         <View style={styles.innerWrap}>
-          <View style={styles.header}>
+          <View style={[styles.header, { minHeight: scale(60) }]}>
             <View style={{ flex: 1 }}>
-              <Text numberOfLines={1} adjustsFontSizeToFit style={styles.headerTitle}>Expira</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.headerTitle, { flexShrink: 1, minWidth: 0 }]}>Expira</Text>
               <Text numberOfLines={1} style={styles.headerSubtitle}>{t('tagline')}</Text>
             </View>
-            <TouchableOpacity style={styles.bellIcon} onPress={() => navigation.navigate('Statistics')} activeOpacity={0.7}>
+            <TouchableOpacity style={[styles.bellIcon, { padding: scale(8) }]} onPress={() => navigation.navigate('Statistics')} activeOpacity={0.7}>
               <Ionicons name="stats-chart-outline" size={scale(22)} color={colors.text} />
             </TouchableOpacity>
           </View>

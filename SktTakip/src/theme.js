@@ -1,7 +1,7 @@
 export const LIGHT_COLORS = {
   primary: '#267968',
   primaryDark: '#153F38',
-  accent: '#DCEB83',
+  accent: '#C4D639',
   onPrimary: '#FFFFFF',
   onAccent: '#18362F',
   background: '#F5F7F4',
@@ -9,7 +9,7 @@ export const LIGHT_COLORS = {
   surfaceAlt: '#EDF2EE',
   white: '#FFFFFF',
   text: '#19332D',
-  textLight: '#65766F',
+  textLight: '#5A6B63',
   textInverse: '#FFFFFF',
   danger: '#B8433D',
   onDanger: '#FFFFFF',
@@ -29,7 +29,7 @@ export const LIGHT_COLORS = {
 export const DARK_COLORS = {
   primary: '#70CDB0',
   primaryDark: '#0D2623',
-  accent: '#DCEB83',
+  accent: '#C4D639',
   onPrimary: '#102B26',
   onAccent: '#18362F',
   background: '#101C19',
@@ -37,7 +37,7 @@ export const DARK_COLORS = {
   surfaceAlt: '#253A33',
   white: '#FFFFFF',
   text: '#F0F4EC',
-  textLight: '#A5B5AC',
+  textLight: '#B5C5BC',
   textInverse: '#19332D',
   onDanger: '#421E1C',
   onWarning: '#392919',
@@ -77,13 +77,13 @@ export const TYPOGRAPHY = {
   h3: 22,
   body: 16,
   caption: 14,
-  small: 12,
+  small: 13,
 };
 
 export const SHADOWS = {
-  soft: { shadowColor: '#153F38', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
-  medium: { shadowColor: '#153F38', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.07, shadowRadius: 12, elevation: 2 },
-  heavy: { shadowColor: '#153F38', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.1, shadowRadius: 18, elevation: 4 },
+  soft: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
+  medium: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.07, shadowRadius: 12, elevation: 2 },
+  heavy: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.1, shadowRadius: 18, elevation: 4 },
 };
 
 export const CATEGORIES = [

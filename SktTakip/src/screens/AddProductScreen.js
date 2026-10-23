@@ -175,7 +175,7 @@ export default function AddProductScreen({ navigation }) {
   const photoSize = scale(isTablet ? 200 : 160);
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.innerWrap}>
