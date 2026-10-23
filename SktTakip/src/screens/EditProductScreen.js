@@ -5,6 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
 import { AppContext } from '../context/AppContext';
 import { CATEGORIES, CATEGORY_TRANSLATION_KEYS, SHADOWS, TYPOGRAPHY } from '../theme';
+import { Button, Input, Card } from '../components';
 import DatePickerModal from '../components/DatePickerModal';
 import { notifySuccess, notifyError } from '../utils/haptics';
 import { shareSingleProduct } from '../utils/shareUtils';
@@ -145,17 +146,11 @@ export default function EditProductScreen({ route, navigation }) {
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.innerWrap}>
             <View style={styles.header}>
-              <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
-                <Ionicons name="arrow-back" size={scale(24)} color={colors.text} />
-              </TouchableOpacity>
+              <Button type="ghost" size="small" icon={<Ionicons name="arrow-back" size={scale(24)} color={colors.text} />} onPress={() => navigation.goBack()} style={styles.backBtn} />
               <Text style={styles.headerTitle}>{t('product_edit_title')}</Text>
               <View style={{ flexDirection: 'row' }}>
-                <TouchableOpacity onPress={handleShare} style={{ marginRight: scale(16) }} activeOpacity={0.7}>
-                  <Ionicons name="share-social-outline" size={scale(24)} color={colors.primary} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleDelete} activeOpacity={0.7}>
-                  <Ionicons name="trash-outline" size={scale(24)} color={colors.danger} />
-                </TouchableOpacity>
+                <Button type="secondary" size="small" icon={<Ionicons name="share-social-outline" size={scale(24)} color={colors.primary} />} onPress={handleShare} style={{ marginRight: scale(16) }} />
+                <Button type="danger" size="small" icon={<Ionicons name="trash-outline" size={scale(24)} color={colors.onDanger} />} onPress={handleDelete} />
               </View>
             </View>
 
@@ -163,44 +158,26 @@ export default function EditProductScreen({ route, navigation }) {
               {imageUri ? (
                 <View style={styles.photoWrapper}>
                   <Image source={{ uri: imageUri }} style={[styles.photo, { width: photoSize, height: photoSize }]} />
-                  <TouchableOpacity style={[styles.removePhotoBtn, { backgroundColor: colors.danger }]} onPress={() => setImageUri(null)} activeOpacity={0.8}>
-                    <Ionicons name="close" size={scale(18)} color={colors.onDanger} />
-                  </TouchableOpacity>
+                  <Button type="danger" size="small" icon={<Ionicons name="close" size={scale(18)} color={colors.onDanger} />} onPress={() => setImageUri(null)} style={[styles.removePhotoBtn, { backgroundColor: colors.danger }]} />
                 </View>
               ) : (
-                <TouchableOpacity style={[styles.photoPlaceholder, { width: photoSize, height: photoSize }]} onPress={() => pickImage(true)} activeOpacity={0.8}>
+                <Card style={[styles.photoPlaceholder, { width: photoSize, height: photoSize }]} onPress={() => pickImage(true)}>
                   <Ionicons name="camera" size={scale(40)} color={colors.primary} />
                   <Text style={styles.photoPlaceholderText}>{t('add_photo')}</Text>
-                </TouchableOpacity>
+                </Card>
               )}
               <View style={styles.photoButtons}>
-                <TouchableOpacity style={styles.photoBtn} onPress={() => pickImage(true)} activeOpacity={0.7}>
-                  <Ionicons name="camera-outline" size={scale(16)} color={colors.primary} />
-                  <Text style={styles.photoBtnText}>{t('product_take_photo')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.photoBtn} onPress={() => pickImage(false)} activeOpacity={0.7}>
-                  <Ionicons name="images-outline" size={scale(16)} color={colors.primary} />
-                  <Text style={styles.photoBtnText}>{t('product_choose_gallery')}</Text>
-                </TouchableOpacity>
+                <Button type="secondary" size="small" icon={<Ionicons name="camera-outline" size={scale(16)} color={colors.primary} />} title={t('product_take_photo')} onPress={() => pickImage(true)} style={styles.photoBtn} textStyle={styles.photoBtnText} />
+                <Button type="secondary" size="small" icon={<Ionicons name="images-outline" size={scale(16)} color={colors.primary} />} title={t('product_choose_gallery')} onPress={() => pickImage(false)} style={styles.photoBtn} textStyle={styles.photoBtnText} />
               </View>
             </View>
 
             <Text style={styles.label}>{t('product_name')}</Text>
-            <View style={styles.inputContainer}>
-              <TextInput style={styles.input} accessibilityLabel={t('product_name')} value={name} onChangeText={setName} />
-              <Ionicons name="pricetag-outline" size={scale(20)} color={colors.textLight} />
-            </View>
+            <Input placeholder={t('product_name')} value={name} onChangeText={setName} icon={<Ionicons name="pricetag-outline" size={scale(20)} color={colors.textLight} />} style={styles.inputOverride} />
 
             <Text style={styles.label}>{t('product_code')}</Text>
             <View style={styles.barcodeRow}>
-              <View style={styles.barcodeInputWrapper}>
-                <TextInput style={styles.barcodeInput} accessibilityLabel={t('product_code')} value={productCode} onChangeText={setProductCode} autoCapitalize="characters" />
-                {productCode ? (
-                  <TouchableOpacity onPress={handleCopyCode} style={{ padding: scale(4) }} activeOpacity={0.7}>
-                    <Ionicons name="copy-outline" size={scale(18)} color={colors.primary} />
-                  </TouchableOpacity>
-                ) : null}
-              </View>
+              <Input placeholder={t('product_code')} value={productCode} onChangeText={setProductCode} autoCapitalize="characters" icon={productCode ? <Ionicons name="copy-outline" size={scale(18)} color={colors.primary} onPress={handleCopyCode} /> : null} style={styles.barcodeInputOverride} />
             </View>
 
             <Text style={styles.label}>{t('product_category_label')}</Text>
