@@ -3,9 +3,7 @@ import React, { useContext, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-// Define __DEV__ for production builds
-const __DEV__ = process.env.NODE_ENV === 'development';
-
+// __DEV__ is provided globally by Expo
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -71,16 +69,16 @@ function AppContent() {
     return (
       <SafeAreaView edges={['top']} style={[styles.loadErrorContainer, { backgroundColor: colors.background }]}>
         <View style={styles.loadErrorContent}>
-          <Text style={[styles.loadErrorTitle, { color: colors.text }]}>Kayıtlı veriler açılamadı</Text>
+          <Text style={[styles.loadErrorTitle, { color: colors.text }]}>Failed to load saved data</Text>
           <Text style={[styles.loadErrorMessage, { color: colors.textLight }]}>
-            Verilerin korunması için uygulama boş kayıtlarla açılmadı. İnternet gerekmez; tekrar deneyin. Sorun sürerse uygulamayı silmeyin.
+            The app opened with empty records to protect your data. No internet required; please try again. Do not delete the app if the issue persists.
           </Text>
           <TouchableOpacity
             accessibilityRole="button"
             style={[styles.retryButton, { backgroundColor: colors.primary }]}
             onPress={retryLoadData}
           >
-            <Text style={[styles.retryButtonText, { color: colors.onPrimary }]}>Tekrar Dene</Text>
+            <Text style={[styles.retryButtonText, { color: colors.onPrimary }]}>Try Again</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
