@@ -23,7 +23,7 @@ const getDefaultCalendarId = async () => {
     const local = calendars.find(c => c.source?.name === 'Local' || c.isLocalAccount);
     return (local || calendars[0]).id;
   } catch (e) {
-    if (__DEV__) console.error('Takvim bulunamadı:', e);
+    if (__DEV__) if (__DEV__) console.error('Takvim bulunamadı:', e);
     return null;
   }
 };
@@ -66,7 +66,7 @@ export const addProductToCalendar = async (product) => {
 
     return { success: true, eventId };
   } catch (e) {
-    if (__DEV__) console.error('Takvim etkinliği ekleme hatası:', e);
+    if (__DEV__) if (__DEV__) console.error('Takvim etkinliği ekleme hatası:', e);
     return { success: false, error: e.message };
   }
 };

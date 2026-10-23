@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     zIndex: 1000, // Her zaman en üstte kalması için
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    overflow: 'hidden', (Butonun taşması için)
+    overflow: 'hidden',
   },
   tabContainer: {
     flexDirection: 'row',

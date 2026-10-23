@@ -104,7 +104,7 @@ export default function ProfileScreen({ navigation }) {
       const info = `Expira v${Application.nativeApplicationVersion} (${Application.nativeBuildVersion})\nPaket: ${Application.applicationId}`;
       await Clipboard.setStringAsync(info);
       showToast('Kopyalandı!', 'success');
-    } catch (error) { if (__DEV__) console.error('Profil bilgisi panoya kopyalanamadı:', error); showToast('Kopyalanamadı.', 'error'); }
+    } catch (error) { if (__DEV__) if (__DEV__) console.error('Profil bilgisi panoya kopyalanamadı:', error); showToast('Kopyalanamadı.', 'error'); }
   };
 
   const cycleTheme = () => {

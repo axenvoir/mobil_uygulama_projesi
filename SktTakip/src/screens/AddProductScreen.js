@@ -123,7 +123,7 @@ export default function AddProductScreen({ navigation }) {
       }
       setImageUri(persisted);
     } catch (error) {
-      if (__DEV__) console.error('Ürün fotoğrafı yüklenemedi:', error);
+      if (__DEV__) if (__DEV__) console.error('Ürün fotoğrafı yüklenemedi:', error);
       showToast(t('product_photo_failed'), 'error');
     }
   };
@@ -155,7 +155,7 @@ export default function AddProductScreen({ navigation }) {
       }
       navigation.goBack();
     } catch (error) {
-      if (__DEV__) console.error('Ürün kaydedilemedi:', error);
+      if (__DEV__) if (__DEV__) console.error('Ürün kaydedilemedi:', error);
       showToast(t('product_save_failed'), 'error');
       savingRef.current = false;
       setIsSaving(false);

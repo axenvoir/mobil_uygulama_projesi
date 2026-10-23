@@ -25,7 +25,7 @@ export const shareProductList = async (products, userName = 'Kullanıcı') => {
     });
     return { success: true, result };
   } catch (e) {
-    if (__DEV__) console.error('Paylaşım hatası:', e);
+    if (__DEV__) if (__DEV__) console.error('Paylaşım hatası:', e);
     return { success: false, error: e.message };
   }
 };

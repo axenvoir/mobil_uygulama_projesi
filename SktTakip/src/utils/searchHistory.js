@@ -9,12 +9,12 @@ export const getSearchHistory = async () => {
     if (!stored) return [];
     const parsed = JSON.parse(stored);
     if (!Array.isArray(parsed)) {
-      if (__DEV__) console.error('Arama geçmişi geçerli bir liste değil.');
+      if (__DEV__) if (__DEV__) console.error('Arama geçmişi geçerli bir liste değil.');
       return [];
     }
     return parsed.filter(term => typeof term === 'string' && term.trim()).slice(0, MAX_HISTORY);
   } catch (error) {
-    if (__DEV__) console.error('Arama geçmişi okunamadı:', error);
+    if (__DEV__) if (__DEV__) console.error('Arama geçmişi okunamadı:', error);
     return [];
   }
 };
@@ -29,7 +29,7 @@ export const addSearchTerm = async (term) => {
     await AsyncStorage.setItem(KEY, JSON.stringify(updated));
     return updated;
   } catch (error) {
-    if (__DEV__) console.error('Arama terimi kaydedilemedi:', error);
+    if (__DEV__) if (__DEV__) console.error('Arama terimi kaydedilemedi:', error);
     return [];
   }
 };
@@ -41,7 +41,7 @@ export const removeSearchTerm = async (term) => {
     await AsyncStorage.setItem(KEY, JSON.stringify(updated));
     return updated;
   } catch (error) {
-    if (__DEV__) console.error('Arama geçmişi güncellenemedi:', error);
+    if (__DEV__) if (__DEV__) console.error('Arama geçmişi güncellenemedi:', error);
     return [];
   }
 };
@@ -51,7 +51,7 @@ export const clearSearchHistory = async () => {
     await AsyncStorage.removeItem(KEY);
     return [];
   } catch (error) {
-    if (__DEV__) console.error('Arama geçmişi temizlenemedi:', error);
+    if (__DEV__) if (__DEV__) console.error('Arama geçmişi temizlenemedi:', error);
     return [];
   }
 };
