@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function LoadingScreen() {
   const { colors } = useTheme();
   const responsive = useResponsive();
+  const { t } = useTranslation();
   const { icon } = responsive;
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
 
@@ -16,9 +18,10 @@ export default function LoadingScreen() {
   const [fadeIn] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
-    Animated.timing(fadeIn, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+    const fade = Animated.timing(fadeIn, { toValue: 1, duration: 500, useNativeDriver: true });
+    fade.start();
 
-    Animated.loop(
+    const pulse = Animated.loop(
       Animated.sequence([
         Animated.parallel([
           Animated.timing(scaleAnim, { toValue: 1.15, duration: 700, useNativeDriver: true }),
@@ -29,11 +32,19 @@ export default function LoadingScreen() {
           Animated.timing(opacity, { toValue: 0.5, duration: 700, useNativeDriver: true }),
         ]),
       ])
-    ).start();
+    );
+    pulse.start();
 
-    Animated.loop(
+    const spin = Animated.loop(
       Animated.timing(rotate, { toValue: 1, duration: 3000, useNativeDriver: true })
-    ).start();
+    );
+    spin.start();
+
+    return () => {
+      fade.stop();
+      pulse.stop();
+      spin.stop();
+    };
   }, [fadeIn, opacity, rotate, scaleAnim]);
 
   const rotateInterpolate = rotate.interpolate({
@@ -47,7 +58,7 @@ export default function LoadingScreen() {
         <Ionicons name="hourglass" size={icon(54)} color={colors.onPrimary} />
       </Animated.View>
       <Text style={[styles.title, { color: colors.white }]}>Expira</Text>
-      <Text style={[styles.tagline, { color: colors.textLight }]}>Never forget the expiry date</Text>
+      <Text style={[styles.tagline, { color: colors.textLight }]} maxFontSizeMultiplier={2}>{t('loading_tagline')}</Text>
       <Text style={[styles.subtitle, { color: colors.textLight }]}>Loading...</Text>
       <View style={styles.dotsRow}>
         <Animated.View style={[styles.dot, { backgroundColor: colors.primary, opacity }]} />

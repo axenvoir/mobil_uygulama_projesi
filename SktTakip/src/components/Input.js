@@ -112,6 +112,7 @@ const Input = forwardRef(({
           numberOfLines={multiline ? numberOfLines : undefined}
           editable={!disabled}
           selectTextOnFocus={!disabled}
+          maxFontSizeMultiplier={2}
           {...props}
         />
 

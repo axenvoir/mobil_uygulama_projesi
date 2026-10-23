@@ -1,12 +1,19 @@
 import * as Calendar from 'expo-calendar';
 import { Platform } from 'react-native';
 
+const PERMISSION_CACHE_TTL = 5 * 60 * 1000;
 let hasCalendarPermission = null;
+let permissionCheckedAt = 0;
 
 const getCalendarPermissions = async () => {
-  if (hasCalendarPermission !== null) return hasCalendarPermission;
+  if (hasCalendarPermission === false) return false;
+  if (
+    hasCalendarPermission === true
+    && Date.now() - permissionCheckedAt < PERMISSION_CACHE_TTL
+  ) return true;
   const { status } = await Calendar.requestCalendarPermissionsAsync();
   hasCalendarPermission = status === 'granted';
+  permissionCheckedAt = Date.now();
   return hasCalendarPermission;
 };
 

@@ -55,7 +55,7 @@ export default function HomeScreen({ navigation }) {
               <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.headerTitle, { flexShrink: 1, minWidth: 0 }]}>Expira</Text>
               <Text numberOfLines={1} style={styles.headerSubtitle}>{t('tagline')}</Text>
             </View>
-            <Button type="ghost" size="small" icon={<Ionicons name="stats-chart-outline" size={scale(22)} color={colors.text} />} onPress={() => navigation.navigate('Statistics')} style={[styles.bellIcon, { padding: scale(8) }]} />
+            <Button type="ghost" size="small" icon={<Ionicons name="stats-chart-outline" size={scale(22)} color={colors.text} />} accessibilityLabel={t('home_statistics')} onPress={() => navigation.navigate('Statistics')} style={[styles.bellIcon, { padding: scale(8) }]} />
           </View>
 
           <View style={styles.greetingRow}>

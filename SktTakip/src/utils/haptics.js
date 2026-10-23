@@ -1,8 +1,6 @@
 import * as Haptics from 'expo-haptics';
-import { Platform } from 'react-native';
 
 export const tapLight = async () => {
-  if (Platform.OS === 'android') return;
   try {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   } catch (error) {

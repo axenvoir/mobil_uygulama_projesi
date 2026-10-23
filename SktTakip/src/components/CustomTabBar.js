@@ -18,7 +18,6 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
   const iconSize = icon(isTablet ? 26 : 23);
   const plusSize = scale(isTablet ? 70 : 60);
 
-  if (state.routes[state.index]?.name === 'AddProduct') return null;
 
   
   const totalHeight = height + insets.bottom;
@@ -35,8 +34,8 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
                 key={index}
                 activeOpacity={0.8}
                 accessibilityRole="button"
-                accessibilityLabel="Add product"
-                accessibilityHint="Tap to add a new product"
+                accessibilityLabel={t('nav_add')}
+                accessibilityHint={t('product_first_add_description')}
                 style={[styles.plusButton, {
                   width: plusSize, height: plusSize, borderRadius: plusSize / 2,
                   backgroundColor: colors.primary,
@@ -89,6 +88,7 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
                   fontWeight: isFocused ? '800' : '600',
                   marginTop: scale(4)
                 }]}
+              maxFontSizeMultiplier={2}
               >
                 {label}
               </Text>

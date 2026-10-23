@@ -17,7 +17,7 @@ This document outlines the comprehensive update plan for Expira app from v1.1.3 
 - [x] All console statements properly wrapped with `if (__DEV__)`
 
 ### Known Issues
-- [ ] POST_NOTIFICATIONS permission still shows as `POST_NO********IONS` in app.json (needs investigation)
+- [x] POST_NOTIFICATIONS permission verified correct in app.json
 - [ ] Design system not yet implemented
 - [ ] v1.2.0 features not yet developed
 

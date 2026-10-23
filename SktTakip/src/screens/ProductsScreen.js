@@ -19,7 +19,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import EmptyState from '../components/EmptyState';
 
 export default function ProductsScreen({ route, navigation }) {
-  const { products, deleteProduct, updateProduct, showToast, userProfile, settings, selectedCategory, setSelectedCategory } = useContext(AppContext);
+  const { products, deleteProduct, updateProducts, showToast, userProfile, settings, selectedCategory, setSelectedCategory } = useContext(AppContext);
   const { colors } = useTheme();
   const { t, locale } = useTranslation();
   const responsive = useResponsive();
@@ -94,11 +94,11 @@ export default function ProductsScreen({ route, navigation }) {
   };
 
   const handleClearHistory = () => {
-    openConfirm('danger', 'Search History', 'Delete all search history?', 'Delete', async () => {
+    openConfirm('danger', t('search_history_delete_title'), t('search_history_delete_message'), t('delete'), async () => {
       setModalVisible(false);
       const updated = await clearSearchHistory();
       setSearchHistory(updated);
-      showToast('History cleared.', 'info');
+      showToast(t('search_history_cleared'), 'info');
     });
   };
 
@@ -130,9 +130,9 @@ export default function ProductsScreen({ route, navigation }) {
     }
     openConfirm(
       'danger',
-      'Add Product',
-      `"${item.name}" - Are you sure you want to delete this product?`,
-      'Delete',
+      t('delete_product_title'),
+      t('delete_product_message', { name: item.name }),
+      t('delete'),
       async () => {
         setModalVisible(false);
         await deleteProduct(item.id, { withUndo: true });
@@ -144,35 +144,35 @@ export default function ProductsScreen({ route, navigation }) {
   const handleBulkDelete = () => {
     if (selectedIds.length === 0) return;
     const count = selectedIds.length;
-    openConfirm('danger', 'Bulk Delete', `Delete these ${count} products? This action cannot be undone.`, 'Delete', async () => {
+    openConfirm('danger', t('bulk_delete_title'), t('bulk_delete_message', { count }), t('delete'), async () => {
       setModalVisible(false);
       selectedIds.forEach(id => deleteProduct(id));
       setSelectedIds([]);
       setSelectionMode(false);
       if (settings.hapticsEnabled) await notifySuccess();
-      showToast(`${count} products deleted.`, 'info');
+      showToast(t('products_deleted', { count }), 'info');
     });
   };
 
   const handleShare = async () => {
-    if (products.length === 0) { showToast('No products to share.', 'error'); return; }
+    if (products.length === 0) { showToast(t('no_products_to_share'), 'error'); return; }
     const result = await shareProductList(products, userProfile.name);
-    if (!result.success) showToast('Sharing failed.', 'error');
+    if (!result.success) showToast(t('share_failed'), 'error');
   };
 
   const handleShareSMS = async () => {
-    if (products.length === 0) { showToast('No products to share.', 'error'); return; }
+    if (products.length === 0) { showToast(t('no_products_to_share'), 'error'); return; }
     const isAvailable = await SMS.isAvailableAsync();
-    if (!isAvailable) { showToast('SMS is not available on this device.', 'error'); return; }
+    if (!isAvailable) { showToast(t('sms_unavailable'), 'error'); return; }
     const lines = products.map((p, i) => `${i + 1}. ${p.name} - ${t('expiry_date_short')}: ${formatDate(p.expDate, locale)}`).join('\n');
-    try { await SMS.sendSMSAsync([], `🧊 Expira Envanteri\n${lines}`); } catch (error) { if (__DEV__) console.error('SMS could not be sent:', error); showToast('SMS could not be sent.', 'error'); }
+    try { await SMS.sendSMSAsync([], `${t('sms_body_header')}\n${lines}`); } catch (error) { if (__DEV__) console.error('SMS could not be sent:', error); showToast(t('sms_failed'), 'error'); }
   };
 
   const handleExportPDF = async () => {
-    if (products.length === 0) { showToast('Add a product first for PDF.', 'error'); return; }
-    showToast('Creating PDF...', 'info');
+    if (products.length === 0) { showToast(t('pdf_empty'), 'error'); return; }
+    showToast(t('pdf_creating'), 'info');
     const result = await generateInventoryPDF(products, userProfile.name);
-    if (result.success) showToast('PDF is ready!', 'success');
+    if (result.success) showToast(t('pdf_ready'), 'success');
   };
 
   const toggleSelection = (id) => {
@@ -185,23 +185,20 @@ export default function ProductsScreen({ route, navigation }) {
     const selected = products.filter(p => selectedIds.includes(p.id));
     const text = selected.map(p => `${p.name}${p.productCode ? ` [${p.productCode}]` : ''} - ${t('expiry_date_short')}: ${formatDate(p.expDate, locale)}`).join('\n');
     await Clipboard.setStringAsync(text);
-    showToast(`${selectedIds.length} products copied!`, 'success');
+    showToast(t('products_copied', { count: selectedIds.length }), 'success');
     setSelectionMode(false);
     setSelectedIds([]);
   };
 
   const handleBulkCategoryChange = (newCategory) => {
-    if (selectedIds.length === 0) { showToast('Select a product first.', 'info'); return; }
+    if (selectedIds.length === 0) { showToast(t('select_product_first'), 'info'); return; }
     try {
-      selectedIds.forEach(id => {
-        const product = products.find(p => p.id === id);
-        if (product) updateProduct(id, { ...product, category: newCategory });
-      });
-      showToast(`Category for ${selectedIds.length} products updated to "${newCategory}".`, 'success');
+      updateProducts(selectedIds, { category: newCategory });
+      showToast(t('bulk_category_updated', { count: selectedIds.length, category: newCategory }), 'success');
       setSelectionMode(false);
       setSelectedIds([]);
       setShowCategoryModal(false);
-    } catch (error) { if (__DEV__) console.error('Bulk category update error:', error); showToast('Category could not be updated.', 'error'); }
+    } catch (error) { if (__DEV__) console.error('Bulk category update error:', error); showToast(t('category_update_failed'), 'error'); }
   };
 
   const openDetail = (item) => { navigation.navigate('ProductDetail', { productId: item.id }); };
@@ -472,6 +469,7 @@ export default function ProductsScreen({ route, navigation }) {
         maxToRenderPerBatch={5}
         removeClippedSubviews={true}
         windowSize={11}
+        extraData={selectedIds}
           data={filteredProducts}
           keyExtractor={item => item.id}
           key={`columns-${itemColumns}`}

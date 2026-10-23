@@ -13,7 +13,6 @@ import { persistProductImage } from '../utils/imagePersistence';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatDate } from '../utils/formatters';
 
 const NAME_CATEGORY_MAP = {
@@ -48,7 +47,6 @@ export default function AddProductScreen({ navigation }) {
   const { t, locale } = useTranslation();
   const responsive = useResponsive();
   const { isTablet, horizontalPadding, contentMaxWidth, scale } = responsive;
-  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors, responsive), [colors, responsive]);
 
   const [name, setName] = useState('');
@@ -316,7 +314,7 @@ export default function AddProductScreen({ navigation }) {
         </ScrollView>
       </TouchableWithoutFeedback>
 
-      <View style={[styles.bottomBarWrap, { paddingBottom: Math.max(insets.bottom, scale(8)) }]}>
+      <View style={[styles.bottomBarWrap, { paddingBottom: scale(12) }]}>
         <View style={[styles.bottomBar, { maxWidth: contentMaxWidth, paddingHorizontal: horizontalPadding }]}>
           <TouchableOpacity style={[styles.saveButton, isSaving && { opacity: 0.65 }]} onPress={handleSave} disabled={isSaving} activeOpacity={0.8}>
             <Ionicons name="checkmark-circle" size={scale(24)} color={colors.onPrimary} />

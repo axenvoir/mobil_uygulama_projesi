@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useRef, useCallback } from 'react';
 import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import i18n from '../utils/i18n';
+import i18n, { resolveLocale, resolveDeviceLocale } from '../utils/i18n';
 import { normalizeNoteList, normalizeProductList } from '../utils/validators';
 import { syncRemindersFromSettings } from '../utils/notifications';
 
@@ -13,9 +13,9 @@ const DEFAULT_SETTINGS = {
 };
 
 const DEFAULT_PROFILE = {
-  name: 'Merve',
+  name: i18n.t('default_profile_name'),
   avatarColor: '#14B8A6',
-  language: i18n.locale,
+  language: 'system',
   biometricsEnabled: false,
 };
 
@@ -57,7 +57,7 @@ const normalizeProfile = (loadedProfile) => {
   if (typeof profile.avatarColor !== 'string' || !/^#[\da-f]{6}$/i.test(profile.avatarColor)) {
     profile.avatarColor = DEFAULT_PROFILE.avatarColor;
   }
-  if (!['tr', 'en'].includes(profile.language)) profile.language = DEFAULT_PROFILE.language;
+  if (!['system', 'tr', 'en'].includes(profile.language)) profile.language = DEFAULT_PROFILE.language;
   if (typeof profile.biometricsEnabled !== 'boolean') profile.biometricsEnabled = false;
   return profile;
 };
@@ -154,7 +154,7 @@ export const AppProvider = ({ children }) => {
         setNotes(nextNotes);
         setSettings(nextSettings);
         setUserProfile(profile);
-        i18n.locale = profile.language || 'tr';
+        i18n.locale = resolveLocale(profile.language);
         setLocale(i18n.locale);
       } catch (error) {
         if (__DEV__) console.error('Application data could not be loaded:', error);
@@ -174,7 +174,7 @@ export const AppProvider = ({ children }) => {
     if (!isLoading && !loadError) {
       queueSave({ products, notes, settings, userProfile }).catch((error) => {
         if (__DEV__) console.error('Application data could not be saved:', error);
-        showToast('Data could not be saved to device. Please try again without closing the app.', 'error');
+        showToast(i18n.t('data_save_failed'), 'error');
       });
     }
   }, [products, notes, settings, userProfile, isLoading, loadError, showToast]);
@@ -200,6 +200,13 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        if (userProfile.language === 'system') {
+          const resolved = resolveDeviceLocale();
+          if (i18n.locale !== resolved) {
+            i18n.locale = resolved;
+            setLocale(resolved);
+          }
+        }
         if (userProfile.biometricsEnabled) {
           const now = Date.now();
           if (backgroundTime.current && now - backgroundTime.current > 5000) {
@@ -212,7 +219,7 @@ export const AppProvider = ({ children }) => {
       appState.current = nextAppState;
     });
     return () => subscription.remove();
-  }, [userProfile.biometricsEnabled]);
+  }, [userProfile.biometricsEnabled, userProfile.language]);
 
   useEffect(() => () => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -222,25 +229,21 @@ export const AppProvider = ({ children }) => {
   const addProduct = (product) => setProducts(current => [...current, { ...product, id: createId() }]);
 
   const deleteProduct = (id, options = {}) => {
-    let deleted = null;
-    setProducts(current => {
-      deleted = current.find(product => product.id === id) || null;
-      if (!deleted) return current;
-      return current.filter(product => product.id !== id);
-    });
+    const deleted = products.find(product => product.id === id) || null;
+    setProducts(current => current.filter(product => product.id !== id));
 
     if (!deleted || !options.withUndo) return;
 
     undoStack.current = { type: 'product', data: deleted };
     if (undoTimer.current) clearTimeout(undoTimer.current);
-    showToast(`"${deleted.name}" silindi`, 'info', 5000, {
-      label: 'Geri Al',
+    showToast(i18n.t('undo_product_deleted', { name: deleted.name }), 'info', 5000, {
+      label: i18n.t('undo_action'),
       onPress: () => {
         if (undoStack.current?.type === 'product') {
           const product = undoStack.current.data;
           setProducts(current => current.some(item => item.id === product.id) ? current : [...current, product]);
           undoStack.current = null;
-          showToast('Undone', 'success');
+          showToast(i18n.t('undo_done'), 'success');
         }
       },
     });
@@ -251,6 +254,13 @@ export const AppProvider = ({ children }) => {
     setProducts(current => current.map(product => product.id === id ? { ...updatedProduct, id } : product));
   };
 
+  const updateProducts = (ids, updates) => {
+    const idSet = new Set(ids);
+    setProducts(current => current.map(product => (
+      idSet.has(product.id) ? { ...product, ...updates, id: product.id } : product
+    )));
+  };
+
   const addNote = (note) => setNotes(current => [...current, {
     ...note,
     id: createId(),
@@ -259,25 +269,21 @@ export const AppProvider = ({ children }) => {
   }]);
 
   const deleteNote = (id, options = {}) => {
-    let deleted = null;
-    setNotes(current => {
-      deleted = current.find(note => note.id === id) || null;
-      if (!deleted) return current;
-      return current.filter(note => note.id !== id);
-    });
+    const deleted = notes.find(note => note.id === id) || null;
+    setNotes(current => current.filter(note => note.id !== id));
 
     if (!deleted || !options.withUndo) return;
 
     undoStack.current = { type: 'note', data: deleted };
     if (undoTimer.current) clearTimeout(undoTimer.current);
-    showToast(`"${deleted.title}" silindi`, 'info', 5000, {
-      label: 'Geri Al',
+    showToast(i18n.t('undo_note_deleted', { title: deleted.title }), 'info', 5000, {
+      label: i18n.t('undo_action'),
       onPress: () => {
         if (undoStack.current?.type === 'note') {
           const note = undoStack.current.data;
           setNotes(current => current.some(item => item.id === note.id) ? current : [...current, note]);
           undoStack.current = null;
-          showToast('Undone', 'success');
+          showToast(i18n.t('undo_done'), 'success');
         }
       },
     });
@@ -309,9 +315,11 @@ export const AppProvider = ({ children }) => {
     setNotes(nextData.notes);
     setSettings(nextData.settings);
     setUserProfile(nextData.userProfile);
-    const nextLocale = ['tr', 'en'].includes(nextData.userProfile.language)
-      ? nextData.userProfile.language
-      : (['tr', 'en'].includes(nextLocaleCandidate) ? nextLocaleCandidate : DEFAULT_PROFILE.language);
+    const nextLocale = resolveLocale(
+      ['system', 'tr', 'en'].includes(nextData.userProfile.language)
+        ? nextData.userProfile.language
+        : (['tr', 'en'].includes(nextLocaleCandidate) ? nextLocaleCandidate : DEFAULT_PROFILE.language)
+    );
     setLocale(nextLocale);
     i18n.locale = nextLocale;
     setSelectedCategory('All');
@@ -329,11 +337,12 @@ export const AppProvider = ({ children }) => {
   const retryLoadData = useCallback(() => setLoadAttempt(attempt => attempt + 1), []);
 
   const changeLanguage = (lang) => {
-    if (!['tr', 'en'].includes(lang)) {
+    if (!['system', 'tr', 'en'].includes(lang)) {
       throw new Error(`Unsupported language: ${lang}`);
     }
-    i18n.locale = lang;
-    setLocale(lang);
+    const resolved = resolveLocale(lang);
+    i18n.locale = resolved;
+    setLocale(resolved);
     setUserProfile(prev => ({ ...prev, language: lang }));
   };
 
@@ -344,7 +353,7 @@ export const AppProvider = ({ children }) => {
     <AppContext.Provider value={{
       products, notes, settings, userProfile, isLoading, loadError, retryLoadData, toast, isLocked, locale,
       selectedCategory, setSelectedCategory,
-      addProduct, deleteProduct, updateProduct,
+      addProduct, deleteProduct, updateProduct, updateProducts,
       addNote, deleteNote, updateNote, togglePin,
       updateSettings, updateProfile, replaceAppData, resetAppData, showToast, hideToast,
       changeLanguage, lockApp, unlockApp,

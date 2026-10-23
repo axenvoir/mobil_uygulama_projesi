@@ -131,7 +131,7 @@ const Button = ({
       onPress={disabled || loading ? null : onPress}
       activeOpacity={0.7}
       accessibilityRole="button"
-      accessibilityState={{ disabled }}
+      accessibilityState={{ disabled, busy: loading }}
       accessibilityLabel={title}
       {...props}
     >
@@ -143,7 +143,7 @@ const Button = ({
       ) : (
         <View style={styles.content}>
           {icon && <View style={styles.iconLeft}>{icon}</View>}
-          <Text style={textStyles}>{title}</Text>
+          <Text style={textStyles} maxFontSizeMultiplier={2}>{title}</Text>
           {rightIcon && (
             <TouchableOpacity
               onPress={onRightIconPress}

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
+import { useTranslation } from '../hooks/useTranslation';
 import { useResponsive } from '../hooks/useResponsive';
 import { SHADOWS, TYPOGRAPHY } from '../theme';
 import { AppContext } from '../context/AppContext';
@@ -20,6 +21,7 @@ const FAQ = [
 
 export default function HelpScreen({ navigation }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { showToast } = useContext(AppContext);
   const responsive = useResponsive();
   const { scale } = responsive;
@@ -30,7 +32,7 @@ export default function HelpScreen({ navigation }) {
 
   const openEmail = () => {
     Linking.openURL('mailto:axenvoir@yahoo.com?subject=Expira Destek').catch(() => {
-      showToast('Email app not found.', 'error');
+      showToast(t('email_app_not_found'), 'error');
     });
   };
 
@@ -85,7 +87,7 @@ export default function HelpScreen({ navigation }) {
           <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.contactCard} onPress={() => showToast('Rating will be available when the app is published on the store!', 'info')} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.contactCard} onPress={() => showToast(t('rating_not_available'), 'info')} activeOpacity={0.7}>
           <View style={[styles.contactIcon, { backgroundColor: colors.warning + '15' }]}>
             <Ionicons name="star-outline" size={scale(22)} color={colors.warning} />
           </View>
