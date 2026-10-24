@@ -33,3 +33,7 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+
+# AI Studio & attachments
+.aistudio/
+public/assets/aistudio/
