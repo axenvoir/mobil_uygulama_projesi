@@ -1,6 +1,9 @@
-# Dependencies
+# Dependencies & Locks
 node_modules/
+bun.lock
+bun.lockb
 package-lock.json.backup
+.vscode/
 
 # Production build outputs
 dist/
