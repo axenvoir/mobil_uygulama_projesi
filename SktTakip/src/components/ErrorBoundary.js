@@ -38,6 +38,11 @@ export default class ErrorBoundary extends React.Component {
           <Text style={styles.subtitle} maxFontSizeMultiplier={2}>
             {i18n.t('error_message')}
           </Text>
+          {this.state.error ? (
+            <Text style={styles.subtitle} maxFontSizeMultiplier={2}>
+              {String(this.state.error?.message || this.state.error)}
+            </Text>
+          ) : null}
 
           <TouchableOpacity style={styles.button} onPress={this.handleRestart}>
             <Ionicons name="refresh" size={20} color="#FFFFFF" />
