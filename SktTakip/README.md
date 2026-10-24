@@ -32,7 +32,6 @@ For platform-specific development:
 ```sh
 npm run android
 npm run ios
-npm run web
 ```
 
 ## Validation

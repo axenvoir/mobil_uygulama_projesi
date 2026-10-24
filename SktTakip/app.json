@@ -6,10 +6,11 @@
     "description": "Track product expiry dates, organize your pantry, and get timely reminders.",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/branding/expira-icon.png",
     "assetBundlePatterns": [
-      "assets/icon.png",
-      "assets/images/*"
+      "assets/images/android-icon-foreground.png",
+      "assets/images/android-icon-monochrome.png",
+      "assets/images/splash-icon.png"
     ],
     "ios": {
       "supportsTablet": true,
@@ -104,7 +105,8 @@
           "sounds": []
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      "expo-font"
     ]
   }
 }
