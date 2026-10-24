@@ -56,7 +56,9 @@
             "jsEngine": "jsc",
             "newArchEnabled": false,
             "compileSdkVersion": 36,
-            "targetSdkVersion": 36
+            "targetSdkVersion": 36,
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
           },
           "ios": {
             "jsEngine": "jsc",

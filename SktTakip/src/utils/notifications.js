@@ -11,13 +11,17 @@ const REMINDER_ID_KEY = '@dailyReminderNotificationId';
 export const isNotificationsAvailable = !isAndroidExpoGo;
 
 if (Notifications) {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-    }),
-  });
+  try {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      }),
+    });
+  } catch (error) {
+    if (__DEV__) console.warn('Notification handler could not be registered:', error);
+  }
 }
 
 const parseReminderTime = (reminderTime = '09:00') => {
