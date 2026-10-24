@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Updates from 'expo-updates';
 import i18n from '../utils/i18n';
 
 export default class ErrorBoundary extends React.Component {
@@ -19,12 +18,7 @@ export default class ErrorBoundary extends React.Component {
   }
 
   handleRestart = async () => {
-    try {
-      await Updates.reloadAsync();
-    } catch (error) {
-      if (__DEV__) console.error('Application could not be restarted:', error);
-      this.setState({ hasError: false }); 
-    }
+    this.setState({ hasError: false, error: null });
   };
 
   render() {

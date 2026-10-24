@@ -1,7 +1,6 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Updates from 'expo-updates';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Application from 'expo-application';
 import * as Clipboard from 'expo-clipboard';
@@ -11,7 +10,6 @@ import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
 import { generateInventoryPDF } from '../utils/pdfExport';
 import { SHADOWS, TYPOGRAPHY, getContrastingTextColor } from '../theme';
-import UpdateModal from '../components/UpdateModal';
 
 const AVATAR_COLORS = ['#14B8A6', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6', '#EC4899', '#10B981', '#0F172A'];
 
@@ -26,11 +24,6 @@ export default function ProfileScreen({ navigation }) {
   const [name, setName] = useState(userProfile.name);
   const [color, setColor] = useState(userProfile.avatarColor);
   const [showAbout, setShowAbout] = useState(false);
-
-  
-  const [updateModalVisible, setUpdateModalVisible] = useState(false);
-  const [updateStatus, setUpdateStatus] = useState('checking');
-  const [updateError, setUpdateError] = useState('');
 
   useEffect(() => {
     
@@ -57,38 +50,6 @@ export default function ProfileScreen({ navigation }) {
       updateProfile('biometricsEnabled', false);
       showToast(t('biometrics_disabled'), 'info');
     }
-  };
-
-  const checkForUpdates = async () => {
-    setUpdateError('');
-    setUpdateStatus('checking');
-    setUpdateModalVisible(true);
-    try {
-      const update = await Updates.checkForUpdateAsync();
-      if (update.isAvailable) {
-        setUpdateStatus('available');
-      } else {
-        setUpdateStatus('not-available');
-      }
-    } catch (error) {
-      setUpdateStatus('error');
-      setUpdateError(error.message);
-    }
-  };
-
-  const handleDownloadUpdate = async () => {
-    setUpdateStatus('downloading');
-    try {
-      await Updates.fetchUpdateAsync();
-      setUpdateStatus('ready');
-    } catch (error) {
-      setUpdateStatus('error');
-      setUpdateError(error.message);
-    }
-  };
-
-  const handleApplyUpdate = () => {
-    Updates.reloadAsync();
   };
 
   const handleExportPDF = async () => {
@@ -231,15 +192,6 @@ export default function ProfileScreen({ navigation }) {
 
             <Text style={styles.sectionTitle}>{t('settings_data')}</Text>
 
-            <TouchableOpacity style={styles.settingItem} onPress={checkForUpdates} activeOpacity={0.7}>
-              <Ionicons name="cloud-download-outline" size={scale(22)} color={colors.primary} />
-              <View style={{ flex: 1, marginLeft: scale(12) }}>
-                <Text style={styles.settingTitle}>{t('settings_check_updates')}</Text>
-                <Text style={styles.settingDesc}>{t('settings_check_updates_desc')}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={scale(20)} color={colors.textLight} />
-            </TouchableOpacity>
-
             <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate('Backup')} activeOpacity={0.7}>
               <Ionicons name="archive-outline" size={scale(22)} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: scale(12) }}>
@@ -298,14 +250,6 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>
-
-      <UpdateModal
-        visible={updateModalVisible}
-        status={updateStatus}
-        onUpdate={updateStatus === 'ready' ? handleApplyUpdate : handleDownloadUpdate}
-        onCancel={() => setUpdateModalVisible(false)}
-        errorMessage={updateError}
-      />
     </KeyboardAvoidingView>
   );
 }
