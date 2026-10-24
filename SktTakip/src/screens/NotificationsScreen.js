@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, RefreshCo
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import TimePickerModal from '../components/TimePickerModal';
-import { requestPermissions, scheduleDailyReminder, cancelDailyReminder, sendTestNotification, getScheduledNotifications, isNotificationsAvailable } from '../utils/notifications';
+import { requestPermissions, scheduleDailyReminder, cancelDailyReminder, sendTestNotification, getScheduledNotifications } from '../utils/notifications';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useTranslation } from '../hooks/useTranslation';
@@ -161,9 +161,9 @@ export default function NotificationsScreen({ navigation }) {
               <Ionicons name="notifications-outline" size={scale(22)} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: scale(12), marginRight: scale(8) }}>
                 <Text style={styles.settingTitle}>{t('notification_daily_reminder')}</Text>
-                <Text style={styles.settingDesc} numberOfLines={1}>{!isNotificationsAvailable ? t('notification_development_build_required') : settings.dailyReminder ? t('notification_active_daily') : t('notification_off')}</Text>
+                <Text style={styles.settingDesc} numberOfLines={1}>{settings.dailyReminder ? t('notification_active_daily') : t('notification_off')}</Text>
               </View>
-              <Switch disabled={!isNotificationsAvailable} value={isNotificationsAvailable && settings.dailyReminder} onValueChange={handleToggleDailyReminder} trackColor={{ false: colors.border, true: colors.primary }} thumbColor={colors.white} />
+              <Switch value={settings.dailyReminder} onValueChange={handleToggleDailyReminder} trackColor={{ false: colors.border, true: colors.primary }} thumbColor={colors.white} />
             </View>
 
             <TouchableOpacity style={styles.settingItem} onPress={() => setShowTimePicker(true)} activeOpacity={0.7}>
@@ -200,9 +200,9 @@ export default function NotificationsScreen({ navigation }) {
               </View>
             </View>
 
-            <TouchableOpacity style={[styles.testBtn, !isNotificationsAvailable && { opacity: 0.5 }]} onPress={handleTestNotification} activeOpacity={0.8} disabled={!isNotificationsAvailable}>
+            <TouchableOpacity style={styles.testBtn} onPress={handleTestNotification} activeOpacity={0.8}>
               <Ionicons name="paper-plane-outline" size={scale(20)} color={colors.onPrimary} />
-              <Text style={styles.testBtnText}>{isNotificationsAvailable ? t('notification_send_test') : t('notification_test_requires_build')}</Text>
+              <Text style={styles.testBtnText}>{t('notification_send_test')}</Text>
             </TouchableOpacity>
 
             <Text style={styles.sectionTitle}>{t('settings')}</Text>

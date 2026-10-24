@@ -6,8 +6,6 @@ import { Platform } from 'react-native';
 const Notifications = require('expo-notifications');
 const REMINDER_ID_KEY = '@dailyReminderNotificationId';
 
-export const isNotificationsAvailable = true;
-
 if (Notifications) {
   try {
     Notifications.setNotificationHandler({

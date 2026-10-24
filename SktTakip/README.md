@@ -18,7 +18,7 @@ Expira is an Expo/React Native app for tracking product expiry dates, notes, rem
 ## Requirements
 
 - Node.js 20+ and npm
-- Expo CLI (`npx expo`) — no Android Studio/Xcode needed for Expo Go development
+- Expo CLI (`npx expo`) — runs the dev server and prebuild; producing installable binaries requires the AAB workflow or a local Android toolchain
 
 ## Run locally
 
@@ -61,7 +61,7 @@ src/
 __tests__/      # Jest suites (pure logic; no React rendering yet)
 ```
 
-See `DESIGN_SYSTEM.md` for the v2.0 design direction and `AGENTS.md` for agent/development conventions. Note: the app currently uses React Navigation (not Expo Router) and the JSC engine with the old architecture disabled; `src/theme.js` is the source of truth for the shipped design. There is no OTA update channel; app updates ship exclusively through Google Play releases.
+See `DESIGN_SYSTEM.md` for the v2.0 design direction and `AGENTS.md` for agent/development conventions. Note: the app currently uses React Navigation (not Expo Router) with the Hermes engine and the old architecture disabled; `src/theme.js` is the source of truth for the shipped design. There is no OTA update channel; app updates ship exclusively through Google Play releases.
 
 ## Google Play release
 
