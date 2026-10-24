@@ -694,3 +694,12 @@ const styles = StyleSheet.create({
 
 *Last Updated: October 2026*
 *Version: 2.0.0*
+---
+
+## Implementation status (current build)
+
+The shipped UI predates this spec. Current implementation notes for developers:
+
+- `src/theme.js` exports the live palettes (`LIGHT_COLORS`, `DARK_COLORS`), `TYPOGRAPHY`, `FONT_WEIGHTS`, `SHADOWS` (`soft`/`medium`/`heavy`) and `CATEGORIES`
+- Components must import `SHADOWS` (and palettes) from `src/theme.js` — never from `useResponsive()`. This contract is enforced by regression tests in `__tests__/themeShadows.test.js` after a startup crash caused by destructuring `SHADOWS` from the responsive hook
+- Spacing and scaling come from `useResponsive()` (4px base grid, responsive scaling)

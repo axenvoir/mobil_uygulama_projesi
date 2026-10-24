@@ -39,11 +39,13 @@ npm run web
 
 ```sh
 npm run lint   # ESLint (expo config)
-npm test       # Jest unit tests (validators, formatters, translation parity)
+npm test       # Jest unit tests (validators, formatters, translations, theme contracts; 65 tests)
 npx expo export --platform android   # bundle export smoke check
 ```
 
 The `Tests` GitHub Actions workflow (`.github/workflows/tests.yml` at the repo root) runs lint and tests on PRs touching `SktTakip/src` or `SktTakip/__tests__`, and on pushes to `main`.
+
+The `Build Android AAB` workflow (`.github/workflows/android-build.yml`) produces a signed `.aab` on demand: it auto-increments `android.versionCode` (committing the bump back to the branch), runs `expo prebuild`, applies the release signing config, and enables R8 minification for the release build type. Requires the `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS` and `KEY_PASSWORD` repository secrets.
 
 ## Project structure
 
@@ -59,7 +61,7 @@ src/
 __tests__/      # Jest suites (pure logic; no React rendering yet)
 ```
 
-See `DESIGN_SYSTEM.md` for the v2.0 design direction and `AGENTS.md` for agent/development conventions. Note: the app currently uses React Navigation (not Expo Router) and the JSC engine with the old architecture disabled; `src/theme.js` is the source of truth for the shipped design.
+See `DESIGN_SYSTEM.md` for the v2.0 design direction and `AGENTS.md` for agent/development conventions. Note: the app currently uses React Navigation (not Expo Router) and the JSC engine with the old architecture disabled; `src/theme.js` is the source of truth for the shipped design. OTA updates are checked on error recovery only (`expo-updates` `ON_ERROR`), so the app always starts from the bundle embedded in the build.
 
 ## Google Play release
 

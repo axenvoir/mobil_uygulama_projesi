@@ -16,12 +16,13 @@ Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
 npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
 npx expo start              # start the dev server
 npx expo lint               # lint
+npm test                    # Jest unit tests (validators, formatters, translations, theme contracts)
 npx tsc --noEmit            # typecheck
 npx expo-doctor             # diagnose dependency and config issues
 npx expo install --fix      # fix incompatible package versions
 ```
 
-Run lint and typecheck before declaring any task done.
+Run lint and tests before declaring any task done. Test suites live in `__tests__/`; when you fix a bug, add a regression test (see `__tests__/themeShadows.test.js` for an example that pins a UI contract).
 
 ## Navigation & Routing
 

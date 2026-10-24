@@ -20,6 +20,7 @@ Expira ile ürünlerinin son kullanma tarihlerini ve envanterini tek bir yerde t
 • Envanterini paylaş veya PDF olarak dışa aktar.
 • Verilerini JSON yedek dosyası olarak dışa aktar ve daha sonra geri yükle.
 • Açık, koyu veya sistem temasını seç; uygulama kilidini biyometrik doğrulamayla koru.
+• Sürüm derlemeleri R8 kod küçültme ve kaynak optimizasyonuyla paketlenir; küçük uygulama boyutu.
 
 Ürünlerin, notların ve tercihlerin uygulama içinde cihazında saklanır. Uygulama hesabı veya uygulama sunucusuna veri eşitleme özelliği sunmaz. Yedek dışa aktarma, paylaşım ve takvime ekleme işlemleri yalnızca sen başlattığında gerçekleşir. Ayrıntılar için mağaza sayfasındaki gizlilik politikasını incele.
 

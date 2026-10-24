@@ -25,8 +25,14 @@ This document outlines the comprehensive update plan for Expira app from v1.1.3 
 - [x] 40+ hardcoded UI strings migrated to i18n (TR/EN parity enforced by tests)
 - [x] Backup restore verifies checksums; corrupted files rejected
 - [x] Bulk category change batched into a single state update (`updateProducts`)
-- [x] Jest test infrastructure added (59 tests: validators, formatters, translation parity)
+- [x] Jest test infrastructure added (65 tests: validators, formatters, translation parity, theme/responsive contracts)
 - [x] `Tests` CI workflow added (lint + jest on PRs and on `main`)
+- [x] Startup crash fixed: Card.js destructured SHADOWS from useResponsive (undefined) — now imported from theme.js, with regression tests
+- [x] R8 code shrinking + resource shrinking enabled for release builds; R8 mapping uploaded for Play Console de-obfuscation
+- [x] AAB workflow auto-increments and commits android.versionCode on every build
+- [x] OTA update policy changed from ON_LOAD to ON_ERROR (embedded bundle always boots first)
+- [x] Module-load native calls (Localization.getLocales, setNotificationHandler) wrapped defensively
+- [x] ErrorBoundary now displays the actual error message for diagnosis
 
 ### Known Issues
 - [ ] Design system v2.0 not yet implemented (`src/theme.js` remains the source of truth for the shipped UI)

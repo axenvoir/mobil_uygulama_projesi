@@ -9,7 +9,9 @@
 - [ ] Start with an internal testing track, then complete any additional testing requirements shown in Play Console before requesting production access.
 - [ ] Keep the EAS-managed Android signing key and Play App Signing enabled. Do not commit signing credentials.
 
-The production profile automatically increments the local Android build number in `app.json`. Its current `android.versionCode` is `32`, above the previously used Play Console code `4`. The current user-facing release is `1.1.3`.
+R8 code shrinking/optimization is enabled for release builds (`enableMinifyInReleaseBuilds` + `enableShrinkResourcesInReleaseBuilds` in `app.json` via `expo-build-properties`). After the first R8 build, smoke-test the release binary: biometric unlock, notifications, calendar add, backup restore, PDF export and image picking. The EAS production profile uploads the R8 mapping file (`ANDROID_PROGUARD_MAPPING: "true"`) for Play Console crash de-obfuscation.
+
+The GitHub Actions AAB workflow auto-increments `android.versionCode` in `app.json` and commits the bump back to the branch before every build. Current `android.versionCode`: see `app.json` (recent builds: 34-36). The current user-facing release is `1.1.3`.
 
 ## Play Console listing and declarations
 
@@ -27,7 +29,8 @@ The production profile automatically increments the local Android build number i
 - Application ID: `com.expira.app.tr`
 - User-facing version: `1.1.3`
 - Android target: API 36
-- Build artifact: Android App Bundle (`.aab`)
+- Build artifact: Android App Bundle (`.aab`), R8-minified with resource shrinking
+- OTA updates: checked on error recovery (`expo-updates` `checkAutomatically: ON_ERROR`); the app always boots from the embedded bundle first
 - Product images are selected through Android's system picker; the app does not request broad media-storage or microphone access.
 - Calendar access is only needed when a user chooses to add a product reminder to the device calendar. Notifications are local reminders configured by the user.
 

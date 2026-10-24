@@ -26,5 +26,5 @@ npm start
 
 ## CI
 
-- `Tests` (`.github/workflows/tests.yml`): lint + Jest on PRs touching app code and on `main`
-- `Build Android AAB` (`.github/workflows/android-build.yml`): manual EAS-compatible bundle build
+- `Tests` (`.github/workflows/tests.yml`): lint + Jest (65 tests) on PRs touching app code and on `main`
+- `Build Android AAB` (`.github/workflows/android-build.yml`): on-demand signed `.aab` build — auto-increments `android.versionCode` (and commits the bump), runs `expo prebuild`, applies release signing, and builds with R8 minification + resource shrinking
