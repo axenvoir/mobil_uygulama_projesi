@@ -16,10 +16,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.expira.app",
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "Expira, \u00fcr\u00fcnlerine foto\u011fraf eklemek i\u00e7in galerine eri\u015fir.",
-        "NSCameraUsageDescription": "Expira, \u00fcr\u00fcn foto\u011fraf\u0131 \u00e7ekmek i\u00e7in kameran\u0131 kullan\u0131r.",
-        "NSFaceIDUsageDescription": "Expira, uygulamay\u0131 g\u00fcvenli tutmak i\u00e7in Face ID kullan\u0131r.",
-        "NSCalendarsUsageDescription": "Expira, SKT hat\u0131rlat\u0131c\u0131lar\u0131n\u0131 takvimine eklemek i\u00e7in izin ister."
+        "NSPhotoLibraryUsageDescription": "Expira accesses your photo library to attach photos to products.",
+        "NSCameraUsageDescription": "Expira uses your camera to capture product photos.",
+        "NSFaceIDUsageDescription": "Expira uses Face ID to keep your pantry and notes secure.",
+        "NSCalendarsUsageDescription": "Expira adds expiry reminders to your calendar."
       }
     },
     "android": {
@@ -79,22 +79,22 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Expira, \u00fcr\u00fcnlerine foto\u011fraf eklemek i\u00e7in galerine eri\u015fir.",
-          "cameraPermission": "Expira, \u00fcr\u00fcn foto\u011fraf\u0131 \u00e7ekmek i\u00e7in kameran\u0131 kullan\u0131r.",
+          "photosPermission": "Expira accesses your photo library to attach photos to products.",
+          "cameraPermission": "Expira uses your camera to capture product photos.",
           "microphonePermission": false
         }
       ],
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Expira, uygulamay\u0131 g\u00fcvenli tutmak i\u00e7in Face ID kullan\u0131r."
+          "faceIDPermission": "Expira uses Face ID to keep your pantry and notes secure."
         }
       ],
       "expo-localization",
       [
         "expo-calendar",
         {
-          "calendarPermission": "Expira, SKT hat\u0131rlat\u0131c\u0131lar\u0131n\u0131 takvimine eklemek i\u00e7in izin ister."
+          "calendarPermission": "Expira adds product expiry reminders to your calendar."
         }
       ],
       [

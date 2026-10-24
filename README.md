@@ -1,30 +1,39 @@
-# Mobil Uygulama Projesi
+# Expira (Mobil Uygulama Projesi)
 
-This repository contains **Expira**, an Expo/React Native mobile app for tracking product expiry dates, notes, reminders, and inventory statistics. All application code lives in [`SktTakip/`](./SktTakip/).
+This repository contains **Expira**, a privacy-first mobile & web application for tracking product expiry dates, pantry inventory, smart reminders, notes, and statistics.
 
-See the app [README](./SktTakip/README.md) for features, setup, validation and release instructions.
+- **Mobile App (Android / Expo):** Located in [`SktTakip/`](./SktTakip/) (Targets Android 16 / API 36, signed AAB release workflow with R8 minification).
+- **Web App (React / Vite):** Located in the root directory for fast web previews and desktop access.
 
 ## Quick start
 
+### Mobile App (Expo / Android)
 ```sh
 cd SktTakip
 npm install
 npm start
 ```
 
-## Documentation
+### Web App
+```sh
+npm install
+npm run dev
+```
+
+## Documentation & Release Materials
 
 | File | Contents |
 |------|----------|
-| [`SktTakip/README.md`](./SktTakip/README.md) | Features, setup, validation, project structure |
-| [`SktTakip/ROADMAP.md`](./SktTakip/ROADMAP.md) | Version plan from v1.1.3 to v2.0.0 |
-| [`SktTakip/DESIGN_SYSTEM.md`](./SktTakip/DESIGN_SYSTEM.md) | v2.0 design direction (target spec) |
-| [`SktTakip/PLAY_STORE_RELEASE.md`](./SktTakip/PLAY_STORE_RELEASE.md) | Google Play release checklist |
-| [`SktTakip/PLAY_STORE_LISTING_TR.md`](./SktTakip/PLAY_STORE_LISTING_TR.md) | Turkish store listing draft |
-| [`SktTakip/PRIVACY_POLICY.md`](./SktTakip/PRIVACY_POLICY.md) | Privacy policy draft (pre-publish) |
-| [`SktTakip/AGENTS.md`](./SktTakip/AGENTS.md) | Agent/development conventions |
+| [`SktTakip/README.md`](./SktTakip/README.md) | Mobile app architecture, setup, validation, project structure |
+| [`SktTakip/PLAY_STORE_RELEASE.md`](./SktTakip/PLAY_STORE_RELEASE.md) | Google Play release checklist & signing instructions |
+| [`SktTakip/PLAY_STORE_LISTING_EN.md`](./SktTakip/PLAY_STORE_LISTING_EN.md) | Global English Google Play store listing (Title, Short/Full description, ASO keywords) |
+| [`SktTakip/PLAY_STORE_LISTING_TR.md`](./SktTakip/PLAY_STORE_LISTING_TR.md) | Turkish Google Play store listing |
+| [`SktTakip/PRIVACY_POLICY_EN.md`](./SktTakip/PRIVACY_POLICY_EN.md) | Privacy policy (English) |
+| [`SktTakip/PRIVACY_POLICY.md`](./SktTakip/PRIVACY_POLICY.md) | Privacy policy (Turkish) |
+| [`SktTakip/ROADMAP.md`](./SktTakip/ROADMAP.md) | Version roadmap |
+| [`SktTakip/DESIGN_SYSTEM.md`](./SktTakip/DESIGN_SYSTEM.md) | Design tokens & component specifications |
 
-## CI
+## CI & Automated Builds
 
-- `Tests` (`.github/workflows/tests.yml`): lint + Jest (65 tests) on PRs touching app code and on `main`
-- `Build Android AAB` (`.github/workflows/android-build.yml`): on-demand signed `.aab` build — auto-increments `android.versionCode` (and commits the bump), runs `expo prebuild`, applies release signing, and builds with R8 minification + resource shrinking
+- `Tests` (`.github/workflows/tests.yml`): Lint + Jest test suite (65 tests) on pull requests and push to `main`.
+- `Build Android AAB` (`.github/workflows/android-build.yml`): Auto-increments `android.versionCode`, runs `expo prebuild`, applies release signing, and builds signed `.aab` with R8 minification + resource shrinking.

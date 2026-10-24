@@ -5,7 +5,7 @@ import en from '../translations/en.json';
 
 const i18n = new I18n({ tr, en });
 
-const DEFAULT_LOCALE = 'tr';
+const DEFAULT_LOCALE = 'en';
 
 export const resolveDeviceLocale = () => {
   try {
@@ -13,7 +13,7 @@ export const resolveDeviceLocale = () => {
     const deviceLocale = locales?.[0]?.languageCode;
     return deviceLocale === 'tr' ? 'tr' : 'en';
   } catch (_error) {
-    return DEFAULT_LOCALE === 'tr' ? 'tr' : 'en';
+    return 'en';
   }
 };
 

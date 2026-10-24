@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+package-lock.json.backup
+
+# Production build outputs
+dist/
+build/
+web-build/
+.expo/
+*.aab
+*.apk
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+*.jks
+*.keystore
+*.p8
+*.p12
+*.pem
+
+# Logs & temp
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
