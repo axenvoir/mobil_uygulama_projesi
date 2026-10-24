@@ -17,7 +17,6 @@ npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — re
 npx expo start              # start the dev server
 npx expo lint               # lint
 npm test                    # Jest unit tests (validators, formatters, translations, theme contracts)
-npx tsc --noEmit            # typecheck
 npx expo-doctor             # diagnose dependency and config issues
 npx expo install --fix      # fix incompatible package versions
 ```
@@ -26,9 +25,9 @@ Run lint and tests before declaring any task done. Test suites live in `__tests_
 
 ## Navigation & Routing
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
+- The app uses **React Navigation** (not Expo Router). Navigators (bottom tabs + stack) are defined in `App.js`; screens live in `src/screens/`, shared UI in `src/components/`.
+- Import navigation props/hooks from `@react-navigation/native`, `@react-navigation/bottom-tabs`, and `@react-navigation/stack`.
+- Docs: https://reactnavigation.org/docs/getting-started
 
 ## Building the AAB
 
