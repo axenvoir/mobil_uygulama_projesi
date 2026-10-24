@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
+import { SHADOWS } from '../theme';
 
 /**
  * Card Component
@@ -24,7 +25,7 @@ const Card = ({
 }) => {
   const { colors } = useTheme();
   const responsive = useResponsive();
-  const { scale, SHADOWS } = responsive;
+  const { scale } = responsive;
 
   // Padding mapping
   const paddingMap = {
