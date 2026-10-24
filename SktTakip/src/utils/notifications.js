@@ -1,14 +1,12 @@
-import { isRunningInExpoGo } from 'expo';
 import tr from '../translations/tr.json';
 import en from '../translations/en.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-const isAndroidExpoGo = Platform.OS === 'android' && isRunningInExpoGo();
-const Notifications = isAndroidExpoGo ? null : require('expo-notifications');
+const Notifications = require('expo-notifications');
 const REMINDER_ID_KEY = '@dailyReminderNotificationId';
 
-export const isNotificationsAvailable = !isAndroidExpoGo;
+export const isNotificationsAvailable = true;
 
 if (Notifications) {
   try {
