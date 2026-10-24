@@ -1,11 +1,13 @@
 name: Build Android AAB
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -24,6 +26,37 @@ jobs:
       - name: Install dependencies
         run: npm install
         working-directory: ./SktTakip
+
+      - name: Increment versionCode
+        run: |
+          python3 - << 'EOF'
+          import json, os
+
+          path = 'app.json'
+          with open(path) as f:
+              data = json.load(f)
+
+          android = data['expo']['android']
+          current = android.get('versionCode', 1)
+          next_code = current + 1
+          android['versionCode'] = next_code
+
+          with open(path, 'w') as f:
+              json.dump(data, f, indent=2)
+              f.write('\n')
+
+          print(f'versionCode: {current} -> {next_code}')
+          EOF
+        working-directory: ./SktTakip
+
+      - name: Commit versionCode bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add SktTakip/app.json
+          git commit -m "chore: bump android versionCode to $(python3 -c "import json; print(json.load(open('SktTakip/app.json'))['expo']['android']['versionCode'])") [skip ci]" || echo "No versionCode changes to commit"
+          git push
+        working-directory: .
 
       - name: Prebuild Android
         run: npx expo prebuild --platform android --no-install
