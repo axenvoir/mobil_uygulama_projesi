@@ -53,7 +53,7 @@
         "expo-build-properties",
         {
           "android": {
-            "jsEngine": "jsc",
+            "jsEngine": "hermes",
             "newArchEnabled": false,
             "compileSdkVersion": 36,
             "targetSdkVersion": 36,
@@ -61,7 +61,7 @@
             "enableShrinkResourcesInReleaseBuilds": false
           },
           "ios": {
-            "jsEngine": "jsc",
+            "jsEngine": "hermes",
             "newArchEnabled": false
           }
         }
