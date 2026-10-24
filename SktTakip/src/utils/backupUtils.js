@@ -1,7 +1,6 @@
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { Platform } from 'react-native';
 import { isValidDateString } from './validators';
 import i18n from './i18n';
 
@@ -100,9 +99,6 @@ const isValidBackup = (backup) => (
 
 export const createBackup = async ({ products, notes, settings, userProfile, themeMode }) => {
   try {
-    if (Platform.OS === 'web') {
-      return { success: false, error: 'Sharing backup files is not supported on the web version.' };
-    }
     if (!(await Sharing.isAvailableAsync())) {
       return { success: false, error: 'File sharing is not available on this device.' };
     }
