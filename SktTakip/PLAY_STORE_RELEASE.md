@@ -28,7 +28,7 @@ The GitHub Actions AAB workflow auto-increments `android.versionCode` in `app.js
 - User-facing version: `1.1.3`
 - Android target: API 36
 - Build artifact: Android App Bundle (`.aab`), R8-minified with resource shrinking
-- OTA updates: checked on error recovery (`expo-updates` `checkAutomatically: ON_ERROR`); the app always boots from the embedded bundle first
+- No OTA update channel: the app ships exclusively with the JS bundle embedded in the store build; updates arrive via Google Play releases
 - Product images are selected through Android's system picker; the app does not request broad media-storage or microphone access.
 - Calendar access is only needed when a user chooses to add a product reminder to the device calendar. Notifications are local reminders configured by the user.
 
