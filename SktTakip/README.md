@@ -61,15 +61,11 @@ src/
 __tests__/      # Jest suites (pure logic; no React rendering yet)
 ```
 
-See `DESIGN_SYSTEM.md` for the v2.0 design direction and `AGENTS.md` for agent/development conventions. Note: the app currently uses React Navigation (not Expo Router) and the JSC engine with the old architecture disabled; `src/theme.js` is the source of truth for the shipped design. OTA updates are checked on error recovery only (`expo-updates` `ON_ERROR`), so the app always starts from the bundle embedded in the build.
+See `DESIGN_SYSTEM.md` for the v2.0 design direction and `AGENTS.md` for agent/development conventions. Note: the app currently uses React Navigation (not Expo Router) and the JSC engine with the old architecture disabled; `src/theme.js` is the source of truth for the shipped design. There is no OTA update channel; app updates ship exclusively through Google Play releases.
 
 ## Google Play release
 
-Production EAS builds are configured to target Android 16 (API 36) and produce a signed Android App Bundle (`.aab`):
-
-```sh
-npx eas-cli@latest build --platform android --profile production
-```
+Signed Android App Bundles (`.aab`, Android 16 / API 36) are built with the `Build Android AAB` GitHub Actions workflow (manual trigger). The workflow auto-increments `android.versionCode` and commits the bump, then produces the bundle as a workflow artifact.
 
 Before uploading the bundle, complete the Play Console store listing, privacy policy URL, Data safety form, content rating, and any testing requirements shown for your developer account. See [PLAY_STORE_RELEASE.md](./PLAY_STORE_RELEASE.md) for the release checklist. Confirm the Android application ID `com.expira.app.tr` is available in Play Console; keep it unchanged after the first Play release.
 

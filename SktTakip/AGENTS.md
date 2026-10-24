@@ -30,13 +30,12 @@ Run lint and tests before declaring any task done. Test suites live in `__tests_
 - Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
 - Docs: https://docs.expo.dev/router/introduction.md
 
-## Building with EAS
+## Building the AAB
 
-Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
-Docs: https://docs.expo.dev/eas/index.md
+The app is built and signed by the `Build Android AAB` GitHub Actions workflow (`.github/workflows/android-build.yml`, manual trigger) — no local Xcode, Android Studio, or EAS account required. The workflow runs `expo prebuild`, applies the release signing config from repository secrets, and produces an `.aab` artifact. It also auto-increments `android.versionCode` in `app.json` and commits the bump back to the branch before each build.
 
 ## Rules
 
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
+- After adding a library with native code, produce a new build via the AAB workflow (or `npx expo run:android` locally with the Android toolchain installed). There is no Expo Go support and no OTA channel; every change ships as a new build through Google Play.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md

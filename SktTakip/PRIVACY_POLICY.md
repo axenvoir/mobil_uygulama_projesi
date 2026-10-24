@@ -21,7 +21,7 @@ Expira, ürünlerin son kullanma tarihlerini ve envanter notlarını yönetmeye 
 
 ## Uygulama güncellemeleri ve üçüncü taraflar
 
-Expira, sürüm ve uyumlu uygulama güncellemelerini kontrol etmek/indirmek için Expo'nun EAS Update hizmetine bağlanır. Bu ağ isteği sırasında hizmet, isteğin iletilmesi ve güvenliği için IP adresi ve uygulama/sürüm gibi teknik bağlantı bilgilerini işleyebilir. Bu işlem, Expira'daki ürün listesinin bu hizmete yüklenmesi anlamına gelmez.
+Expira, uygulama güncellemeleri için kendi sunucusuna bağlanmaz; güncellemeler yalnızca Google Play gibi uygulama mağazaları üzerinden dağıtılır. Mağaza güncelleme hizmetleri, kendi veri politikalarına göre teknik bağlantı bilgilerini işleyebilir.
 
 İşletim sistemi, uygulama mağazası, cihaz yedekleme hizmeti ve kullanıcı tarafından seçilen paylaşım/hedef uygulamalar kendi veri uygulamalarından sorumludur. Bunların politikalarını ayrıca inceleyin.
 

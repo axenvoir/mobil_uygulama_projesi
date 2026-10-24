@@ -30,7 +30,7 @@ This document outlines the comprehensive update plan for Expira app from v1.1.3 
 - [x] Startup crash fixed: Card.js destructured SHADOWS from useResponsive (undefined) — now imported from theme.js, with regression tests
 - [x] R8 code shrinking + resource shrinking enabled for release builds; R8 mapping uploaded for Play Console de-obfuscation
 - [x] AAB workflow auto-increments and commits android.versionCode on every build
-- [x] OTA update policy changed from ON_LOAD to ON_ERROR (embedded bundle always boots first)
+- [x] OTA update policy changed from ON_LOAD to ON_ERROR (embedded bundle always boots first); later removed entirely together with EAS/Expo Go integration
 - [x] Module-load native calls (Localization.getLocales, setNotificationHandler) wrapped defensively
 - [x] ErrorBoundary now displays the actual error message for diagnosis
 
@@ -349,7 +349,7 @@ This document outlines the comprehensive update plan for Expira app from v1.1.3 
 - **Expo SDK:** 50.x (current) → 51+ (v2.0.0)
 - **Node.js:** 22.x (current)
 - **Java:** 17.x (current)
-- **Build Tool:** EAS Build
+- **Build Tool:** GitHub Actions AAB workflow (expo prebuild + Gradle)
 
 ### Dependencies
 - `expo-barcode-scanner` (v1.2.0)

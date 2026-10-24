@@ -3,13 +3,11 @@
 ## Build
 
 - [ ] Confirm the Play Console application ID is `com.expira.app.tr` and that it is available. It cannot be changed after the first release.
-- [ ] Build a production Android App Bundle: `npx eas-cli@latest build --platform android --profile production`.
-- [ ] R8 code shrinking/optimization is enabled for release builds (`enableMinifyInReleaseBuilds` + `enableShrinkResourcesInReleaseBuilds` in `app.json` via `expo-build-properties`). After the first R8 build, smoke-test the release binary: biometric unlock, notifications, calendar add, backup restore, PDF export and image picking. The EAS production profile uploads the R8 mapping file (`ANDROID_PROGUARD_MAPPING: "true"`) for Play Console crash de-obfuscation.
+- [ ] Build a production Android App Bundle: run the `Build Android AAB` GitHub Actions workflow on `main` (manual trigger); the workflow auto-increments `android.versionCode` and uploads the signed `.aab` as an artifact.
+- [ ] R8 code shrinking/optimization is enabled for release builds (`enableMinifyInReleaseBuilds` + `enableShrinkResourcesInReleaseBuilds` in `app.json` via `expo-build-properties`). After each R8 build, smoke-test the release binary: biometric unlock, notifications, calendar add, backup restore, PDF export and image picking. When you publish with EAS-style tooling, upload the R8 mapping file for Play Console crash de-obfuscation; with the GitHub Actions AAB workflow, enable mapping upload from the Android App Bundle section of Play Console using the artifact's mapping metadata if you produce it.
 - [ ] Review the generated AAB and install/test the signed release build on supported Android devices before upload.
 - [ ] Start with an internal testing track, then complete any additional testing requirements shown in Play Console before requesting production access.
-- [ ] Keep the EAS-managed Android signing key and Play App Signing enabled. Do not commit signing credentials.
-
-R8 code shrinking/optimization is enabled for release builds (`enableMinifyInReleaseBuilds` + `enableShrinkResourcesInReleaseBuilds` in `app.json` via `expo-build-properties`). After the first R8 build, smoke-test the release binary: biometric unlock, notifications, calendar add, backup restore, PDF export and image picking. The EAS production profile uploads the R8 mapping file (`ANDROID_PROGUARD_MAPPING: "true"`) for Play Console crash de-obfuscation.
+- [ ] Keep the Android signing key (repository secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) and Play App Signing enabled. Do not commit signing credentials.
 
 The GitHub Actions AAB workflow auto-increments `android.versionCode` in `app.json` and commits the bump back to the branch before every build. Current `android.versionCode`: see `app.json` (recent builds: 34-36). The current user-facing release is `1.1.3`.
 
