@@ -4,6 +4,7 @@
 
 - [ ] Confirm the Play Console application ID is `com.expira.app.tr` and that it is available. It cannot be changed after the first release.
 - [ ] Build a production Android App Bundle: `npx eas-cli@latest build --platform android --profile production`.
+- [ ] R8 code shrinking/optimization is enabled for release builds (`enableMinifyInReleaseBuilds` + `enableShrinkResourcesInReleaseBuilds` in `app.json` via `expo-build-properties`). After the first R8 build, smoke-test the release binary: biometric unlock, notifications, calendar add, backup restore, PDF export and image picking. The EAS production profile uploads the R8 mapping file (`ANDROID_PROGUARD_MAPPING: "true"`) for Play Console crash de-obfuscation.
 - [ ] Review the generated AAB and install/test the signed release build on supported Android devices before upload.
 - [ ] Start with an internal testing track, then complete any additional testing requirements shown in Play Console before requesting production access.
 - [ ] Keep the EAS-managed Android signing key and Play App Signing enabled. Do not commit signing credentials.
