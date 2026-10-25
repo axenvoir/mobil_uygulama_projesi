@@ -44,6 +44,11 @@ export const initCrashLogging = async (): Promise<void> => {
       attachScreenshot: false,
     });
     sentryInitialized = true;
+    Sentry.addBreadcrumb({
+      message: 'crash-logging-initialized',
+      category: 'app',
+      level: 'info',
+    });
     emit('warn', 'crash-logging-initialized');
   } catch (error) {
     emit('error', `sentry-init-failed: ${String(error)}`);
