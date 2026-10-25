@@ -14,6 +14,7 @@ import {normalizeSettings, createId} from '../utils/validators';
 import {resolveLocale, type LanguageCode} from '../i18n';
 import {setHapticsEnabled} from '../utils/haptics';
 import {scheduleDailyReminder} from '../utils/notifications';
+import {captureError, captureBreadcrumb} from '../utils/crashLogging';
 
 interface AppContextValue {
   ready: boolean;
@@ -43,6 +44,21 @@ export const AppProvider: React.FC<{children: React.ReactNode}> = ({children}) =
   const [appState, setAppState] = useState(AppState.currentState);
 
   useEffect(() => {
+    captureBreadcrumb('app_context_mounted');
+    const onUnhandled = (event: {reason?: unknown; message?: string}) => {
+      captureError(event.reason ?? event.message ?? 'unhandled rejection', 'unhandledRejection');
+    };
+    const g = globalThis as unknown as {
+      addEventListener?: (type: string, cb: (e: unknown) => void) => void;
+      removeEventListener?: (type: string, cb: (e: unknown) => void) => void;
+    };
+    g.addEventListener?.('unhandledrejection', onUnhandled as (e: unknown) => void);
+    return () => {
+      g.removeEventListener?.('unhandledrejection', onUnhandled as (e: unknown) => void);
+    };
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
     (async () => {
       const loaded = await loadData();
@@ -63,8 +79,8 @@ export const AppProvider: React.FC<{children: React.ReactNode}> = ({children}) =
     if (!data) {
       return;
     }
-    saveData(data).catch(() => undefined);
-    scheduleDailyReminder(data.settings).catch(() => undefined);
+    saveData(data).catch(err => captureError(err, 'persist'));
+    scheduleDailyReminder(data.settings).catch(err => captureError(err, 'scheduleReminder'));
   }, [data]);
 
   // Re-check reminder when returning to foreground (missed triggers)
@@ -79,7 +95,7 @@ export const AppProvider: React.FC<{children: React.ReactNode}> = ({children}) =
         reminderMinute: reminderMinute ?? 0,
         language: 'system',
         hapticsEnabled: true,
-      }).catch(() => undefined);
+      }).catch(err => captureError(err, 'scheduleReminderForeground'));
     }
   }, [appState, reminderEnabled, reminderHour, reminderMinute]);
 

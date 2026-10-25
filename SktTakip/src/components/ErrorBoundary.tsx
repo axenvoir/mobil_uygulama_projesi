@@ -1,5 +1,6 @@
 import React from 'react';
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
+import {captureError} from '../utils/crashLogging';
 import {COLORS, SPACING, TYPOGRAPHY} from '../theme';
 
 interface ErrorBoundaryProps {
@@ -19,6 +20,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   componentDidCatch(error: unknown, info: unknown): void {
+    captureError(error, 'ErrorBoundary');
     if (__DEV__) {
       console.error('Expira crashed:', error, info);
     }

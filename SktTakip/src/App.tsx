@@ -4,6 +4,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {AppProvider, useApp} from './context/AppContext';
+import {initCrashLogging} from './utils/crashLogging';
 import {ErrorBoundary, LoadingScreen} from './components';
 import {MainTabs} from './navigation/MainTabs';
 import {ProductDetailScreen} from './screens/ProductDetailScreen';
@@ -31,7 +32,11 @@ const AppNavigator: React.FC = () => {
   );
 };
 
-const App: React.FC = () => (
+const App: React.FC = () => {
+  React.useEffect(() => {
+    initCrashLogging();
+  }, []);
+  return (
   <ErrorBoundary>
     <SafeAreaProvider>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
@@ -40,6 +45,7 @@ const App: React.FC = () => (
       </AppProvider>
     </SafeAreaProvider>
   </ErrorBoundary>
-);
+  );
+};
 
 export default App;
