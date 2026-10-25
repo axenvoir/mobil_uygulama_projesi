@@ -16,5 +16,6 @@ export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabsParamList>;
   ProductDetail: ProductIdScreenParams;
   ProductForm: ProductIdScreenParams | undefined;
+  Backup: undefined;
 };
 

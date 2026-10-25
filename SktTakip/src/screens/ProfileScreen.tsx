@@ -1,12 +1,17 @@
 import React, {useState} from 'react';
 import {Pressable, ScrollView, StyleSheet, Switch, Text, View} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useApp} from '../context/AppContext';
 import {useT} from '../i18n';
 import {COLORS, SPACING, TYPOGRAPHY} from '../theme';
 import {Button, ConfirmModal} from '../components';
 import {Screen, ScreenHeader} from './shared';
 import {requestPermission} from '../utils/notifications';
+import type {RootStackParamList} from '../navigation/types';
+
 export const ProfileScreen: React.FC = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {settings, notes, products, locale, updateSettings, clearAllData} = useApp();
   const t = useT(locale);
   const [confirming, setConfirming] = useState(false);
@@ -83,6 +88,13 @@ export const ProfileScreen: React.FC = () => {
             />
           </View>
         </View>
+
+        <Pressable style={styles.card} onPress={() => navigation.navigate('Backup')}>
+          <View style={styles.switchRow}>
+            <Text style={styles.cardLabel}>{t('backup')}</Text>
+            <Text style={styles.timeValue}>›</Text>
+          </View>
+        </Pressable>
 
         <Text style={styles.section}>{t('about')}</Text>
         <View style={styles.card}>

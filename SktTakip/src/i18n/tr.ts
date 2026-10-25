@@ -95,6 +95,17 @@ export const tr = {
   about: 'Hakkında',
   version: 'Sürüm',
   clearData: 'Tüm Verileri Sil',
+  backup: 'Yedekleme',
+  backupTitle: 'Yedekleme',
+  backupExportTitle: 'Dışa Aktar',
+  backupExportHint: 'Tüm verilerinizi JSON olarak paylaşın ve saklayın.',
+  backupExport: 'Yedeği Paylaş',
+  backupImportTitle: 'İçe Aktar',
+  backupImportHint: 'Yedek JSON metnini yapıştırın ve geri yükleyin.',
+  backupImport: 'Geri Yükle',
+  biometrics: 'Biyometrik Kilit',
+  biometricsUnsupported: 'Bu cihazda biyometri kullanılamıyor',
+  dataRestored: 'Veriler geri yüklendi',
   clearDataConfirm: 'Tüm ürün ve notlar silinecek. Bu işlem geri alınamaz. Devam edilsin mi?',
 
   // Errors

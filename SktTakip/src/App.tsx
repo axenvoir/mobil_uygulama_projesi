@@ -8,6 +8,7 @@ import {ErrorBoundary, LoadingScreen} from './components';
 import {MainTabs} from './navigation/MainTabs';
 import {ProductDetailScreen} from './screens/ProductDetailScreen';
 import {ProductFormScreen} from './screens/ProductFormScreen';
+import {BackupScreen} from './screens/BackupScreen';
 import {COLORS} from './theme';
 import type {RootStackParamList} from './navigation/types';
 
@@ -24,6 +25,7 @@ const AppNavigator: React.FC = () => {
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
         <Stack.Screen name="ProductForm" component={ProductFormScreen} />
+        <Stack.Screen name="Backup" component={BackupScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

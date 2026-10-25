@@ -29,6 +29,7 @@ interface AppContextValue {
   deleteNote: (id: string) => void;
   updateSettings: (patch: Partial<Settings>) => void;
   clearAllData: () => Promise<void>;
+  replaceAllData: (data: AppData) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -135,6 +136,10 @@ export const AppProvider: React.FC<{children: React.ReactNode}> = ({children}) =
     setData({version: 1, products: [], notes: [], settings: normalizeSettings(undefined)});
   }, []);
 
+  const replaceAllData = useCallback<AppContextValue['replaceAllData']>(next => {
+    setData(next);
+  }, []);
+
   const value = useMemo<AppContextValue | null>(() => {
     if (!data) {
       return null;
@@ -153,8 +158,9 @@ export const AppProvider: React.FC<{children: React.ReactNode}> = ({children}) =
       deleteNote,
       updateSettings,
       clearAllData,
+      replaceAllData,
     };
-  }, [data, addProduct, updateProduct, deleteProduct, addNote, updateNote, deleteNote, updateSettings, clearAllData]);
+  }, [data, addProduct, updateProduct, deleteProduct, addNote, updateNote, deleteNote, updateSettings, clearAllData, replaceAllData]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
