@@ -9,6 +9,7 @@ on:
       - 'SktTakip/android/**'
       - 'SktTakip/package.json'
       - 'SktTakip/package-lock.json'
+      - '.github/workflows/android-build.yml'
 
 jobs:
   build:
