@@ -97,8 +97,6 @@ export const en: Record<TranslationKey, string> = {
   backupImportTitle: 'Import',
   backupImportHint: 'Paste the backup JSON text and restore.',
   backupImport: 'Restore',
-  biometrics: 'Biometric Lock',
-  biometricsUnsupported: 'Biometrics not available on this device',
   dataRestored: 'Data restored',
   clearDataConfirm: 'All products and notes will be deleted. This cannot be undone. Continue?',
 

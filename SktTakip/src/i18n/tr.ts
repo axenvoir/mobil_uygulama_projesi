@@ -103,8 +103,6 @@ export const tr = {
   backupImportTitle: 'İçe Aktar',
   backupImportHint: 'Yedek JSON metnini yapıştırın ve geri yükleyin.',
   backupImport: 'Geri Yükle',
-  biometrics: 'Biyometrik Kilit',
-  biometricsUnsupported: 'Bu cihazda biyometri kullanılamıyor',
   dataRestored: 'Veriler geri yüklendi',
   clearDataConfirm: 'Tüm ürün ve notlar silinecek. Bu işlem geri alınamaz. Devam edilsin mi?',
 

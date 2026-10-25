@@ -8,13 +8,14 @@ interface ErrorBoundaryProps {
 
 interface ErrorBoundaryState {
   hasError: boolean;
+  message: string;
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = {hasError: false};
+  state: ErrorBoundaryState = {hasError: false, message: ''};
 
-  static getDerivedStateFromError(): ErrorBoundaryState {
-    return {hasError: true};
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return {hasError: true, message: error?.message ?? String(error)};
   }
 
   componentDidCatch(error: unknown, info: unknown): void {
@@ -24,7 +25,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   reset = (): void => {
-    this.setState({hasError: false});
+    this.setState({hasError: false, message: ''});
   };
 
   render(): React.ReactNode {
@@ -37,6 +38,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             <Text style={styles.message}>
               An unexpected error occurred. Please restart the app.
             </Text>
+            {__DEV__ || this.state.message ? (
+              <Text style={styles.detail}>{this.state.message}</Text>
+            ) : null}
           </ScrollView>
         </View>
       );
@@ -60,5 +64,12 @@ const styles = StyleSheet.create({
     color: '#A7C4BD',
     textAlign: 'center',
     marginTop: SPACING.sm,
+  },
+  detail: {
+    fontSize: TYPOGRAPHY.small,
+    color: '#F87171',
+    textAlign: 'center',
+    marginTop: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
   },
 });
