@@ -19,7 +19,7 @@ android {
         applicationId "com.expira.app.tr"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 45
+        versionCode 46
         versionName "1.2.0"
     }
 
