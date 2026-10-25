@@ -2,6 +2,13 @@ name: Build Android AAB (Bare React Native)
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'SktTakip/android/**'
+      - 'SktTakip/package.json'
+      - 'SktTakip/package-lock.json'
 
 jobs:
   build:
