@@ -1,0 +1,3 @@
+-keep class com.facebook.react.** { *; }
+-keep class com.facebook.soloader.** { *; }
+-keep class com.expira.app.tr.** { *; }

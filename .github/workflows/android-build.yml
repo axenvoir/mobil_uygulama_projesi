@@ -1,0 +1,87 @@
+name: Build Android AAB (Bare React Native)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+        working-directory: ./SktTakip
+
+      - name: Increment versionCode
+        run: |
+          python3 -c "
+          import re
+          path = 'android/app/build.gradle'
+          with open(path) as f: content = f.read()
+          match = re.search(r'versionCode\s+(\d+)', content)
+          if match:
+              curr = int(match.group(1))
+              nxt = curr + 1
+              content = re.sub(r'versionCode\s+\d+', f'versionCode {nxt}', content, count=1)
+              with open(path, 'w') as f: f.write(content)
+              print(f'versionCode bumped from {curr} to {nxt}')
+          "
+        working-directory: ./SktTakip
+
+      - name: Commit versionCode bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add SktTakip/android/app/build.gradle
+          git commit -m "chore: bump android versionCode [skip ci]" || echo "No changes to commit"
+          git push || echo "Notice: branch protected or push skipped, continuing build..."
+        working-directory: .
+
+      - name: Make Gradle Executable
+        run: chmod +x android/gradlew
+        working-directory: ./SktTakip
+
+      - name: Decode Keystore
+        run: |
+          if [ -z "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "::error::KEYSTORE_BASE64 repository secret is missing or empty! Please configure it under Settings > Secrets > Actions."
+            exit 1
+          fi
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+          if [ ! -s android/app/release.keystore ]; then
+            echo "::error::Decoded android/app/release.keystore is empty!"
+            exit 1
+          fi
+        working-directory: ./SktTakip
+
+      - name: Build AAB
+        run: cd android && ./gradlew bundleRelease -x lintVitalRelease -x lint
+        working-directory: ./SktTakip
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Upload AAB & Mapping
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: |
+            SktTakip/android/app/build/outputs/bundle/release/app-release.aab
+            SktTakip/android/app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: warn

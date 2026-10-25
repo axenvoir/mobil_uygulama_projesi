@@ -1,0 +1,106 @@
+export const tr = {
+  appName: 'Expira',
+  appSubtitle: 'Son Kullanma Tarihi Takibi',
+
+  // Common
+  save: 'Kaydet',
+  cancel: 'Vazgeç',
+  delete: 'Sil',
+  edit: 'Düzenle',
+  confirm: 'Onayla',
+  close: 'Kapat',
+  done: 'Tamam',
+  search: 'Ara',
+  retry: 'Tekrar Dene',
+  today: 'Bugün',
+  yesterday: 'Dün',
+  error: 'Hata',
+
+  // Tabs
+  tabHome: 'Ana Sayfa',
+  tabProducts: 'Ürünler',
+  tabNotes: 'Notlar',
+  tabStatistics: 'İstatistik',
+  tabProfile: 'Profil',
+
+  // Home
+  total: 'Toplam',
+  fresh: 'Taze',
+  approaching: 'Yaklaşıyor',
+  expired: 'Günü Geçmiş',
+  expiringSoon: 'Yakında Doluyor',
+  daysLeft: 'gün kaldı',
+  daysAgo: 'gün geçti',
+  expiresToday: 'Bugün doluyor!',
+  addProduct: 'Ürün Ekle',
+  noProducts: 'Henüz ürün yok',
+  noProductsHint: 'İlk ürününüzü ekleyerek başlayın',
+
+  // Products
+  productName: 'Ürün Adı',
+  productNamePlaceholder: 'Örn: Süt, Yoğurt, Peynir',
+  category: 'Kategori',
+  expiryDate: 'Son Kullanma Tarihi',
+  quantity: 'Adet / Miktar',
+  quantityPlaceholder: 'Örn: 1 litre, 500g',
+  note: 'Not',
+  notePlaceholder: 'Ürünle ilgili notunuz (opsiyonel)',
+  editProduct: 'Ürünü Düzenle',
+  productDetail: 'Ürün Detayı',
+  deleteProductTitle: 'Ürünü Sil',
+  deleteProductMessage: 'Bu ürünü silmek istediğinize emin misiniz?',
+  all: 'Tümü',
+  emptyFilterResult: 'Filtreye uyan ürün bulunamadı',
+  searchPlaceholder: 'Ürün ara...',
+
+  // Categories
+  catDairy: 'Süt Ürünleri',
+  catMeat: 'Et & Balık',
+  catVeggie: 'Meyve & Sebze',
+  catBakery: 'Fırın & Ekmek',
+  catCanned: 'Konserve & Kuru',
+  catDrink: 'İçecekler',
+  catSnack: 'Atıştırmalık',
+  catOther: 'Diğer',
+
+  // Notes
+  notes: 'Notlar',
+  addNote: 'Not Ekle',
+  noteTitle: 'Başlık',
+  noteTitlePlaceholder: 'Not başlığı',
+  noteBody: 'İçerik',
+  noteBodyPlaceholder: 'Notunuz...',
+  noNotes: 'Henüz not yok',
+  noNotesHint: 'Alışveriş listeniz veya tarifler için not ekleyin',
+  deleteNoteTitle: 'Notu Sil',
+  deleteNoteMessage: 'Bu notu silmek istediğinize emin misiniz?',
+
+  // Statistics
+  statistics: 'İstatistikler',
+  statsFreshnessTitle: 'Tazelik Dağılımı',
+  statsCategoryTitle: 'Kategori Dağılımı',
+  statsTotalTitle: 'Toplam Ürün',
+  statsTrackedSince: 'Takip başlangıcı',
+
+  // Profile
+  profile: 'Profil',
+  settings: 'Ayarlar',
+  language: 'Dil',
+  languageSystem: 'Sistem',
+  turkish: 'Türkçe',
+  english: 'İngilizce',
+  dailyReminder: 'Günlük Hatırlatma',
+  reminderTime: 'Hatırlatma Saati',
+  haptics: 'Dokunsal Geri Bildirim',
+  about: 'Hakkında',
+  version: 'Sürüm',
+  clearData: 'Tüm Verileri Sil',
+  clearDataConfirm: 'Tüm ürün ve notlar silinecek. Bu işlem geri alınamaz. Devam edilsin mi?',
+
+  // Errors
+  errorTitle: 'Bir sorun oluştu',
+  errorMessage: 'Uygulama beklenmeyen bir hatayla karşılaştı. Lütfen tekrar deneyin.',
+  errorRestart: 'Yeniden Başlat',
+} as const;
+
+export type TranslationKey = keyof typeof tr;

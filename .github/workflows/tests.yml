@@ -1,0 +1,32 @@
+name: Tests
+
+on:
+  pull_request:
+    paths:
+      - 'SktTakip/src/**'
+      - 'SktTakip/__tests__/**'
+      - 'SktTakip/jest.*'
+      - 'SktTakip/package.json'
+      - 'SktTakip/package-lock.json'
+      - 'SktTakip/tsconfig.json'
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./SktTakip
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: SktTakip/package-lock.json
+      - run: npm install --legacy-peer-deps
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
