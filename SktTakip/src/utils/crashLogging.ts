@@ -26,39 +26,7 @@ const emit = (level: 'error' | 'warn', message: string): void => {
   }
 };
 
-let sentryInitialized = false;
-
-export const initCrashLogging = async (): Promise<void> => {
-  const dsn = process.env.SENTRY_DSN;
-  if (!dsn) {
-    if (__DEV__) {
-      console.warn('[Expira] SENTRY_DSN not set — crash logging disabled');
-    }
-    return;
-  }
-  try {
-    const Sentry = await import('@sentry/react-native');
-    Sentry.init({
-      dsn,
-      enableAutoSessionTracking: true,
-      attachScreenshot: false,
-    });
-    sentryInitialized = true;
-    Sentry.addBreadcrumb({
-      message: 'crash-logging-initialized',
-      category: 'app',
-      level: 'info',
-    });
-    emit('warn', 'crash-logging-initialized');
-  } catch (error) {
-    emit('error', `sentry-init-failed: ${String(error)}`);
-  }
-};
-
-export const captureError = (
-  error: unknown,
-  context?: string,
-): void => {
+export const captureError = (error: unknown, context?: string): void => {
   const message = error instanceof Error ? error.message : String(error);
   const enriched = context ? `${context}: ${message}` : message;
   emit('error', enriched);
@@ -67,9 +35,7 @@ export const captureError = (
   }
   import('@sentry/react-native')
     .then(Sentry => {
-      if (sentryInitialized) {
-        Sentry.captureException(error instanceof Error ? error : new Error(enriched));
-      }
+      Sentry.captureException(error instanceof Error ? error : new Error(enriched));
     })
     .catch(() => undefined);
 };
@@ -77,9 +43,7 @@ export const captureError = (
 export const captureBreadcrumb = (message: string, data?: Record<string, unknown>): void => {
   import('@sentry/react-native')
     .then(Sentry => {
-      if (sentryInitialized) {
-        Sentry.addBreadcrumb({message, data});
-      }
+      Sentry.addBreadcrumb({message, data, category: 'app', level: 'info'});
     })
     .catch(() => undefined);
 };
