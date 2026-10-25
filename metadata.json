@@ -1,8 +1,0 @@
-{
-  "name": "Expira",
-  "description": "Expiry date tracker for food, pantry, and household products with reminders, inventory stats, and offline local storage.",
-  "requestFramePermissions": [],
-  "capabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
-}
