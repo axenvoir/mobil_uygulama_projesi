@@ -23,7 +23,7 @@ android {
         applicationId = "com.expira.app.tr"
         minSdk = 26
         targetSdk = 36
-        versionCode = 68
+        versionCode = 69
         versionName = "1.0.0"
     }
 
@@ -43,6 +43,9 @@ android {
             isMinifyEnabled = false
             signingConfig = keystoreProperties["storeFile"]?.let {
                 signingConfigs.getByName("release")
+            }
+            ndk {
+                debugSymbolLevel = "FULL"
             }
         }
     }

@@ -69,3 +69,17 @@ jobs:
           name: app-release-apk
           path: app/build/outputs/apk/release/app-release.apk
           retention-days: 14
+
+      - name: Collect native debug symbols
+        run: |
+          mkdir -p native-symbols
+          find app/build/outputs -type d -name "native_debug_symbols" -exec cp -r {} native-symbols/ \; || true
+          ls -R app/build/outputs || true
+
+      - name: Upload native symbols artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-debug-symbols
+          path: app/build/outputs/bundle/release/*.json
+          if-no-files-found: ignore
+          retention-days: 14
