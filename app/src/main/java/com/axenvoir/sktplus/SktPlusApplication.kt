@@ -29,6 +29,7 @@ class SktPlusApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        CrashReporter.install(this)
         applicationScope.launch {
             productRepository.seedDefaultCategoriesIfEmpty()
         }
