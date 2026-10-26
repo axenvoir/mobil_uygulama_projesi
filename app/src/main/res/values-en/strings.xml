@@ -60,4 +60,9 @@
     <string name="unsaved_title">Unsaved changes</string>
     <string name="unsaved_message">Leave anyway? Your changes will be lost.</string>
     <string name="discard">Discard and leave</string>
+    <string name="name_placeholder">e.g. Milk</string>
+    <string name="relative_days_ago">Updated %1$d days ago</string>
+    <string name="relative_today">Updated today</string>
+    <string name="relative_yesterday">Updated yesterday</string>
+    <string name="undo">Undo</string>
 </resources>

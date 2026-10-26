@@ -55,9 +55,17 @@ class ProductListViewModel @Inject constructor(
         filter.value = newFilter
     }
 
-    fun deleteProduct(product: Product) {
+    fun deleteProduct(product: Product, onDeleted: () -> Unit = {}) {
         viewModelScope.launch {
             runCatching { productRepository.deleteById(product.id) }
+                .onSuccess { onDeleted() }
+                .onFailure { _error.value = true }
+        }
+    }
+
+    fun restoreProduct(product: Product) {
+        viewModelScope.launch {
+            runCatching { productRepository.upsert(product) }
                 .onFailure { _error.value = true }
         }
     }

@@ -60,4 +60,9 @@
     <string name="unsaved_title">Kaydedilmemiş değişiklikler</string>
     <string name="unsaved_message">Çıkmak istiyor musunuz? Değişiklikler kaybedilecek.</string>
     <string name="discard">Vazgeç ve çık</string>
+    <string name="name_placeholder">Örn. Süt</string>
+    <string name="relative_days_ago">%1$d gün önce güncellendi</string>
+    <string name="relative_today">Bugün güncellendi</string>
+    <string name="relative_yesterday">Dün güncellendi</string>
+    <string name="undo">Geri al</string>
 </resources>

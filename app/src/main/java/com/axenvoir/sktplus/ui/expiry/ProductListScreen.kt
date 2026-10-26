@@ -1,6 +1,8 @@
 package com.axenvoir.sktplus.ui.expiry
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -45,6 +47,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,6 +83,11 @@ fun ProductListScreen(
     var productPendingDelete by remember { mutableStateOf<Product?>(null) }
     val errorText = stringResource(R.string.error_generic)
 
+    val hapticFeedback = androidx.compose.ui.platform.LocalHapticFeedback.current
+    var fabVisible by remember { mutableStateOf(true) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val undoText = stringResource(R.string.undo)
+
     LaunchedEffect(error) {
         if (error) {
             snackbarHostState.showSnackbar(errorText)
@@ -112,8 +121,14 @@ fun ProductListScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddProduct) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_product))
+            androidx.compose.animation.AnimatedVisibility(
+                visible = fabVisible,
+                enter = androidx.compose.animation.fadeIn(),
+                exit = androidx.compose.animation.fadeOut(),
+            ) {
+                FloatingActionButton(onClick = onAddProduct) {
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_product))
+                }
             }
         },
     ) { innerPadding ->
@@ -128,12 +143,20 @@ fun ProductListScreen(
                     .widthIn(max = 800.dp),
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    if (uiState.products.isNotEmpty()) {
+                            if (uiState.products.isNotEmpty()) {
                         SummaryCard(
                             freshCount = freshCount,
                             expiringCount = expiringCount,
                             expiredCount = expiredCount,
+                            totalCount = uiState.products.size,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            onStatusClick = { status -> viewModel.onFilterChange(
+                                when (status) {
+                                    ExpiryStatus.FRESH -> ProductFilter.FRESH
+                                    ExpiryStatus.EXPIRING_SOON -> ProductFilter.EXPIRING_SOON
+                                    ExpiryStatus.EXPIRED -> ProductFilter.EXPIRED
+                                }
+                            ) },
                         )
                     }
                     FilterRow(uiState.filter, viewModel::onFilterChange)
@@ -153,7 +176,10 @@ fun ProductListScreen(
                             )
                         }
                     } else {
+                        val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+                        fabVisible = androidx.compose.runtime.derivedStateOf { listState.firstVisibleItemIndex == 0 }.value
                         LazyColumn(
+                            state = listState,
                             modifier = Modifier.fillMaxWidth(),
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -184,7 +210,19 @@ fun ProductListScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.deleteProduct(product)
+                        hapticFeedback.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        viewModel.deleteProduct(product) {
+                            scope.launch {
+                                val result = snackbarHostState.showSnackbar(
+                                    message = product.name,
+                                    actionLabel = undoText,
+                                    duration = androidx.compose.material3.SnackbarDuration.Long,
+                                )
+                                if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
+                                    viewModel.restoreProduct(product)
+                                }
+                            }
+                        }
                         productPendingDelete = null
                     },
                 ) { Text(stringResource(R.string.yes)) }
@@ -203,7 +241,9 @@ private fun SummaryCard(
     freshCount: Int,
     expiringCount: Int,
     expiredCount: Int,
+    totalCount: Int,
     modifier: Modifier = Modifier,
+    onStatusClick: (ExpiryStatus) -> Unit = {},
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -220,28 +260,44 @@ private fun SummaryCard(
                 count = freshCount,
                 label = stringResource(R.string.status_fresh),
                 color = FreshGreenDot,
+                fraction = if (totalCount > 0) freshCount.toFloat() / totalCount else 0f,
                 modifier = Modifier.weight(1f),
+                onClick = { onStatusClick(ExpiryStatus.FRESH) },
             )
             SummaryItem(
                 count = expiringCount,
                 label = stringResource(R.string.status_expiring_soon),
                 color = WarningOrangeDot,
+                fraction = if (totalCount > 0) expiringCount.toFloat() / totalCount else 0f,
                 modifier = Modifier.weight(1f),
+                onClick = { onStatusClick(ExpiryStatus.EXPIRING_SOON) },
             )
             SummaryItem(
                 count = expiredCount,
                 label = stringResource(R.string.status_expired),
                 color = ExpiredRedDot,
+                fraction = if (totalCount > 0) expiredCount.toFloat() / totalCount else 0f,
                 modifier = Modifier.weight(1f),
+                onClick = { onStatusClick(ExpiryStatus.EXPIRED) },
             )
         }
     }
 }
 
 @Composable
-private fun SummaryItem(count: Int, label: String, color: Color, modifier: Modifier = Modifier) {
+private fun SummaryItem(
+    count: Int,
+    label: String,
+    color: Color,
+    fraction: Float,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
+) {
     Column(
-        modifier = modifier,
+        modifier = modifier
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
@@ -254,6 +310,15 @@ private fun SummaryItem(count: Int, label: String, color: Color, modifier: Modif
             text = label,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(4.dp))
+        androidx.compose.material3.LinearProgressIndicator(
+            progress = { fraction },
+            trackColor = MaterialTheme.colorScheme.surface,
+            color = color,
+            modifier = Modifier
+                .width(48.dp)
+                .height(4.dp),
         )
     }
 }
@@ -332,10 +397,15 @@ private fun ProductCard(
     onDelete: () -> Unit,
 ) {
     val status = expiryStatus(product.expiryDate)
+    val statusContainer = when (status) {
+        ExpiryStatus.FRESH -> MaterialTheme.colorScheme.surface
+        ExpiryStatus.EXPIRING_SOON -> com.axenvoir.sktplus.ui.theme.WarningOrangeContainer
+        ExpiryStatus.EXPIRED -> com.axenvoir.sktplus.ui.theme.ExpiredRedContainer
+    }
     Card(
         onClick = onClick,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = statusContainer,
         ),
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),

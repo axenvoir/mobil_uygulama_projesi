@@ -132,7 +132,11 @@ fun ProductEditScreen(
                 onValueChange = viewModel::onNameChange,
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(stringResource(R.string.product_name)) },
+                placeholder = { Text(stringResource(R.string.name_placeholder)) },
                 singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    imeAction = androidx.compose.ui.text.input.ImeAction.Next,
+                ),
             )
             OutlinedTextField(
                 value = uiState.quantityText,

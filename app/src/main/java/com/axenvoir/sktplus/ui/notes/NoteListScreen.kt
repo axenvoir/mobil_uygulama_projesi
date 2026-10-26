@@ -40,6 +40,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +70,10 @@ fun NoteListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var notePendingDelete by remember { mutableStateOf<Note?>(null) }
     val errorText = stringResource(R.string.error_generic)
+
+    val hapticFeedback = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val undoText = stringResource(R.string.undo)
 
     LaunchedEffect(event) {
         if (event is NoteListEvent.Error) {
@@ -166,7 +172,19 @@ fun NoteListScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.deleteNote(note)
+                        hapticFeedback.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        viewModel.deleteNote(note) {
+                            scope.launch {
+                                val result = snackbarHostState.showSnackbar(
+                                    message = note.title,
+                                    actionLabel = undoText,
+                                    duration = androidx.compose.material3.SnackbarDuration.Long,
+                                )
+                                if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
+                                    viewModel.restoreNote(note)
+                                }
+                            }
+                        }
                         notePendingDelete = null
                     },
                 ) { Text(stringResource(R.string.yes)) }
@@ -177,6 +195,20 @@ fun NoteListScreen(
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun relativeUpdatedAt(timestamp: Long): String {
+    val now = System.currentTimeMillis()
+    val days = java.time.temporal.ChronoUnit.DAYS.between(
+        java.time.Instant.ofEpochMilli(timestamp).atZone(java.time.ZoneId.systemDefault()).toLocalDate(),
+        java.time.Instant.ofEpochMilli(now).atZone(java.time.ZoneId.systemDefault()).toLocalDate(),
+    )
+    return when {
+        days <= 0L -> stringResource(R.string.relative_today)
+        days == 1L -> stringResource(R.string.relative_yesterday)
+        else -> stringResource(R.string.relative_days_ago, days)
     }
 }
 
@@ -242,6 +274,12 @@ private fun NoteCard(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = relativeUpdatedAt(note.updatedAt),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

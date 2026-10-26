@@ -52,9 +52,17 @@ class NoteListViewModel @Inject constructor(
         }
     }
 
-    fun deleteNote(note: Note) {
+    fun deleteNote(note: Note, onDeleted: () -> Unit = {}) {
         viewModelScope.launch {
             runCatching { noteRepository.deleteById(note.id) }
+                .onSuccess { onDeleted() }
+                .onFailure { _events.value = NoteListEvent.Error }
+        }
+    }
+
+    fun restoreNote(note: Note) {
+        viewModelScope.launch {
+            runCatching { noteRepository.upsert(note) }
                 .onFailure { _events.value = NoteListEvent.Error }
         }
     }
