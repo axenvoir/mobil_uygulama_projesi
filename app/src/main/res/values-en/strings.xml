@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SKT Plus</string>
+    <string name="app_name">Expira</string>
     <string name="tab_expiry">Expiry Tracking</string>
     <string name="tab_notes">My Notes</string>
     <string name="expiry_list_title">Expiry Dates</string>

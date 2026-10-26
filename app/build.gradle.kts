@@ -23,7 +23,7 @@ android {
         applicationId = "com.expira.app.tr"
         minSdk = 26
         targetSdk = 36
-        versionCode = 69
+        versionCode = 70
         versionName = "1.0.0"
     }
 
