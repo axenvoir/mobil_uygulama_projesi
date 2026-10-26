@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -24,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -45,8 +47,34 @@ fun NoteEditScreen(
     val error by viewModel.error.collectAsStateWithLifecycle()
     val saved by viewModel.saved.collectAsStateWithLifecycle()
 
+    val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
+    var showUnsavedDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(saved) {
         if (saved) onBack()
+    }
+
+    val confirmBack = {
+        if (isDirty) showUnsavedDialog = true else onBack()
+    }
+    BackHandler { confirmBack() }
+
+    if (showUnsavedDialog) {
+        AlertDialog(
+            onDismissRequest = { showUnsavedDialog = false },
+            title = { Text(stringResource(R.string.unsaved_title)) },
+            text = { Text(stringResource(R.string.unsaved_message)) },
+            confirmButton = {
+                TextButton(onClick = { showUnsavedDialog = false; onBack() }) {
+                    Text(stringResource(R.string.discard))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUnsavedDialog = false }) {
+                    Text(stringResource(R.string.no))
+                }
+            },
+        )
     }
 
     Scaffold(
@@ -60,7 +88,7 @@ fun NoteEditScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { confirmBack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.cancel),

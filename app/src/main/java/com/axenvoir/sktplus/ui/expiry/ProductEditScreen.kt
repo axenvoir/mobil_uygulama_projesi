@@ -33,6 +33,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,9 +64,17 @@ fun ProductEditScreen(
     var pendingPastDate by remember { mutableStateOf<java.time.LocalDate?>(null) }
     val genericErrorText = stringResource(R.string.error_generic)
 
+    val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
+    var showUnsavedDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(saved) {
         if (saved) onBack()
     }
+
+    val confirmBack = {
+        if (isDirty) showUnsavedDialog = true else onBack()
+    }
+    BackHandler { confirmBack() }
 
     val emptyNameText = stringResource(R.string.error_empty_name)
     val missingDateText = stringResource(R.string.error_past_date)
@@ -98,7 +107,7 @@ fun ProductEditScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { confirmBack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.cancel),
@@ -166,6 +175,24 @@ fun ProductEditScreen(
     }
 
     val pastDateToConfirm = pendingPastDate
+    if (showUnsavedDialog) {
+        AlertDialog(
+            onDismissRequest = { showUnsavedDialog = false },
+            title = { Text(stringResource(R.string.unsaved_title)) },
+            text = { Text(stringResource(R.string.unsaved_message)) },
+            confirmButton = {
+                TextButton(onClick = { showUnsavedDialog = false; onBack() }) {
+                    Text(stringResource(R.string.discard))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUnsavedDialog = false }) {
+                    Text(stringResource(R.string.no))
+                }
+            },
+        )
+    }
+
     if (showPastDateWarning && pastDateToConfirm != null) {
         AlertDialog(
             onDismissRequest = {

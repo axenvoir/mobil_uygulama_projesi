@@ -57,4 +57,7 @@
     <string name="past_date_message">The selected date is in the past. Save it anyway?</string>
     <string name="notifications_blocked">Notification permission is required for reminders</string>
     <string name="open_settings">Open settings</string>
+    <string name="unsaved_title">Unsaved changes</string>
+    <string name="unsaved_message">Leave anyway? Your changes will be lost.</string>
+    <string name="discard">Discard and leave</string>
 </resources>

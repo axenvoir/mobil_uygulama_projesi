@@ -57,4 +57,7 @@
     <string name="past_date_message">Seçilen tarih geçmişte. Yine de bu tarihi kaydetmek istiyor musunuz?</string>
     <string name="notifications_blocked">Hatırlatmaları almak için bildirim izni gerekli</string>
     <string name="open_settings">Ayarları aç</string>
+    <string name="unsaved_title">Kaydedilmemiş değişiklikler</string>
+    <string name="unsaved_message">Çıkmak istiyor musunuz? Değişiklikler kaybedilecek.</string>
+    <string name="discard">Vazgeç ve çık</string>
 </resources>

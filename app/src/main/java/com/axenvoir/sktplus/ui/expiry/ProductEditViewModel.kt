@@ -80,17 +80,49 @@ class ProductEditViewModel @Inject constructor(
         initialValue = ProductEditUiState(),
     )
 
+    private var originalName: String = ""
+    private var originalQuantityText: String = ""
+    private var originalCategoryId: Long? = null
+    private var originalExpiryDate: LocalDate? = null
+    private var originalNewCategoryName: String = ""
+    private val loaded = MutableStateFlow(false)
+
+    val isDirty: StateFlow<Boolean> = combine(
+        uiState,
+        loaded,
+    ) { state, isLoaded ->
+        isLoaded && (
+            state.name != originalName ||
+                state.quantityText != originalQuantityText ||
+                state.selectedCategoryId != originalCategoryId ||
+                state.expiryDate != originalExpiryDate ||
+                state.newCategoryName != originalNewCategoryName
+            )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = false,
+    )
+
     init {
         if (isEditMode) {
             viewModelScope.launch {
                 val product = productRepository.observeById(productId).first()
                 if (product != null) {
+                    originalName = product.name
+                    originalQuantityText = product.quantity.toString()
+                    originalCategoryId = product.categoryId
+                    originalExpiryDate = product.expiryDate
+                    originalNewCategoryName = ""
                     name.value = product.name
                     quantityText.value = product.quantity.toString()
                     selectedCategoryId.value = product.categoryId
                     expiryDate.value = product.expiryDate
+                    loaded.value = true
                 }
             }
+        } else {
+            loaded.value = true
         }
     }
 
