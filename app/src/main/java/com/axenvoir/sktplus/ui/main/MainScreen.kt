@@ -2,8 +2,8 @@ package com.axenvoir.sktplus.ui.main
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notes
-import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,8 +30,8 @@ private data class BottomTab(
 )
 
 private val tabs = listOf(
-    BottomTab(Screen.ProductList, R.string.tab_expiry, Icons.Filled.Schedule),
-    BottomTab(Screen.NoteList, R.string.tab_notes, Icons.Filled.Notes),
+    BottomTab(Screen.ProductList, R.string.tab_expiry, Icons.Filled.DateRange),
+    BottomTab(Screen.NoteList, R.string.tab_notes, Icons.Filled.List),
 )
 
 @Composable

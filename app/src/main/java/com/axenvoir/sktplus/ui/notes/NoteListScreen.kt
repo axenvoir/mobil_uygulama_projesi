@@ -16,10 +16,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Note
-import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -114,7 +114,7 @@ fun NoteListScreen(
                     )
                     if (notes.isEmpty()) {
                         EmptyState(
-                            icon = Icons.Filled.Note,
+                            icon = Icons.Filled.Edit,
                             title = stringResource(R.string.empty_notes_title),
                             subtitle = stringResource(R.string.empty_notes),
                             actionLabel = stringResource(R.string.add_note),
@@ -126,7 +126,7 @@ fun NoteListScreen(
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            items(notes, key = { it.id }) { note ->
+                            items(notes, key = { it.id }, contentType = { "note" }) { note ->
                                 androidx.compose.foundation.layout.Box(
                                     modifier = Modifier.animateItem(),
                                 ) {
@@ -183,7 +183,8 @@ private fun NoteCard(
                 MaterialTheme.colorScheme.surface
             },
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -198,13 +199,13 @@ private fun NoteCard(
                 IconButton(onClick = onTogglePin) {
                     if (note.isPinned) {
                         Icon(
-                            Icons.Filled.PushPin,
+                            Icons.Filled.Star,
                             contentDescription = stringResource(R.string.pin),
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     } else {
                         Icon(
-                            Icons.Outlined.PushPin,
+                            Icons.Outlined.StarBorder,
                             contentDescription = stringResource(R.string.pin),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

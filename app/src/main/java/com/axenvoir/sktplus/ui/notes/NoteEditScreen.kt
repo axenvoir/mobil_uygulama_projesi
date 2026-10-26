@@ -10,8 +10,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -73,9 +73,9 @@ fun NoteEditScreen(
                         label = { Text(stringResource(R.string.tab_notes)) },
                         leadingIcon = {
                             if (isPinned) {
-                                Icon(Icons.Filled.PushPin, contentDescription = null)
+                                Icon(Icons.Filled.Star, contentDescription = null)
                             } else {
-                                Icon(Icons.Outlined.PushPin, contentDescription = null)
+                                Icon(Icons.Outlined.StarBorder, contentDescription = null)
                             }
                         },
                     )

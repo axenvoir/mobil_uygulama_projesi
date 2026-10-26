@@ -21,8 +21,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
@@ -133,7 +132,7 @@ fun ProductListScreen(
                     FilterRow(uiState.filter, viewModel::onFilterChange)
                     if (visibleProducts.isEmpty()) {
                         EmptyState(
-                            icon = Icons.Filled.Inventory2,
+                            icon = Icons.Filled.DateRange,
                             title = stringResource(R.string.empty_products_title),
                             subtitle = stringResource(R.string.empty_products),
                             actionLabel = stringResource(R.string.add_product),
@@ -145,7 +144,7 @@ fun ProductListScreen(
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            items(visibleProducts, key = { it.id }) { product ->
+                            items(visibleProducts, key = { it.id }, contentType = { "product" }) { product ->
                                 androidx.compose.foundation.layout.Box(
                                     modifier = Modifier.animateItem(),
                                 ) {
@@ -322,7 +321,8 @@ private fun ProductCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
             modifier = Modifier
@@ -369,7 +369,7 @@ private fun ProductCard(
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Filled.Schedule,
+                        Icons.Filled.DateRange,
                         contentDescription = null,
                         tint = statusColor(status),
                         modifier = Modifier.size(16.dp),

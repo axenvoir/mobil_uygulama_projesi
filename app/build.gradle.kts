@@ -23,8 +23,9 @@ android {
         applicationId = "com.expira.app.tr"
         minSdk = 26
         targetSdk = 36
-        versionCode = 72
-        versionName = "1.1.0"
+        resourceConfigurations += listOf("tr", "en")
+        versionCode = 73
+        versionName = "1.1.1"
     }
 
     signingConfigs {

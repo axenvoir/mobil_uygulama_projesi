@@ -1,8 +1,11 @@
 package com.axenvoir.sktplus.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
@@ -29,6 +32,7 @@ private val LightColors = lightColorScheme(
     errorContainer = ExpiredRedContainer,
     onError = BrandSurface,
     outline = BrandNavyLight,
+    outlineVariant = BrandBlueContainer,
 )
 
 private val DarkColors = darkColorScheme(
@@ -54,6 +58,14 @@ private val DarkColors = darkColorScheme(
     errorContainer = ExpiredRed,
     onError = BrandSurfaceDark,
     outline = BrandNavyLight,
+    outlineVariant = BrandNavy,
+)
+
+private val AppShapes = Shapes(
+    small = RoundedCornerShape(10.dp),
+    medium = RoundedCornerShape(14.dp),
+    large = RoundedCornerShape(20.dp),
+    extraLarge = RoundedCornerShape(28.dp),
 )
 
 @Composable
@@ -64,6 +76,7 @@ fun SktPlusTheme(
     MaterialTheme(
         colorScheme = if (darkTheme) DarkColors else LightColors,
         typography = AppTypography,
+        shapes = AppShapes,
         content = content,
     )
 }
