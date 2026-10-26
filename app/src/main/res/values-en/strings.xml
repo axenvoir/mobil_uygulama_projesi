@@ -65,4 +65,6 @@
     <string name="relative_today">Updated today</string>
     <string name="relative_yesterday">Updated yesterday</string>
     <string name="undo">Undo</string>
+    <string name="search_products">Search products…</string>
+    <string name="empty_search">No products match your search</string>
 </resources>

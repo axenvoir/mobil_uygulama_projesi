@@ -167,13 +167,21 @@ fun ProductListScreen(
                                 .weight(1f),
                             contentAlignment = Alignment.Center,
                         ) {
-                            EmptyState(
-                                icon = Icons.Filled.DateRange,
-                                title = stringResource(R.string.empty_products_title),
-                                subtitle = stringResource(R.string.empty_products),
-                                actionLabel = stringResource(R.string.add_product),
-                                onAction = onAddProduct,
-                            )
+                            if (uiState.query.isNotEmpty()) {
+                                EmptyState(
+                                    icon = Icons.Filled.Search,
+                                    title = stringResource(R.string.empty_search),
+                                    subtitle = "",
+                                )
+                            } else {
+                                EmptyState(
+                                    icon = Icons.Filled.DateRange,
+                                    title = stringResource(R.string.empty_products_title),
+                                    subtitle = stringResource(R.string.empty_products),
+                                    actionLabel = stringResource(R.string.add_product),
+                                    onAction = onAddProduct,
+                                )
+                            }
                         }
                     } else {
                         val listState = androidx.compose.foundation.lazy.rememberLazyListState()

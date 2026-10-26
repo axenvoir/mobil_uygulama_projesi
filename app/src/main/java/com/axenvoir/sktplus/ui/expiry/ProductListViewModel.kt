@@ -21,6 +21,7 @@ enum class ProductFilter {
 data class ProductListUiState(
     val products: List<Product> = emptyList(),
     val filter: ProductFilter = ProductFilter.ALL,
+    val query: String = "",
     val isLoading: Boolean = true,
 )
 
@@ -30,7 +31,10 @@ class ProductListViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val filter = MutableStateFlow(ProductFilter.ALL)
+    private val searchQuery = MutableStateFlow("")
     private val loaded = MutableStateFlow(false)
+
+    val query: StateFlow<String> = searchQuery.asStateFlow()
 
     private val _error = MutableStateFlow(false)
     val error: StateFlow<Boolean> = _error.asStateFlow()
@@ -38,11 +42,17 @@ class ProductListViewModel @Inject constructor(
     val uiState: StateFlow<ProductListUiState> = combine(
         productRepository.observeAll(),
         filter,
+        searchQuery,
         loaded,
-    ) { products, selectedFilter, isLoaded ->
+    ) { products, selectedFilter, queryText, isLoaded ->
+        val filtered = if (queryText.isBlank()) products else products.filter {
+            it.name.contains(queryText, ignoreCase = true) ||
+                it.categoryName.contains(queryText, ignoreCase = true)
+        }
         ProductListUiState(
-            products = products,
+            products = filtered,
             filter = selectedFilter,
+            query = queryText,
             isLoading = !isLoaded,
         )
     }.stateIn(
@@ -53,6 +63,10 @@ class ProductListViewModel @Inject constructor(
 
     fun onFilterChange(newFilter: ProductFilter) {
         filter.value = newFilter
+    }
+
+    fun onQueryChange(query: String) {
+        searchQuery.value = query
     }
 
     fun deleteProduct(product: Product, onDeleted: () -> Unit = {}) {

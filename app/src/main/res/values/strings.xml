@@ -65,4 +65,6 @@
     <string name="relative_today">Bugün güncellendi</string>
     <string name="relative_yesterday">Dün güncellendi</string>
     <string name="undo">Geri al</string>
+    <string name="search_products">Ürünlerde ara…</string>
+    <string name="empty_search">Aramanıza uyan ürün yok</string>
 </resources>
