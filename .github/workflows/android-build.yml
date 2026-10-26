@@ -1,4 +1,4 @@
-name: Build Android AAB (Bare React Native)
+name: Build Android AAB (Native Kotlin)
 
 on:
   workflow_dispatch:
@@ -25,26 +25,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: '20'
-
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
           java-version: '17'
-
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-        working-directory: ./SktTakip
+          cache: 'gradle'
 
       - name: Increment versionCode
         run: |
           python3 -c "
           import re
-          path = 'android/app/build.gradle'
+          path = 'app/build.gradle'
           with open(path) as f: content = f.read()
           match = re.search(r'versionCode\s+(\d+)', content)
           if match:
@@ -60,13 +52,13 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add SktTakip/android/app/build.gradle
+          git add SktTakip/app/build.gradle
           git commit -m "chore: bump android versionCode [skip ci]" || echo "No changes to commit"
           git push || echo "Notice: branch protected or push skipped, continuing build..."
         working-directory: .
 
       - name: Make Gradle Executable
-        run: chmod +x android/gradlew
+        run: chmod +x gradlew
         working-directory: ./SktTakip
 
       - name: Decode Keystore
@@ -75,15 +67,19 @@ jobs:
             echo "::error::KEYSTORE_BASE64 repository secret is missing or empty! Please configure it under Settings > Secrets > Actions."
             exit 1
           fi
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
-          if [ ! -s android/app/release.keystore ]; then
-            echo "::error::Decoded android/app/release.keystore is empty!"
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/release.keystore
+          if [ ! -s app/release.keystore ]; then
+            echo "::error::Decoded app/release.keystore is empty!"
             exit 1
           fi
         working-directory: ./SktTakip
 
+      - name: Run Unit Tests
+        run: ./gradlew testReleaseUnitTest --no-daemon
+        working-directory: ./SktTakip
+
       - name: Build AAB
-        run: cd android && ./gradlew bundleRelease -x lintVitalRelease -x lint
+        run: ./gradlew bundleRelease -x lintVitalRelease -x lint --no-daemon
         working-directory: ./SktTakip
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -96,6 +92,6 @@ jobs:
         with:
           name: app-release-aab
           path: |
-            SktTakip/android/app/build/outputs/bundle/release/app-release.aab
-            SktTakip/android/app/build/outputs/mapping/release/mapping.txt
+            SktTakip/app/build/outputs/bundle/release/app-release.aab
+            SktTakip/app/build/outputs/mapping/release/mapping.txt
           if-no-files-found: warn
