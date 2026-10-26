@@ -195,14 +195,47 @@ fun ProductListScreen(
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
                             items(visibleProducts, key = { it.id }, contentType = { "product" }) { product ->
+                                val dismissState = androidx.compose.material3.rememberSwipeToDismissBoxState(
+                                    confirmValueChange = { value ->
+                                        if (value == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart) {
+                                            productPendingDelete = product
+                                            true
+                                        } else {
+                                            false
+                                        }
+                                    },
+                                )
                                 androidx.compose.foundation.layout.Box(
                                     modifier = Modifier.animateItem(),
                                 ) {
-                                    ProductCard(
-                                        product = product,
-                                        onClick = { onEditProduct(product.id) },
-                                        onDelete = { productPendingDelete = product },
-                                    )
+                                    androidx.compose.material3.SwipeToDismissBox(
+                                        state = dismissState,
+                                        enableDismissFromStartToEnd = false,
+                                        backgroundContent = {
+                                            androidx.compose.foundation.layout.Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .background(
+                                                        MaterialTheme.colorScheme.errorContainer,
+                                                        MaterialTheme.shapes.medium,
+                                                    )
+                                                    .padding(horizontal = 20.dp),
+                                                contentAlignment = Alignment.CenterEnd,
+                                            ) {
+                                                Icon(
+                                                    Icons.Filled.Delete,
+                                                    contentDescription = stringResource(R.string.delete),
+                                                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                                                )
+                                            }
+                                        },
+                                    ) {
+                                        ProductCard(
+                                            product = product,
+                                            onClick = { onEditProduct(product.id) },
+                                            onDelete = { productPendingDelete = product },
+                                        )
+                                    }
                                 }
                             }
                         }

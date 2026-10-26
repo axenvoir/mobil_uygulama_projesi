@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -82,9 +83,12 @@ fun NoteListScreen(
         }
     }
 
+    val scrollBehavior = androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
+            androidx.compose.material3.LargeTopAppBar(
                 title = {
                     Text(
                         text = stringResource(R.string.notes_list_title),
@@ -93,6 +97,7 @@ fun NoteListScreen(
                     )
                 },
                 actions = { SettingsIconButton(onClick = onOpenSettings) },
+                scrollBehavior = scrollBehavior,
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -146,15 +151,48 @@ fun NoteListScreen(
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
                             items(notes, key = { it.id }, contentType = { "note" }) { note ->
+                                val dismissState = androidx.compose.material3.rememberSwipeToDismissBoxState(
+                                    confirmValueChange = { value ->
+                                        if (value == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart) {
+                                            notePendingDelete = note
+                                            true
+                                        } else {
+                                            false
+                                        }
+                                    },
+                                )
                                 androidx.compose.foundation.layout.Box(
                                     modifier = Modifier.animateItem(),
                                 ) {
-                                    NoteCard(
-                                        note = note,
-                                        onClick = { onEditNote(note.id) },
-                                        onTogglePin = { viewModel.togglePinned(note) },
-                                        onDelete = { notePendingDelete = note },
-                                    )
+                                    androidx.compose.material3.SwipeToDismissBox(
+                                        state = dismissState,
+                                        enableDismissFromStartToEnd = false,
+                                        backgroundContent = {
+                                            androidx.compose.foundation.layout.Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .background(
+                                                        MaterialTheme.colorScheme.errorContainer,
+                                                        MaterialTheme.shapes.medium,
+                                                    )
+                                                    .padding(horizontal = 20.dp),
+                                                contentAlignment = Alignment.CenterEnd,
+                                            ) {
+                                                Icon(
+                                                    Icons.Filled.Delete,
+                                                    contentDescription = stringResource(R.string.delete),
+                                                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                                                )
+                                            }
+                                        },
+                                    ) {
+                                        NoteCard(
+                                            note = note,
+                                            onClick = { onEditNote(note.id) },
+                                            onTogglePin = { viewModel.togglePinned(note) },
+                                            onDelete = { notePendingDelete = note },
+                                        )
+                                    }
                                 }
                             }
                         }
