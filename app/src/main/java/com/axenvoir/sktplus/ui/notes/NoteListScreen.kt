@@ -79,7 +79,13 @@ fun NoteListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.notes_list_title)) },
+                title = {
+                    Text(
+                        text = stringResource(R.string.notes_list_title),
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    )
+                },
                 actions = { SettingsIconButton(onClick = onOpenSettings) },
             )
         },
@@ -113,13 +119,20 @@ fun NoteListScreen(
                         shape = MaterialTheme.shapes.extraLarge,
                     )
                     if (notes.isEmpty()) {
-                        EmptyState(
-                            icon = Icons.Filled.Edit,
-                            title = stringResource(R.string.empty_notes_title),
-                            subtitle = stringResource(R.string.empty_notes),
-                            actionLabel = stringResource(R.string.add_note),
-                            onAction = onAddNote,
-                        )
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            EmptyState(
+                                icon = Icons.Filled.Edit,
+                                title = stringResource(R.string.empty_notes_title),
+                                subtitle = stringResource(R.string.empty_notes),
+                                actionLabel = stringResource(R.string.add_note),
+                                onAction = onAddNote,
+                            )
+                        }
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxWidth(),

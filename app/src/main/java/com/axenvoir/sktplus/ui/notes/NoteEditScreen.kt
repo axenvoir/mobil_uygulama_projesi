@@ -3,6 +3,7 @@ package com.axenvoir.sktplus.ui.notes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -70,7 +71,7 @@ fun NoteEditScreen(
                     FilterChip(
                         selected = isPinned,
                         onClick = { viewModel.onPinnedChange(!isPinned) },
-                        label = { Text(stringResource(R.string.tab_notes)) },
+                        label = { Text(stringResource(R.string.pin)) },
                         leadingIcon = {
                             if (isPinned) {
                                 Icon(Icons.Filled.Star, contentDescription = null)
@@ -91,6 +92,7 @@ fun NoteEditScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
         ) {

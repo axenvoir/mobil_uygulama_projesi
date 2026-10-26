@@ -53,4 +53,8 @@
     <string name="language_system">Sistem varsayılanı</string>
     <string name="language_turkish">Türkçe</string>
     <string name="language_english">English</string>
+    <string name="past_date_title">Geçmiş tarih</string>
+    <string name="past_date_message">Seçilen tarih geçmişte. Yine de bu tarihi kaydetmek istiyor musunuz?</string>
+    <string name="notifications_blocked">Hatırlatmaları almak için bildirim izni gerekli</string>
+    <string name="open_settings">Ayarları aç</string>
 </resources>

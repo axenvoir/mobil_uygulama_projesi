@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -33,7 +34,7 @@ class ProductListViewModel @Inject constructor(
     private val loaded = MutableStateFlow(false)
 
     private val _error = MutableStateFlow(false)
-    val error: StateFlow<Boolean> = _error.asStateFlow()
+    val error: StateFlow<Boolean> = _error.distinctUntilChanged().asStateFlow()
 
     val uiState: StateFlow<ProductListUiState> = combine(
         productRepository.observeAll(),

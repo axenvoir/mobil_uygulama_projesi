@@ -53,4 +53,8 @@
     <string name="language_system">System default</string>
     <string name="language_turkish">Türkçe</string>
     <string name="language_english">English</string>
+    <string name="past_date_title">Past date</string>
+    <string name="past_date_message">The selected date is in the past. Save it anyway?</string>
+    <string name="notifications_blocked">Notification permission is required for reminders</string>
+    <string name="open_settings">Open settings</string>
 </resources>

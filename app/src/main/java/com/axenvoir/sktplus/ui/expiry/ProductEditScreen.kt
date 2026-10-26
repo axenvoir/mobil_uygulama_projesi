@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -13,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -57,6 +59,8 @@ fun ProductEditScreen(
     val saved by viewModel.saved.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDatePicker by remember { mutableStateOf(false) }
+    var showPastDateWarning by remember { mutableStateOf(false) }
+    var pendingPastDate by remember { mutableStateOf<java.time.LocalDate?>(null) }
     val genericErrorText = stringResource(R.string.error_generic)
 
     LaunchedEffect(saved) {
@@ -109,6 +113,7 @@ fun ProductEditScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -160,6 +165,34 @@ fun ProductEditScreen(
         }
     }
 
+    if (showPastDateWarning && pendingPastDate != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showPastDateWarning = false
+                pendingPastDate = null
+            },
+            title = { Text(stringResource(R.string.past_date_title)) },
+            text = { Text(stringResource(R.string.past_date_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.onExpiryDateChange(pendingPastDate)
+                        showPastDateWarning = false
+                        pendingPastDate = null
+                    },
+                ) { Text(stringResource(R.string.yes)) }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showPastDateWarning = false
+                        pendingPastDate = null
+                    },
+                ) { Text(stringResource(R.string.no)) }
+            },
+        )
+    }
+
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = uiState.expiryDate?.atStartOfDay(ZoneId.systemDefault())
@@ -174,7 +207,12 @@ fun ProductEditScreen(
                             val date = Instant.ofEpochMilli(millis)
                                 .atZone(ZoneId.systemDefault())
                                 .toLocalDate()
-                            viewModel.onExpiryDateChange(date)
+                            if (date.isBefore(java.time.LocalDate.now())) {
+                                pendingPastDate = date
+                                showPastDateWarning = true
+                            } else {
+                                viewModel.onExpiryDateChange(date)
+                            }
                         }
                         showDatePicker = false
                     },

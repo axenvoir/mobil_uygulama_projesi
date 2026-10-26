@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -53,9 +54,15 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp),
+                .padding(innerPadding),
+            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 800.dp)
+                    .padding(16.dp),
+            ) {
             Text(
                 text = stringResource(R.string.language_section),
                 style = MaterialTheme.typography.labelLarge,
@@ -77,6 +84,7 @@ fun SettingsScreen(
                 isSelected = selected == AppLanguage.ENGLISH,
                 onClick = { viewModel.setLanguage(AppLanguage.ENGLISH) },
             )
+            }
         }
     }
 }

@@ -2,6 +2,8 @@ package com.axenvoir.sktplus.ui.expiry
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Column
@@ -23,7 +25,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -99,7 +100,13 @@ fun ProductListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.expiry_list_title)) },
+                title = {
+                    Text(
+                        text = stringResource(R.string.expiry_list_title),
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    )
+                },
                 actions = { SettingsIconButton(onClick = onOpenSettings) },
             )
         },
@@ -131,13 +138,20 @@ fun ProductListScreen(
                     }
                     FilterRow(uiState.filter, viewModel::onFilterChange)
                     if (visibleProducts.isEmpty()) {
-                        EmptyState(
-                            icon = Icons.Filled.DateRange,
-                            title = stringResource(R.string.empty_products_title),
-                            subtitle = stringResource(R.string.empty_products),
-                            actionLabel = stringResource(R.string.add_product),
-                            onAction = onAddProduct,
-                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            EmptyState(
+                                icon = Icons.Filled.DateRange,
+                                title = stringResource(R.string.empty_products_title),
+                                subtitle = stringResource(R.string.empty_products),
+                                actionLabel = stringResource(R.string.add_product),
+                                onAction = onAddProduct,
+                            )
+                        }
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxWidth(),
@@ -244,13 +258,15 @@ private fun SummaryItem(count: Int, label: String, color: Color, modifier: Modif
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FilterRow(selected: ProductFilter, onFilterChange: (ProductFilter) -> Unit) {
-    Row(
+    FlowRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         FilterChip(
             selected = selected == ProductFilter.ALL,
@@ -354,9 +370,16 @@ private fun ProductCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    AssistChip(
-                        onClick = {},
-                        label = { Text("x${product.quantity}") },
+                    Text(
+                        text = "x${product.quantity}",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .background(
+                                MaterialTheme.colorScheme.surfaceVariant,
+                                MaterialTheme.shapes.small,
+                            )
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
                     )
                     IconButton(onClick = onDelete) {
                         Icon(

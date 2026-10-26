@@ -32,6 +32,13 @@ class MainActivity : AppCompatActivity() {
             if (granted) {
                 notificationHelper.createChannel()
                 reminderScheduler.scheduleDailyReminder()
+            } else {
+                val intent = android.content.Intent(
+                    android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                ).apply {
+                    putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName)
+                }
+                runCatching { startActivity(intent) }
             }
         }
 
