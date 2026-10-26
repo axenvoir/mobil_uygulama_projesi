@@ -1,0 +1,129 @@
+package com.axenvoir.sktplus.ui.notes
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.axenvoir.sktplus.R
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NoteEditScreen(
+    onBack: () -> Unit,
+    viewModel: NoteEditViewModel = hiltViewModel(),
+) {
+    val title by viewModel.title.collectAsStateWithLifecycle()
+    val content by viewModel.content.collectAsStateWithLifecycle()
+    val isPinned by viewModel.isPinned.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    val saved by viewModel.saved.collectAsStateWithLifecycle()
+
+    LaunchedEffect(saved) {
+        if (saved) onBack()
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        stringResource(
+                            if (viewModel.isEditMode) R.string.edit_note else R.string.add_note
+                        )
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.cancel),
+                        )
+                    }
+                },
+                actions = {
+                    FilterChip(
+                        selected = isPinned,
+                        onClick = { viewModel.onPinnedChange(!isPinned) },
+                        label = { Text(stringResource(R.string.tab_notes)) },
+                        leadingIcon = {
+                            if (isPinned) {
+                                Icon(Icons.Filled.PushPin, contentDescription = null)
+                            } else {
+                                Icon(Icons.Outlined.PushPin, contentDescription = null)
+                            }
+                        },
+                    )
+                    TextButton(
+                        onClick = viewModel::save,
+                        enabled = title.isNotBlank(),
+                    ) { Text(stringResource(R.string.save)) }
+                },
+            )
+        },
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+        ) {
+            OutlinedTextField(
+                value = title,
+                onValueChange = viewModel::onTitleChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(stringResource(R.string.note_title)) },
+                isError = error is NoteEditError.EmptyTitle,
+                supportingText = {
+                    if (error is NoteEditError.EmptyTitle) {
+                        Text(stringResource(R.string.error_empty_title))
+                    }
+                },
+                singleLine = true,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            OutlinedTextField(
+                value = content,
+                onValueChange = viewModel::onContentChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(240.dp),
+                label = { Text(stringResource(R.string.note_content)) },
+            )
+            if (error is NoteEditError.Generic) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.error_generic),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+    }
+}
