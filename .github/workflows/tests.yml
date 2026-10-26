@@ -3,30 +3,48 @@ name: Tests
 on:
   pull_request:
     paths:
-      - 'SktTakip/src/**'
-      - 'SktTakip/__tests__/**'
-      - 'SktTakip/jest.*'
-      - 'SktTakip/package.json'
-      - 'SktTakip/package-lock.json'
-      - 'SktTakip/tsconfig.json'
+      - 'SktTakip/**'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
   push:
     branches:
       - main
+    paths:
+      - 'SktTakip/**'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
 
 jobs:
-  test:
+  android-test:
+    name: Native Android Unit Tests
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./SktTakip
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+      - name: Make Gradle Executable
+        run: chmod +x gradlew
+      - name: Run Unit Tests
+        run: ./gradlew testDebugUnitTest --no-daemon
+
+  web-test:
+    name: Web App Lint & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version: '20'
           cache: 'npm'
-          cache-dependency-path: SktTakip/package-lock.json
-      - run: npm install --legacy-peer-deps
+          cache-dependency-path: package-lock.json
+      - run: npm ci
       - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
+      - run: npm run build

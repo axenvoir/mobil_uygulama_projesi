@@ -2,18 +2,16 @@ name: Build Android AAB (Native Kotlin)
 
 on:
   workflow_dispatch:
+    inputs:
+      version_code:
+        description: 'Specific versionCode (defaults to current in build.gradle, min 60)'
+        required: false
+        default: '60'
   push:
     branches:
       - main
     paths:
-      - 'SktTakip/android/**'
-      - 'SktTakip/src/**'
-      - 'SktTakip/index.js'
-      - 'SktTakip/app.json'
-      - 'SktTakip/babel.config.js'
-      - 'SktTakip/metro.config.js'
-      - 'SktTakip/package.json'
-      - 'SktTakip/package-lock.json'
+      - 'SktTakip/**'
       - '.github/workflows/android-build.yml'
 
 jobs:
@@ -32,30 +30,27 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: Increment versionCode
+      - name: Set / Verify versionCode
         run: |
           python3 -c "
           import re
+          input_vc = '${{ inputs.version_code }}'.strip()
           path = 'app/build.gradle'
           with open(path) as f: content = f.read()
           match = re.search(r'versionCode\s+(\d+)', content)
           if match:
               curr = int(match.group(1))
-              nxt = curr + 1
-              content = re.sub(r'versionCode\s+\d+', f'versionCode {nxt}', content, count=1)
+              if input_vc.isdigit():
+                  target = int(input_vc)
+              elif curr < 60:
+                  target = 60
+              else:
+                  target = curr
+              content = re.sub(r'versionCode\s+\d+', f'versionCode {target}', content, count=1)
               with open(path, 'w') as f: f.write(content)
-              print(f'versionCode bumped from {curr} to {nxt}')
+              print(f'Building AAB with versionCode: {target}')
           "
         working-directory: ./SktTakip
-
-      - name: Commit versionCode bump
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add SktTakip/app/build.gradle
-          git commit -m "chore: bump android versionCode [skip ci]" || echo "No changes to commit"
-          git push || echo "Notice: branch protected or push skipped, continuing build..."
-        working-directory: .
 
       - name: Make Gradle Executable
         run: chmod +x gradlew
@@ -86,6 +81,31 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+
+      - name: Bump versionCode for Next Build
+        run: |
+          python3 -c "
+          import re
+          path = 'app/build.gradle'
+          with open(path) as f: content = f.read()
+          match = re.search(r'versionCode\s+(\d+)', content)
+          if match:
+              curr = int(match.group(1))
+              nxt = curr + 1
+              content = re.sub(r'versionCode\s+\d+', f'versionCode {nxt}', content, count=1)
+              with open(path, 'w') as f: f.write(content)
+              print(f'Bumped versionCode in git to {nxt} for next build')
+          "
+        working-directory: ./SktTakip
+
+      - name: Commit versionCode bump for next run
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add SktTakip/app/build.gradle
+          git commit -m "chore: bump android versionCode for next run [skip ci]" || echo "No changes to commit"
+          git push || echo "Notice: branch protected or push skipped, continuing build..."
+        working-directory: .
 
       - name: Upload AAB & Mapping
         uses: actions/upload-artifact@v4
