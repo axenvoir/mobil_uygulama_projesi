@@ -48,4 +48,9 @@
     <string name="pick_date">Tarih seç</string>
     <string name="empty_products_title">Ürün yok</string>
     <string name="empty_notes_title">Not yok</string>
+    <string name="settings_title">Ayarlar</string>
+    <string name="language_section">Dil</string>
+    <string name="language_system">Sistem varsayılanı</string>
+    <string name="language_turkish">Türkçe</string>
+    <string name="language_english">English</string>
 </resources>

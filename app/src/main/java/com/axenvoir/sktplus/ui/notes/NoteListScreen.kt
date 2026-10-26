@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -50,12 +52,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.sktplus.R
 import com.axenvoir.sktplus.domain.model.Note
 import com.axenvoir.sktplus.ui.components.EmptyState
+import com.axenvoir.sktplus.ui.main.SettingsIconButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteListScreen(
     onAddNote: () -> Unit,
     onEditNote: (Long) -> Unit,
+    onOpenSettings: () -> Unit,
     viewModel: NoteListViewModel = hiltViewModel(),
 ) {
     val notes by viewModel.notes.collectAsStateWithLifecycle()
@@ -73,7 +77,12 @@ fun NoteListScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.notes_list_title)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.notes_list_title)) },
+                actions = { SettingsIconButton(onClick = onOpenSettings) },
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddNote) {
@@ -86,38 +95,50 @@ fun NoteListScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            OutlinedTextField(
-                value = query,
-                onValueChange = viewModel::onQueryChange,
+            androidx.compose.foundation.layout.Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { Text(stringResource(R.string.search_notes)) },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                singleLine = true,
-                shape = MaterialTheme.shapes.extraLarge,
-            )
-            if (notes.isEmpty()) {
-                EmptyState(
-                    icon = Icons.Filled.Note,
-                    title = stringResource(R.string.empty_notes_title),
-                    subtitle = stringResource(R.string.empty_notes),
-                    actionLabel = stringResource(R.string.add_note),
-                    onAction = onAddNote,
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    items(notes, key = { it.id }) { note ->
-                        NoteCard(
-                            note = note,
-                            onClick = { onEditNote(note.id) },
-                            onTogglePin = { viewModel.togglePinned(note) },
-                            onDelete = { notePendingDelete = note },
+                    .widthIn(max = 800.dp),
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = viewModel::onQueryChange,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        placeholder = { Text(stringResource(R.string.search_notes)) },
+                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                        singleLine = true,
+                        shape = MaterialTheme.shapes.extraLarge,
+                    )
+                    if (notes.isEmpty()) {
+                        EmptyState(
+                            icon = Icons.Filled.Note,
+                            title = stringResource(R.string.empty_notes_title),
+                            subtitle = stringResource(R.string.empty_notes),
+                            actionLabel = stringResource(R.string.add_note),
+                            onAction = onAddNote,
                         )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            items(notes, key = { it.id }) { note ->
+                                androidx.compose.foundation.layout.Box(
+                                    modifier = Modifier.animateItem(),
+                                ) {
+                                    NoteCard(
+                                        note = note,
+                                        onClick = { onEditNote(note.id) },
+                                        onTogglePin = { viewModel.togglePinned(note) },
+                                        onDelete = { notePendingDelete = note },
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }

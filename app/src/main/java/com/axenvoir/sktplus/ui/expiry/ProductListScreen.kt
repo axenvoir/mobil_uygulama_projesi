@@ -10,12 +10,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -46,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -57,6 +60,7 @@ import com.axenvoir.sktplus.domain.model.Product
 import com.axenvoir.sktplus.domain.util.daysUntil
 import com.axenvoir.sktplus.domain.util.expiryStatus
 import com.axenvoir.sktplus.ui.components.EmptyState
+import com.axenvoir.sktplus.ui.main.SettingsIconButton
 import com.axenvoir.sktplus.ui.components.StatusDot
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -66,6 +70,7 @@ import java.time.format.FormatStyle
 fun ProductListScreen(
     onAddProduct: () -> Unit,
     onEditProduct: (Long) -> Unit,
+    onOpenSettings: () -> Unit,
     viewModel: ProductListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -81,6 +86,10 @@ fun ProductListScreen(
         }
     }
 
+    val freshCount = uiState.products.count { expiryStatus(it.expiryDate) == ExpiryStatus.FRESH }
+    val expiringCount = uiState.products.count { expiryStatus(it.expiryDate) == ExpiryStatus.EXPIRING_SOON }
+    val expiredCount = uiState.products.count { expiryStatus(it.expiryDate) == ExpiryStatus.EXPIRED }
+
     val visibleProducts = when (uiState.filter) {
         ProductFilter.ALL -> uiState.products
         ProductFilter.FRESH -> uiState.products.filter { expiryStatus(it.expiryDate) == ExpiryStatus.FRESH }
@@ -89,7 +98,12 @@ fun ProductListScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.expiry_list_title)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.expiry_list_title)) },
+                actions = { SettingsIconButton(onClick = onOpenSettings) },
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddProduct) {
@@ -102,27 +116,47 @@ fun ProductListScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            FilterRow(uiState.filter, viewModel::onFilterChange)
-            if (visibleProducts.isEmpty()) {
-                EmptyState(
-                    icon = Icons.Filled.Inventory2,
-                    title = stringResource(R.string.empty_products_title),
-                    subtitle = stringResource(R.string.empty_products),
-                    actionLabel = stringResource(R.string.add_product),
-                    onAction = onAddProduct,
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    items(visibleProducts, key = { it.id }) { product ->
-                        ProductCard(
-                            product = product,
-                            onClick = { onEditProduct(product.id) },
-                            onDelete = { productPendingDelete = product },
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 800.dp),
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    if (uiState.products.isNotEmpty()) {
+                        SummaryCard(
+                            freshCount = freshCount,
+                            expiringCount = expiringCount,
+                            expiredCount = expiredCount,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                         )
+                    }
+                    FilterRow(uiState.filter, viewModel::onFilterChange)
+                    if (visibleProducts.isEmpty()) {
+                        EmptyState(
+                            icon = Icons.Filled.Inventory2,
+                            title = stringResource(R.string.empty_products_title),
+                            subtitle = stringResource(R.string.empty_products),
+                            actionLabel = stringResource(R.string.add_product),
+                            onAction = onAddProduct,
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            items(visibleProducts, key = { it.id }) { product ->
+                                androidx.compose.foundation.layout.Box(
+                                    modifier = Modifier.animateItem(),
+                                ) {
+                                    ProductCard(
+                                        product = product,
+                                        onClick = { onEditProduct(product.id) },
+                                        onDelete = { productPendingDelete = product },
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -147,6 +181,66 @@ fun ProductListScreen(
                     Text(stringResource(R.string.no))
                 }
             },
+        )
+    }
+}
+
+@Composable
+private fun SummaryCard(
+    freshCount: Int,
+    expiringCount: Int,
+    expiredCount: Int,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp, horizontal = 8.dp),
+        ) {
+            SummaryItem(
+                count = freshCount,
+                label = stringResource(R.string.status_fresh),
+                color = FreshGreenDot,
+                modifier = Modifier.weight(1f),
+            )
+            SummaryItem(
+                count = expiringCount,
+                label = stringResource(R.string.status_expiring_soon),
+                color = WarningOrangeDot,
+                modifier = Modifier.weight(1f),
+            )
+            SummaryItem(
+                count = expiredCount,
+                label = stringResource(R.string.status_expired),
+                color = ExpiredRedDot,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun SummaryItem(count: Int, label: String, color: Color, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = count.toString(),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = color,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

@@ -10,6 +10,7 @@ import androidx.navigation.navArgument
 import com.axenvoir.sktplus.ui.expiry.ProductEditScreen
 import com.axenvoir.sktplus.ui.expiry.ProductListScreen
 import com.axenvoir.sktplus.ui.notes.NoteEditScreen
+import com.axenvoir.sktplus.ui.settings.SettingsScreen
 import com.axenvoir.sktplus.ui.notes.NoteListScreen
 
 @Composable
@@ -23,6 +24,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             ProductListScreen(
                 onAddProduct = { navController.navigate(Screen.AddProduct.route) },
                 onEditProduct = { id -> navController.navigate(Screen.EditProduct.createRoute(id)) },
+                onOpenSettings = { navController.navigate(Screen.Settings.route) },
             )
         }
         composable(Screen.AddProduct.route) {
@@ -38,6 +40,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             NoteListScreen(
                 onAddNote = { navController.navigate(Screen.AddNote.route) },
                 onEditNote = { id -> navController.navigate(Screen.EditNote.createRoute(id)) },
+                onOpenSettings = { navController.navigate(Screen.Settings.route) },
             )
         }
         composable(Screen.AddNote.route) {
@@ -48,6 +51,9 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             arguments = listOf(navArgument(Screen.EditNote.ARG_NOTE_ID) { type = NavType.LongType }),
         ) {
             NoteEditScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Screen.Settings.route) {
+            SettingsScreen(onBack = { navController.popBackStack() })
         }
     }
 }

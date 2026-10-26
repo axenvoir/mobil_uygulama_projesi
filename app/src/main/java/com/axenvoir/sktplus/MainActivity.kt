@@ -3,11 +3,12 @@ package com.axenvoir.sktplus
 import android.Manifest
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import com.axenvoir.sktplus.notification.NotificationHelper
+import com.axenvoir.sktplus.ui.settings.LanguageManager
 import com.axenvoir.sktplus.notification.ReminderScheduler
 import com.axenvoir.sktplus.ui.main.MainScreen
 import com.axenvoir.sktplus.ui.theme.SktPlusTheme
@@ -15,13 +16,16 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var notificationHelper: NotificationHelper
 
     @Inject
     lateinit var reminderScheduler: ReminderScheduler
+
+    @Inject
+    lateinit var languageManager: LanguageManager
 
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -34,6 +38,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         notificationHelper.createChannel()
+        languageManager.applyOnStartup()
         enableEdgeToEdge()
         setContent {
             SktPlusTheme {

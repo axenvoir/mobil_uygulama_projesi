@@ -48,4 +48,9 @@
     <string name="pick_date">Pick date</string>
     <string name="empty_products_title">No products</string>
     <string name="empty_notes_title">No notes</string>
+    <string name="settings_title">Settings</string>
+    <string name="language_section">Language</string>
+    <string name="language_system">System default</string>
+    <string name="language_turkish">Türkçe</string>
+    <string name="language_english">English</string>
 </resources>

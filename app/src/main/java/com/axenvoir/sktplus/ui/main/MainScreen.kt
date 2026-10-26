@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -21,7 +23,11 @@ import com.axenvoir.sktplus.R
 import com.axenvoir.sktplus.ui.navigation.Screen
 import com.axenvoir.sktplus.ui.navigation.AppNavHost
 
-private data class BottomTab(val screen: Screen, val labelRes: Int, val icon: androidx.compose.ui.graphics.vector.ImageVector)
+private data class BottomTab(
+    val screen: Screen,
+    val labelRes: Int,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+)
 
 private val tabs = listOf(
     BottomTab(Screen.ProductList, R.string.tab_expiry, Icons.Filled.Schedule),
@@ -58,6 +64,16 @@ fun MainScreen() {
         AppNavHost(
             navController = navController,
             modifier = Modifier.padding(innerPadding),
+        )
+    }
+}
+
+@Composable
+fun SettingsIconButton(onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(
+            Icons.Outlined.Settings,
+            contentDescription = stringResource(R.string.settings_title),
         )
     }
 }
