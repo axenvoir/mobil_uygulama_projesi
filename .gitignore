@@ -36,3 +36,7 @@ Thumbs.db
 # AI Studio & attachments
 .aistudio/
 public/assets/aistudio/
+-e 
+dist/
+.vite/
+
