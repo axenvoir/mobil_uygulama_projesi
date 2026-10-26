@@ -15,3 +15,9 @@ Sentry.init({
 });
 
 AppRegistry.registerComponent(appName, () => App);
+
+// TEMPORARY DIAGNOSTIC: connection test event for Sentry onboarding.
+// Confirms DSN wiring when the JS runtime reaches this point.
+// Remove once crash diagnosis is complete.
+Sentry.captureException(new Error('Expira Sentry connection test'));
+Sentry.addBreadcrumb({message: 'index_js_reached', category: 'app', level: 'info'});
