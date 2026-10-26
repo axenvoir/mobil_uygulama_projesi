@@ -8,6 +8,10 @@ on:
     paths:
       - 'SktTakip/android/**'
       - 'SktTakip/src/**'
+      - 'SktTakip/index.js'
+      - 'SktTakip/app.json'
+      - 'SktTakip/babel.config.js'
+      - 'SktTakip/metro.config.js'
       - 'SktTakip/package.json'
       - 'SktTakip/package-lock.json'
       - '.github/workflows/android-build.yml'
