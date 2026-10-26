@@ -11,7 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -75,7 +75,7 @@ fun NoteEditScreen(
                             if (isPinned) {
                                 Icon(Icons.Filled.Star, contentDescription = null)
                             } else {
-                                Icon(Icons.Outlined.StarBorder, contentDescription = null)
+                                Icon(Icons.Outlined.FavoriteBorder, contentDescription = null)
                             }
                         },
                     )
