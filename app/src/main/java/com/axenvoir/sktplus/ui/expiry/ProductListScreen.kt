@@ -3,6 +3,7 @@ package com.axenvoir.sktplus.ui.expiry
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,16 +12,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,7 +46,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,9 +56,8 @@ import com.axenvoir.sktplus.domain.model.ExpiryStatus
 import com.axenvoir.sktplus.domain.model.Product
 import com.axenvoir.sktplus.domain.util.daysUntil
 import com.axenvoir.sktplus.domain.util.expiryStatus
-import com.axenvoir.sktplus.ui.theme.ExpiredRed
-import com.axenvoir.sktplus.ui.theme.FreshGreen
-import com.axenvoir.sktplus.ui.theme.WarningOrange
+import com.axenvoir.sktplus.ui.components.EmptyState
+import com.axenvoir.sktplus.ui.components.StatusDot
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -99,14 +104,18 @@ fun ProductListScreen(
         ) {
             FilterRow(uiState.filter, viewModel::onFilterChange)
             if (visibleProducts.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.empty_products))
-                }
+                EmptyState(
+                    icon = Icons.Filled.Inventory2,
+                    title = stringResource(R.string.empty_products_title),
+                    subtitle = stringResource(R.string.empty_products),
+                    actionLabel = stringResource(R.string.add_product),
+                    onAction = onAddProduct,
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     items(visibleProducts, key = { it.id }) { product ->
                         ProductCard(
@@ -124,6 +133,7 @@ fun ProductListScreen(
         AlertDialog(
             onDismissRequest = { productPendingDelete = null },
             title = { Text(stringResource(R.string.delete_confirm)) },
+            text = { Text(product.name) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -158,25 +168,35 @@ private fun FilterRow(selected: ProductFilter, onFilterChange: (ProductFilter) -
             selected = selected == ProductFilter.FRESH,
             onClick = { onFilterChange(ProductFilter.FRESH) },
             label = { Text(stringResource(R.string.status_fresh)) },
+            leadingIcon = { StatusDot(FreshGreenDot) },
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            ),
         )
         FilterChip(
             selected = selected == ProductFilter.EXPIRING_SOON,
             onClick = { onFilterChange(ProductFilter.EXPIRING_SOON) },
             label = { Text(stringResource(R.string.status_expiring_soon)) },
+            leadingIcon = { StatusDot(WarningOrangeDot) },
         )
         FilterChip(
             selected = selected == ProductFilter.EXPIRED,
             onClick = { onFilterChange(ProductFilter.EXPIRED) },
             label = { Text(stringResource(R.string.status_expired)) },
+            leadingIcon = { StatusDot(ExpiredRedDot) },
         )
     }
 }
 
+private val FreshGreenDot = com.axenvoir.sktplus.ui.theme.FreshGreen
+private val WarningOrangeDot = com.axenvoir.sktplus.ui.theme.WarningOrange
+private val ExpiredRedDot = com.axenvoir.sktplus.ui.theme.ExpiredRed
+
 @Composable
-fun statusColor(status: ExpiryStatus): Color = when (status) {
-    ExpiryStatus.FRESH -> FreshGreen
-    ExpiryStatus.EXPIRING_SOON -> WarningOrange
-    ExpiryStatus.EXPIRED -> ExpiredRed
+fun statusColor(status: ExpiryStatus) = when (status) {
+    ExpiryStatus.FRESH -> FreshGreenDot
+    ExpiryStatus.EXPIRING_SOON -> WarningOrangeDot
+    ExpiryStatus.EXPIRED -> ExpiredRedDot
 }
 
 @Composable
@@ -203,54 +223,80 @@ private fun ProductCard(
     onDelete: () -> Unit,
 ) {
     val status = expiryStatus(product.expiryDate)
-    Card(onClick = onClick) {
+    Card(
+        onClick = onClick,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(start = 4.dp)
+                .height(IntrinsicSize.Min),
         ) {
             Box(
                 modifier = Modifier
-                    .padding(end = 12.dp)
-                    .background(statusColor(status), CircleShape)
-                    .height(12.dp)
-                    .fillMaxWidth(0.03f),
+                    .width(6.dp)
+                    .fillMaxSize()
+                    .padding(vertical = 10.dp)
+                    .background(
+                        color = statusColor(status),
+                        shape = MaterialTheme.shapes.small,
+                    ),
             )
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = product.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = product.categoryName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = product.expiryDate.format(
-                        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = "${statusLabel(status)} · ${remainingDaysText(product.expiryDate)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = statusColor(status),
-                )
-            }
-            Text(
-                text = "x${product.quantity}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            IconButton(onClick = onDelete) {
-                Icon(
-                    Icons.Filled.Delete,
-                    contentDescription = stringResource(R.string.delete),
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = product.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = product.categoryName,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    AssistChip(
+                        onClick = {},
+                        label = { Text("x${product.quantity}") },
+                    )
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            Icons.Filled.Delete,
+                            contentDescription = stringResource(R.string.delete),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.Schedule,
+                        contentDescription = null,
+                        tint = statusColor(status),
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = product.expiryDate.format(
+                            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    StatusDot(statusColor(status))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "${statusLabel(status)} · ${remainingDaysText(product.expiryDate)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = statusColor(status),
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
             }
         }
     }

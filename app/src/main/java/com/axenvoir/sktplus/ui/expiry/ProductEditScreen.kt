@@ -129,7 +129,8 @@ fun ProductEditScreen(
             )
             Text(
                 text = stringResource(R.string.category),
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             CategorySelector(
                 uiState = uiState,
@@ -138,7 +139,8 @@ fun ProductEditScreen(
             )
             Text(
                 text = stringResource(R.string.expiry_date),
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             OutlinedButton(
                 onClick = { showDatePicker = true },

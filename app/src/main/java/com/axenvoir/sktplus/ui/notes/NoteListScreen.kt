@@ -1,8 +1,8 @@
 package com.axenvoir.sktplus.ui.notes
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Note
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.PushPin
@@ -48,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.sktplus.R
 import com.axenvoir.sktplus.domain.model.Note
+import com.axenvoir.sktplus.ui.components.EmptyState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,21 +91,25 @@ fun NoteListScreen(
                 onValueChange = viewModel::onQueryChange,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 placeholder = { Text(stringResource(R.string.search_notes)) },
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
                 singleLine = true,
+                shape = MaterialTheme.shapes.extraLarge,
             )
-            Spacer(modifier = Modifier.height(8.dp))
             if (notes.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.empty_notes))
-                }
+                EmptyState(
+                    icon = Icons.Filled.Note,
+                    title = stringResource(R.string.empty_notes_title),
+                    subtitle = stringResource(R.string.empty_notes),
+                    actionLabel = stringResource(R.string.add_note),
+                    onAction = onAddNote,
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     items(notes, key = { it.id }) { note ->
                         NoteCard(
@@ -122,6 +128,7 @@ fun NoteListScreen(
         AlertDialog(
             onDismissRequest = { notePendingDelete = null },
             title = { Text(stringResource(R.string.delete_confirm)) },
+            text = { Text(note.title) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -149,15 +156,20 @@ private fun NoteCard(
     Card(
         onClick = onClick,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = if (note.isPinned) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surface
+            },
         ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = note.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -166,17 +178,22 @@ private fun NoteCard(
                     if (note.isPinned) {
                         Icon(
                             Icons.Filled.PushPin,
-                            contentDescription = stringResource(R.string.tab_notes),
+                            contentDescription = stringResource(R.string.pin),
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     } else {
-                        Icon(Icons.Outlined.PushPin, contentDescription = null)
+                        Icon(
+                            Icons.Outlined.PushPin,
+                            contentDescription = stringResource(R.string.pin),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
                 IconButton(onClick = onDelete) {
                     Icon(
                         Icons.Filled.Delete,
                         contentDescription = stringResource(R.string.delete),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -185,6 +202,7 @@ private fun NoteCard(
                 Text(
                     text = note.content,
                     style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )

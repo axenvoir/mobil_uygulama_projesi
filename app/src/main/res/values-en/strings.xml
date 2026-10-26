@@ -46,4 +46,6 @@
     <string name="expired_badge">EXPIRED</string>
     <string name="pin">Pin</string>
     <string name="pick_date">Pick date</string>
+    <string name="empty_products_title">No products</string>
+    <string name="empty_notes_title">No notes</string>
 </resources>
