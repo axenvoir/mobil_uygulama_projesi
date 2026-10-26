@@ -165,7 +165,8 @@ fun ProductEditScreen(
         }
     }
 
-    if (showPastDateWarning && pendingPastDate != null) {
+    val pastDateToConfirm = pendingPastDate
+    if (showPastDateWarning && pastDateToConfirm != null) {
         AlertDialog(
             onDismissRequest = {
                 showPastDateWarning = false
@@ -176,7 +177,7 @@ fun ProductEditScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.onExpiryDateChange(pendingPastDate)
+                        viewModel.onExpiryDateChange(pastDateToConfirm)
                         showPastDateWarning = false
                         pendingPastDate = null
                     },

@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,7 +21,7 @@ class NoteListViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _events = MutableStateFlow<NoteListEvent?>(null)
-    val events: StateFlow<NoteListEvent?> = _events.distinctUntilChanged().asStateFlow()
+    val events: StateFlow<NoteListEvent?> = _events.asStateFlow()
 
     private val searchQuery = MutableStateFlow("")
     val query: StateFlow<String> = searchQuery.asStateFlow()
