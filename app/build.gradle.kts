@@ -17,12 +17,12 @@ val keystoreProperties = Properties().apply {
 
 android {
     namespace = "com.axenvoir.sktplus"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.expira.app.tr"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 66
         versionName = "1.0.0"
     }
