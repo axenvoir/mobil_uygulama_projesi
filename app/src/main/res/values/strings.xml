@@ -67,4 +67,5 @@
     <string name="undo">Geri al</string>
     <string name="search_products">Ürünlerde ara…</string>
     <string name="empty_search">Aramanıza uyan ürün yok</string>
+    <string name="days_short">gün</string>
 </resources>

@@ -449,18 +449,33 @@ private fun ProductCard(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        Text(
+                            text = "x${product.quantity}",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .background(
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                    MaterialTheme.shapes.small,
+                                )
+                                .padding(horizontal = 10.dp, vertical = 4.dp),
+                        )
                     }
-                    Text(
-                        text = "x${product.quantity}",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .background(
-                                MaterialTheme.colorScheme.surfaceVariant,
-                                MaterialTheme.shapes.small,
-                            )
-                            .padding(horizontal = 10.dp, vertical = 4.dp),
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val days = daysUntil(product.expiryDate)
+                        Text(
+                            text = if (days < 0) days.toString() else days.toString(),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = statusColor(status),
+                        )
+                        Text(
+                            text = if (days < 0) stringResource(R.string.status_expired)
+                            else stringResource(R.string.days_short),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     IconButton(onClick = onDelete) {
                         Icon(
                             Icons.Filled.Delete,
