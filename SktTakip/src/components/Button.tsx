@@ -7,6 +7,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import {COLORS, SHADOWS, SPACING, TYPOGRAPHY} from '../theme';
+import {impactLight} from '../utils/haptics';
 
 interface ButtonProps {
   label: string;
@@ -36,7 +37,10 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        impactLight();
+        onPress();
+      }}
       disabled={disabled || loading}
       style={({pressed}) => [
         styles.base,

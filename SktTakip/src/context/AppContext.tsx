@@ -4,12 +4,11 @@ import React, {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import {AppState} from 'react-native';
 import type {AppData, Note, Product, Settings} from '../types';
-import {loadData, saveData, clearData} from '../utils/storage';
+import {loadData, saveData, clearData, DEFAULT_APP_DATA} from '../utils/storage';
 import {normalizeSettings, createId} from '../utils/validators';
 import {resolveLocale, type LanguageCode} from '../i18n';
 import {setHapticsEnabled} from '../utils/haptics';
@@ -39,8 +38,6 @@ const now = () => Date.now();
 
 export const AppProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
   const [data, setData] = useState<AppData | null>(null);
-  const dataRef = useRef<AppData | null>(null);
-  dataRef.current = data;
   const [appState, setAppState] = useState(AppState.currentState);
 
   useEffect(() => {
@@ -149,7 +146,7 @@ export const AppProvider: React.FC<{children: React.ReactNode}> = ({children}) =
 
   const clearAllData = useCallback(async () => {
     await clearData();
-    setData({version: 1, products: [], notes: [], settings: normalizeSettings(undefined)});
+    setData({...DEFAULT_APP_DATA, settings: normalizeSettings(undefined)});
   }, []);
 
   const replaceAllData = useCallback<AppContextValue['replaceAllData']>(next => {

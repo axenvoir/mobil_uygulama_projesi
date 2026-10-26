@@ -1,3 +1,4 @@
+import {getLocales} from 'react-native-localize';
 import notifee, {
   AndroidImportance,
   AuthorizationStatus,
@@ -6,6 +7,13 @@ import notifee, {
   type TimestampTrigger,
 } from '@notifee/react-native';
 import type {Settings} from '../types';
+
+type Locale = 'tr' | 'en';
+
+const REMINDER_BODY: Record<Locale, string> = {
+  tr: 'Yakında son kullanma tarihi dolan ürünlerinizi kontrol edin.',
+  en: 'Check your products expiring soon.',
+};
 
 const REMINDER_ID = 'expira-daily-reminder';
 
@@ -35,6 +43,17 @@ export const cancelDailyReminder = async (): Promise<void> => {
 };
 
 export const scheduleDailyReminder = async (settings: Settings): Promise<void> => {
+  let locale: Locale = 'tr';
+  if (settings.language === 'tr' || settings.language === 'en') {
+    locale = settings.language;
+  } else {
+    try {
+      const device = getLocales()?.[0]?.languageCode;
+      locale = device === 'tr' ? 'tr' : 'en';
+    } catch {
+      locale = 'en';
+    }
+  }
   await cancelDailyReminder();
   if (!settings.dailyReminder) {
     return;
@@ -56,7 +75,7 @@ export const scheduleDailyReminder = async (settings: Settings): Promise<void> =
     {
       id: REMINDER_ID,
       title: 'Expira',
-      body: 'Check your products expiring soon.',
+      body: REMINDER_BODY[locale],
       android: {channelId: 'reminders', smallIcon: 'ic_launcher', pressAction: {id: 'default'}},
     },
     trigger,

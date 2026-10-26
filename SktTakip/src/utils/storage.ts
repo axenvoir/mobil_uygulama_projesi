@@ -1,8 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {AppData} from '../types';
 import {normalizeAppData} from './validators';
+import {DEFAULT_SETTINGS} from './validators';
 
 const DATA_KEY = '@expira/data';
+
+export const DEFAULT_APP_DATA: AppData = {
+  version: 1,
+  products: [],
+  notes: [],
+  settings: {...DEFAULT_SETTINGS},
+};
 const LEGACY_KEYS = ['@products', '@notes', '@settings', '@userProfile'];
 
 export const loadData = async (): Promise<AppData> => {
@@ -29,9 +37,9 @@ export const loadData = async (): Promise<AppData> => {
     }
   }
   if (legacy.products || legacy.notes || legacy.settings) {
-    return normalizeAppData(legacy) ?? {version: 1, products: [], notes: [], settings: {dailyReminder: false, reminderHour: 9, reminderMinute: 0, language: 'system', hapticsEnabled: true}};
+    return normalizeAppData(legacy) ?? DEFAULT_APP_DATA;
   }
-  return {version: 1, products: [], notes: [], settings: {dailyReminder: false, reminderHour: 9, reminderMinute: 0, language: 'system', hapticsEnabled: true}};
+  return DEFAULT_APP_DATA;
 };
 
 export const saveData = async (data: AppData): Promise<void> => {

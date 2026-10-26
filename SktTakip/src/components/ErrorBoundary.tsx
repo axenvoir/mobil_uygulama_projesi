@@ -38,6 +38,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             <Text style={styles.icon}>⚠️</Text>
             <Text style={styles.title}>Expira</Text>
             <Text style={styles.message}>
+              Beklenmeyen bir hata oluştu. Lütfen uygulamayı yeniden başlatın.
+            </Text>
+            <Text style={styles.message}>
               An unexpected error occurred. Please restart the app.
             </Text>
             {__DEV__ || this.state.message ? (

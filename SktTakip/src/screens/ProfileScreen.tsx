@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Pressable, ScrollView, StyleSheet, Switch, Text, View} from 'react-native';
+import {Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useApp} from '../context/AppContext';
@@ -30,8 +30,25 @@ export const ProfileScreen: React.FC = () => {
   };
 
   const handleTimePicker = () => {
-    const next = (settings.reminderHour + 1) % 24;
-    updateSettings({reminderHour: next});
+    const hours = Array.from({length: 24}, (_, i) => i);
+    Alert.alert(t('reminderTime'), undefined, [
+      ...hours.slice(0, 12).map(h => ({
+        text: `${String(h).padStart(2, '0')}:00`,
+        onPress: () => updateSettings({reminderHour: h, reminderMinute: 0}),
+      })),
+      {
+        text: `${t('done')} ›`,
+        onPress: () =>
+          Alert.alert(t('reminderTime'), undefined, [
+            ...hours.slice(12).map(h => ({
+              text: `${String(h).padStart(2, '0')}:00`,
+              onPress: () => updateSettings({reminderHour: h, reminderMinute: 0}),
+            })),
+            {text: t('cancel'), style: 'cancel' as const},
+          ]),
+      },
+      {text: t('cancel'), style: 'cancel' as const},
+    ]);
   };
 
   return (
