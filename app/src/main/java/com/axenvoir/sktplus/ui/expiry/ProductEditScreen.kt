@@ -63,12 +63,17 @@ fun ProductEditScreen(
         if (saved) onBack()
     }
 
+    val emptyNameText = stringResource(R.string.error_empty_name)
+    val missingDateText = stringResource(R.string.error_past_date)
+    val missingCategoryText = stringResource(R.string.category_name)
+    val invalidQuantityText = stringResource(R.string.quantity)
+
     LaunchedEffect(uiState.error) {
         val message = when (uiState.error) {
-            ProductEditError.EmptyName -> stringResource(R.string.error_empty_name)
-            ProductEditError.MissingExpiryDate -> stringResource(R.string.error_past_date)
-            ProductEditError.MissingCategory -> stringResource(R.string.category_name)
-            ProductEditError.InvalidQuantity -> stringResource(R.string.quantity)
+            ProductEditError.EmptyName -> emptyNameText
+            ProductEditError.MissingExpiryDate -> missingDateText
+            ProductEditError.MissingCategory -> missingCategoryText
+            ProductEditError.InvalidQuantity -> invalidQuantityText
             ProductEditError.Generic -> genericErrorText
             null -> null
         }

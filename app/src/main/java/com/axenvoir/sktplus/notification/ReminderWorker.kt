@@ -30,7 +30,6 @@ class ReminderWorker @AssistedInject constructor(
                     todayEpochDay = todayEpochDay,
                     thresholdDays = EXPIRY_THRESHOLD_DAYS,
                 )
-                val formatter = DateTimeFormatter.ofPattern("dd MMM")
                 val summary = items.joinToString { item ->
                     "${item.name} (${item.daysLeft}d)"
                 }
