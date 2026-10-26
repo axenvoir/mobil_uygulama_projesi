@@ -1,6 +1,0 @@
-<resources>
-    <style name="Theme.Expira" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@color/primary_dark</item>
-        <item name="android:navigationBarColor">@color/background_light</item>
-    </style>
-</resources>
