@@ -10,7 +10,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    languageManager: LanguageManager,
+    private val languageManager: LanguageManager,
 ) : ViewModel() {
 
     val current: StateFlow<AppLanguage> = languageManager.current.stateIn(
