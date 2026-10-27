@@ -179,7 +179,7 @@ fun ProductListScreen(
                         singleLine = true,
                         shape = MaterialTheme.shapes.extraLarge,
                     )
-                            val eatFirst = uiState.products
+                    val eatFirst = uiState.products
                         .filter { expiryStatus(it.expiryDate, referenceDate) != ExpiryStatus.EXPIRED }
                         .sortedBy { it.expiryDate }
                         .take(3)
