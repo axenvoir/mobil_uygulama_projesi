@@ -153,7 +153,54 @@ fun ProductListScreen(
                     .widthIn(max = 800.dp),
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                            if (uiState.products.isNotEmpty()) {
+                            val eatFirst = uiState.products
+                        .filter { expiryStatus(it.expiryDate, referenceDate) != ExpiryStatus.EXPIRED }
+                        .sortedBy { it.expiryDate }
+                        .take(3)
+                    if (eatFirst.isNotEmpty()) {
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp),
+                        ) {
+                            Column(modifier = Modifier.padding(14.dp)) {
+                                Text(
+                                    text = stringResource(R.string.eat_first),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                eatFirst.forEach { item ->
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(vertical = 3.dp),
+                                    ) {
+                                        StatusDot(statusColor(expiryStatus(item.expiryDate, referenceDate)))
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = item.name,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Medium,
+                                            modifier = Modifier.weight(1f),
+                                            maxLines = 1,
+                                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                        )
+                                        val d = daysUntil(item.expiryDate, referenceDate)
+                                        Text(
+                                            text = "$d ${stringResource(R.string.days_short)}",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (uiState.products.isNotEmpty()) {
                         SummaryCard(
                             freshCount = freshCount,
                             expiringCount = expiringCount,

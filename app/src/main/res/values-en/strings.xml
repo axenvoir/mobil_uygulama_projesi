@@ -85,4 +85,9 @@
     <string name="onboarding_back">Back</string>
     <string name="onboarding_next">Next</string>
     <string name="days_passed_short">days past</string>
+    <string name="eat_first">Use these first</string>
+    <string name="export_csv">Export data as CSV</string>
+    <string name="export_done">Exported</string>
+    <string name="export_failed">Export failed</string>
+    <string name="data_section">Data</string>
 </resources>

@@ -28,6 +28,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -46,6 +48,22 @@ fun SettingsScreen(
 ) {
     val selected by viewModel.current.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val exportLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/csv"),
+    ) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val result = viewModel.exportCsv(context, uri)
+                snackbarHostState.showSnackbar(
+                    context.getString(
+                        if (result.isSuccess) R.string.export_done else R.string.export_failed
+                    )
+                )
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -99,6 +117,13 @@ fun SettingsScreen(
                         onClick = { viewModel.sendTestNotification() },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.test_notification)) }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                SettingsCard(title = stringResource(R.string.data_section)) {
+                    OutlinedButton(
+                        onClick = { exportLauncher.launch("expira-backup.csv") },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text(stringResource(R.string.export_csv)) }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.about_section)) {

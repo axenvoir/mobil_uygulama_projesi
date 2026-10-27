@@ -85,4 +85,9 @@
     <string name="onboarding_back">Geri</string>
     <string name="onboarding_next">İleri</string>
     <string name="days_passed_short">gün geçti</string>
+    <string name="eat_first">Önce bunları tüket</string>
+    <string name="export_csv">Verileri CSV olarak dışa aktar</string>
+    <string name="export_done">Dışa aktarıldı</string>
+    <string name="export_failed">Dışa aktarma başarısız</string>
+    <string name="data_section">Veriler</string>
 </resources>
