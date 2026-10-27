@@ -85,9 +85,9 @@ class NoteEditViewModel @Inject constructor(
     fun onContentChange(value: String) {
         _content.value = value
         if (_title.value.isBlank()) {
-            suggestedTitle = value.lineSequence().firstOrNull { it.isNotBlank() }?.trim().orEmpty()
+            _suggestedTitle.value = value.lineSequence().firstOrNull { it.isNotBlank() }?.trim().orEmpty()
         } else {
-            suggestedTitle = ""
+            _suggestedTitle.value = ""
         }
     }
 
