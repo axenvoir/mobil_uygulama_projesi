@@ -1,4 +1,4 @@
-# SKT Plus
+# Expira
 
 Android app for tracking product expiry dates (SKT) and taking notes.
 
