@@ -35,7 +35,6 @@ class NotificationHelper @Inject constructor(
         manager.createNotificationChannel(channel)
     }
 
-    @androidx.annotation.CheckResult
     fun canPostNotifications(): Boolean =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(
@@ -67,7 +66,12 @@ class NotificationHelper @Inject constructor(
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .build()
-        if (canPostNotifications()) {
+        val hasPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED
+        if (hasPermission) {
             NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
         }
     }
