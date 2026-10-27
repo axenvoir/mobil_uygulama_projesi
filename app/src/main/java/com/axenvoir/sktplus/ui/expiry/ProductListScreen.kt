@@ -154,7 +154,7 @@ fun ProductListScreen(
                     if (eatFirst.isNotEmpty()) {
                         Card(
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                containerColor = com.axenvoir.sktplus.ui.theme.AccentSageContainer,
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -250,7 +250,7 @@ fun ProductListScreen(
                             state = listState,
                             modifier = Modifier.fillMaxWidth(),
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             items(visibleProducts, key = { it.id }, contentType = { "product" }) { product ->
                                 val dismissState = androidx.compose.material3.rememberSwipeToDismissBoxState(
@@ -621,7 +621,7 @@ private fun ProductCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+                .padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {

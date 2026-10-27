@@ -24,8 +24,8 @@ android {
         minSdk = 26
         targetSdk = 36
         resourceConfigurations += listOf("tr", "en")
-        versionCode = 88
-        versionName = "1.7.0"
+        versionCode = 89
+        versionName = "1.8.0"
     }
 
     signingConfigs {

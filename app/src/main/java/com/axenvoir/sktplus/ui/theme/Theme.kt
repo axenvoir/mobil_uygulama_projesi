@@ -18,10 +18,10 @@ private val LightColors = lightColorScheme(
     onSecondary = BrandSurface,
     secondaryContainer = BrandBlueContainer,
     onSecondaryContainer = BrandNavy,
-    tertiary = FreshGreen,
+    tertiary = AccentSage,
     onTertiary = BrandSurface,
-    tertiaryContainer = FreshGreenContainer,
-    onTertiaryContainer = FreshGreen,
+    tertiaryContainer = AccentSageContainer,
+    onTertiaryContainer = AccentSage,
     background = BrandSurface,
     onBackground = BrandNavy,
     surface = BrandSurface,
@@ -44,10 +44,10 @@ private val DarkColors = darkColorScheme(
     onSecondary = BrandSurfaceDark,
     secondaryContainer = BrandNavy,
     onSecondaryContainer = BrandBlueContainer,
-    tertiary = FreshGreen,
+    tertiary = AccentSage,
     onTertiary = BrandSurfaceDark,
-    tertiaryContainer = FreshGreen,
-    onTertiaryContainer = FreshGreenContainer,
+    tertiaryContainer = AccentSage,
+    onTertiaryContainer = AccentSageContainer,
     background = BrandSurfaceDark,
     onBackground = BrandBlueContainer,
     surface = BrandSurfaceDark,
@@ -62,10 +62,10 @@ private val DarkColors = darkColorScheme(
 )
 
 private val AppShapes = Shapes(
-    small = RoundedCornerShape(10.dp),
-    medium = RoundedCornerShape(14.dp),
-    large = RoundedCornerShape(20.dp),
-    extraLarge = RoundedCornerShape(28.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(18.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(32.dp),
 )
 
 @Composable
