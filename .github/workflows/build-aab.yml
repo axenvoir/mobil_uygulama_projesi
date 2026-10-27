@@ -40,6 +40,21 @@ jobs:
       - name: Generate Gradle wrapper
         run: gradle wrapper --gradle-version 8.13
 
+      - name: Run unit tests
+        run: ./gradlew :app:testDebugUnitTest
+
+      - name: Run lint
+        run: ./gradlew :app:lintDebug
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Build release AAB
         run: ./gradlew :app:bundleRelease
 
