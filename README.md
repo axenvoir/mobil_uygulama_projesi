@@ -14,7 +14,7 @@ Expira is an Android app for tracking product expiry dates and keeping personal 
 ## Technology
 
 - Kotlin, Jetpack Compose, and Material 3
-- Android Gradle Plugin 9.3.1, Gradle 9.5, and Kotlin 2.4.21
+- Android Gradle Plugin 9.3.1, Gradle 9.5.0, and Kotlin 2.4.21
 - MVVM with repositories and Kotlin Coroutines/Flow
 - Room for on-device storage, Hilt for dependency injection, and WorkManager for reminders
 - minSdk 26; compileSdk and targetSdk 36
