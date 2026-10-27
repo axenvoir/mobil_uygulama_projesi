@@ -135,13 +135,21 @@ fun NoteListScreen(
                                 .weight(1f),
                             contentAlignment = Alignment.Center,
                         ) {
-                            EmptyState(
-                                icon = Icons.Filled.Edit,
-                                title = stringResource(R.string.empty_notes_title),
-                                subtitle = stringResource(R.string.empty_notes),
-                                actionLabel = stringResource(R.string.add_note),
-                                onAction = onAddNote,
-                            )
+                            if (query.isNotBlank()) {
+                                EmptyState(
+                                    icon = Icons.Filled.Search,
+                                    title = stringResource(R.string.empty_notes_search),
+                                    subtitle = "",
+                                )
+                            } else {
+                                EmptyState(
+                                    icon = Icons.Filled.Edit,
+                                    title = stringResource(R.string.empty_notes_title),
+                                    subtitle = stringResource(R.string.empty_notes),
+                                    actionLabel = stringResource(R.string.add_note),
+                                    onAction = onAddNote,
+                                )
+                            }
                         }
                     } else {
                         LazyColumn(

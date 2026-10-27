@@ -3,6 +3,8 @@ package com.axenvoir.sktplus
 import android.Manifest
 import android.os.Build
 import android.os.Bundle
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -33,13 +35,6 @@ class MainActivity : AppCompatActivity() {
             if (granted) {
                 notificationHelper.createChannel()
                 reminderScheduler.scheduleDailyReminder()
-            } else {
-                val intent = android.content.Intent(
-                    android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS
-                ).apply {
-                    putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName)
-                }
-                runCatching { startActivity(intent) }
             }
         }
 
@@ -74,7 +69,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun requestNotificationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            val granted = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED
+            if (granted) {
+                reminderScheduler.scheduleDailyReminder()
+            } else {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
         } else {
             reminderScheduler.scheduleDailyReminder()
         }

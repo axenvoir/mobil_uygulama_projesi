@@ -27,6 +27,10 @@
     <string name="expired_days">%1$d gün önce geçti</string>
     <string name="empty_products">Henüz ürün yok. İlk ürününüzü ekleyin.</string>
     <string name="empty_notes">Henüz not yok. İlk notunuzu alın.</string>
+    <string name="error_missing_expiry_date">Son kullanma tarihini seçin</string>
+    <string name="error_missing_category">Bir kategori seçin veya yeni kategori girin</string>
+    <string name="error_invalid_quantity">Adet en az 1 olmalı</string>
+    <string name="empty_notes_search">Aramanızla eşleşen not yok</string>
     <string name="error_empty_name">Ürün adı boş olamaz</string>
     <string name="error_past_date">Geçmiş tarih girilemez</string>
     <string name="error_empty_title">Başlık boş olamaz</string>
