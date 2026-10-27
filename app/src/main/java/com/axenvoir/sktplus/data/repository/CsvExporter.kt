@@ -19,7 +19,7 @@ class CsvExporter @Inject constructor() {
         notes: List<Note>,
     ): Result<Unit> = runCatching {
         val csv = buildString {
-            appendLine("type,name,category,quantity,expiry_date,days_left,title,content,pinned,updated_at")
+            appendLine("type,name,category,quantity,expiry_date,storage_location,title,content,pinned,updated_at")
             val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
             products.forEach { p ->
                 appendLine(
@@ -29,7 +29,7 @@ class CsvExporter @Inject constructor() {
                         escape(p.categoryName),
                         p.quantity.toString(),
                         p.expiryDate.format(dateFormatter),
-                        "",
+                        escape(p.storageLocation),
                         "",
                         "",
                         "",

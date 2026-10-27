@@ -31,6 +31,7 @@ class ProductRepositoryImpl @Inject constructor(
             expiryEpochDay = product.expiryDate.toEpochDay(),
             quantity = product.quantity,
             createdAt = product.createdAt,
+            storageLocation = product.storageLocation,
         )
         return if (product.id == 0L) productDao.insert(entity) else {
             productDao.update(entity)
@@ -79,5 +80,6 @@ class ProductRepositoryImpl @Inject constructor(
         expiryDate = LocalDate.ofEpochDay(expiryEpochDay),
         quantity = quantity,
         createdAt = createdAt,
+        storageLocation = storageLocation,
     )
 }

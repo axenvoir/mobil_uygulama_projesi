@@ -156,6 +156,27 @@ fun ProductEditScreen(
                 onNewCategoryChange = viewModel::onNewCategoryNameChange,
             )
             Text(
+                text = stringResource(R.string.storage_location),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            androidx.compose.foundation.layout.FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                listOf(
+                    "" to R.string.location_other,
+                    "fridge" to R.string.location_fridge,
+                    "pantry" to R.string.location_pantry,
+                    "freezer" to R.string.location_freezer,
+                ).forEach { (key, labelRes) ->
+                    androidx.compose.material3.FilterChip(
+                        selected = uiState.storageLocation == key,
+                        onClick = { viewModel.onStorageLocationChange(key) },
+                        label = { Text(stringResource(labelRes)) },
+                    )
+                }
+            }
+            Text(
                 text = stringResource(R.string.expiry_date),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

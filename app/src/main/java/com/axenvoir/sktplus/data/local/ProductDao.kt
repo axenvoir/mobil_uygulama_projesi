@@ -15,6 +15,7 @@ data class ProductWithCategory(
     val expiryEpochDay: Long,
     val quantity: Int,
     val createdAt: Long,
+    val storageLocation: String,
 )
 
 @Dao
@@ -23,7 +24,8 @@ interface ProductDao {
         """
         SELECT p.id AS id, p.name AS name, p.categoryId AS categoryId,
                c.name AS categoryName, p.expiryEpochDay AS expiryEpochDay,
-               p.quantity AS quantity, p.createdAt AS createdAt
+               p.quantity AS quantity, p.createdAt AS createdAt,
+               p.storageLocation AS storageLocation
         FROM products AS p
         INNER JOIN categories AS c ON c.id = p.categoryId
         ORDER BY p.expiryEpochDay ASC
@@ -35,7 +37,8 @@ interface ProductDao {
         """
         SELECT p.id AS id, p.name AS name, p.categoryId AS categoryId,
                c.name AS categoryName, p.expiryEpochDay AS expiryEpochDay,
-               p.quantity AS quantity, p.createdAt AS createdAt
+               p.quantity AS quantity, p.createdAt AS createdAt,
+               p.storageLocation AS storageLocation
         FROM products AS p
         INNER JOIN categories AS c ON c.id = p.categoryId
         WHERE p.id = :id

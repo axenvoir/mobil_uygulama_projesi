@@ -25,8 +25,16 @@ data class ProductEditUiState(
     val selectedCategoryId: Long? = null,
     val newCategoryName: String = "",
     val expiryDate: LocalDate? = null,
+    val storageLocation: String = "",
     val categories: List<Category> = emptyList(),
     val error: ProductEditError? = null,
+)
+
+private data class SelectionState(
+    val categoryId: Long?,
+    val newCategoryName: String,
+    val expiryDate: LocalDate?,
+    val storageLocation: String,
 )
 
 sealed interface ProductEditError {
@@ -51,6 +59,7 @@ class ProductEditViewModel @Inject constructor(
     private val selectedCategoryId = MutableStateFlow<Long?>(null)
     private val newCategoryName = MutableStateFlow("")
     private val expiryDate = MutableStateFlow<LocalDate?>(null)
+    private val storageLocation = MutableStateFlow("")
     private val error = MutableStateFlow<ProductEditError?>(null)
 
     private val _saved = MutableStateFlow(false)
@@ -60,17 +69,18 @@ class ProductEditViewModel @Inject constructor(
         productRepository.observeCategories(),
         name,
         quantityText,
-        combine(selectedCategoryId, newCategoryName, expiryDate) { cat, newCat, date ->
-            Triple(cat, newCat, date)
+        combine(selectedCategoryId, newCategoryName, expiryDate, storageLocation) { cat, newCat, date, loc ->
+            SelectionState(categoryId = cat, newCategoryName = newCat, expiryDate = date, storageLocation = loc)
         },
         error,
     ) { categories, nameValue, quantityValue, selection, errorValue ->
         ProductEditUiState(
             name = nameValue,
             quantityText = quantityValue,
-            selectedCategoryId = selection.first,
-            newCategoryName = selection.second,
-            expiryDate = selection.third,
+            selectedCategoryId = selection.categoryId,
+            newCategoryName = selection.newCategoryName,
+            expiryDate = selection.expiryDate,
+            storageLocation = selection.storageLocation,
             categories = categories,
             error = errorValue,
         )
@@ -85,6 +95,7 @@ class ProductEditViewModel @Inject constructor(
     private var originalCategoryId: Long? = null
     private var originalExpiryDate: LocalDate? = null
     private var originalNewCategoryName: String = ""
+    private var originalStorageLocation: String = ""
     private val loaded = MutableStateFlow(false)
 
     val isDirty: StateFlow<Boolean> = combine(
@@ -96,7 +107,8 @@ class ProductEditViewModel @Inject constructor(
                 state.quantityText != originalQuantityText ||
                 state.selectedCategoryId != originalCategoryId ||
                 state.expiryDate != originalExpiryDate ||
-                state.newCategoryName != originalNewCategoryName
+                state.newCategoryName != originalNewCategoryName ||
+                state.storageLocation != originalStorageLocation
             )
     }.stateIn(
         scope = viewModelScope,
@@ -114,10 +126,12 @@ class ProductEditViewModel @Inject constructor(
                     originalCategoryId = product.categoryId
                     originalExpiryDate = product.expiryDate
                     originalNewCategoryName = ""
+                    originalStorageLocation = product.storageLocation
                     name.value = product.name
                     quantityText.value = product.quantity.toString()
                     selectedCategoryId.value = product.categoryId
                     expiryDate.value = product.expiryDate
+                    storageLocation.value = product.storageLocation
                     loaded.value = true
                 }
             }
@@ -146,6 +160,10 @@ class ProductEditViewModel @Inject constructor(
 
     fun onExpiryDateChange(date: LocalDate) {
         expiryDate.value = date
+    }
+
+    fun onStorageLocationChange(location: String) {
+        storageLocation.value = location
     }
 
     fun save() {
@@ -185,6 +203,7 @@ class ProductEditViewModel @Inject constructor(
                     expiryDate = date,
                     quantity = quantity,
                     createdAt = existing?.createdAt ?: System.currentTimeMillis(),
+                    storageLocation = storageLocation.value,
                 )
                 productRepository.upsert(product)
                 _saved.value = true

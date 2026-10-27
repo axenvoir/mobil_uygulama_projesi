@@ -90,4 +90,9 @@
     <string name="export_done">Exported</string>
     <string name="export_failed">Export failed</string>
     <string name="data_section">Data</string>
+    <string name="storage_location">Storage location</string>
+    <string name="location_fridge">Fridge</string>
+    <string name="location_pantry">Pantry</string>
+    <string name="location_freezer">Freezer</string>
+    <string name="location_other">Other</string>
 </resources>

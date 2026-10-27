@@ -90,4 +90,9 @@
     <string name="export_done">Dışa aktarıldı</string>
     <string name="export_failed">Dışa aktarma başarısız</string>
     <string name="data_section">Veriler</string>
+    <string name="storage_location">Depolama yeri</string>
+    <string name="location_fridge">Buzdolabı</string>
+    <string name="location_pantry">Kiler</string>
+    <string name="location_freezer">Dondurucu</string>
+    <string name="location_other">Diğer</string>
 </resources>
