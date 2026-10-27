@@ -83,6 +83,7 @@ fun ProductListScreen(
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var productPendingDelete by remember { mutableStateOf<Product?>(null) }
+    var productDetail by remember { mutableStateOf<Product?>(null) }
     val errorText = stringResource(R.string.error_generic)
 
     val hapticFeedback = androidx.compose.ui.platform.LocalHapticFeedback.current
@@ -165,7 +166,13 @@ fun ProductListScreen(
                             ) },
                         )
                     }
-                    FilterRow(uiState.filter, viewModel::onFilterChange)
+                    FilterRow(
+                        selected = uiState.filter,
+                        onFilterChange = viewModel::onFilterChange,
+                        freshBadge = freshCount,
+                        soonBadge = expiringCount,
+                        expiredBadge = expiredCount,
+                    )
                     if (visibleProducts.isEmpty()) {
                         Box(
                             modifier = Modifier
@@ -240,6 +247,7 @@ fun ProductListScreen(
                                         ProductCard(
                                             product = product,
                                             onClick = { onEditProduct(product.id) },
+                                            onLongClick = { productDetail = product },
                                             onDelete = { productPendingDelete = product },
                                         )
                                     }
@@ -254,6 +262,79 @@ fun ProductListScreen(
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    productDetail?.let { product ->
+        val status = expiryStatus(product.expiryDate)
+        androidx.compose.material3.ModalBottomSheet(
+            onDismissRequest = { productDetail = null },
+        ) {
+            androidx.compose.foundation.layout.Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(96.dp)
+                        .background(statusColor(status), MaterialTheme.shapes.large),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = statusLabel(status),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = androidx.compose.ui.graphics.Color.White,
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = product.name,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = product.categoryName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = product.expiryDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = remainingDaysText(product.expiryDate),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = statusColor(status),
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                androidx.compose.foundation.layout.Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    androidx.compose.material3.Button(
+                        onClick = {
+                            productDetail = null
+                            onEditProduct(product.id)
+                        },
+                        modifier = Modifier.weight(1f),
+                    ) { Text(stringResource(R.string.edit)) }
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = {
+                            productDetail = null
+                            productPendingDelete = product
+                        },
+                        modifier = Modifier.weight(1f),
+                    ) { Text(stringResource(R.string.delete)) }
                 }
             }
         }
@@ -380,9 +461,27 @@ private fun SummaryItem(
     }
 }
 
+@Composable
+private fun trailingBadge(count: Int): @Composable () -> Unit = {
+    Text(
+        text = count.toString(),
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small)
+            .padding(horizontal = 6.dp, vertical = 1.dp),
+    )
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FilterRow(selected: ProductFilter, onFilterChange: (ProductFilter) -> Unit) {
+private fun FilterRow(
+    selected: ProductFilter,
+    onFilterChange: (ProductFilter) -> Unit,
+    freshBadge: Int = 0,
+    soonBadge: Int = 0,
+    expiredBadge: Int = 0,
+) {
     FlowRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -400,6 +499,7 @@ private fun FilterRow(selected: ProductFilter, onFilterChange: (ProductFilter) -
             onClick = { onFilterChange(ProductFilter.FRESH) },
             label = { Text(stringResource(R.string.status_fresh)) },
             leadingIcon = { StatusDot(FreshGreenDot) },
+            trailingIcon = if (freshBadge > 0) trailingBadge(freshBadge) else null,
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
             ),
@@ -409,12 +509,14 @@ private fun FilterRow(selected: ProductFilter, onFilterChange: (ProductFilter) -
             onClick = { onFilterChange(ProductFilter.EXPIRING_SOON) },
             label = { Text(stringResource(R.string.status_expiring_soon)) },
             leadingIcon = { StatusDot(WarningOrangeDot) },
+            trailingIcon = if (soonBadge > 0) trailingBadge(soonBadge) else null,
         )
         FilterChip(
             selected = selected == ProductFilter.EXPIRED,
             onClick = { onFilterChange(ProductFilter.EXPIRED) },
             label = { Text(stringResource(R.string.status_expired)) },
             leadingIcon = { StatusDot(ExpiredRedDot) },
+            trailingIcon = if (expiredBadge > 0) trailingBadge(expiredBadge) else null,
         )
     }
 }
@@ -451,6 +553,7 @@ fun remainingDaysText(expiryDate: java.time.LocalDate): String {
 private fun ProductCard(
     product: Product,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val status = expiryStatus(product.expiryDate)
@@ -461,6 +564,7 @@ private fun ProductCard(
     }
     Card(
         onClick = onClick,
+        onLongClick = onLongClick,
         colors = CardDefaults.cardColors(
             containerColor = statusContainer,
         ),
@@ -491,11 +595,15 @@ private fun ProductCard(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                         )
-                        Text(
-                            text = product.categoryName,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
+                            com.axenvoir.sktplus.ui.components.CategoryAvatar(name = product.categoryName)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = product.categoryName,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                         Text(
                             text = "x${product.quantity}",
                             style = MaterialTheme.typography.labelLarge,

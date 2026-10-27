@@ -68,4 +68,10 @@
     <string name="search_products">Ürünlerde ara…</string>
     <string name="empty_search">Aramanıza uyan ürün yok</string>
     <string name="days_short">gün</string>
+    <string name="notifications_section">Bildirimler</string>
+    <string name="about_section">Hakkında</string>
+    <string name="test_notification">Test bildirimi göster</string>
+    <string name="test_notification_sent">Test bildirimi gönderildi</string>
+    <string name="version_label">Sürüm</string>
+    <string name="edit">Düzenle</string>
 </resources>

@@ -11,7 +11,13 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val languageManager: LanguageManager,
+    private val notificationHelper: com.axenvoir.sktplus.notification.NotificationHelper,
 ) : ViewModel() {
+
+    fun sendTestNotification() {
+        notificationHelper.createChannel()
+        notificationHelper.showExpiryReminder(count = 1, topNames = emptyList())
+    }
 
     val current: StateFlow<AppLanguage> = languageManager.current.stateIn(
         scope = viewModelScope,
