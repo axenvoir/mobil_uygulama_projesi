@@ -24,8 +24,8 @@ android {
         minSdk = 26
         targetSdk = 36
         resourceConfigurations += listOf("tr", "en")
-        versionCode = 87
-        versionName = "1.6.1"
+        versionCode = 88
+        versionName = "1.7.0"
     }
 
     signingConfigs {
@@ -41,7 +41,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             signingConfig = keystoreProperties["storeFile"]?.let {
                 signingConfigs.getByName("release")
             }

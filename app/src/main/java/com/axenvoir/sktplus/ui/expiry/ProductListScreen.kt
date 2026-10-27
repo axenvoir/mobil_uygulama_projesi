@@ -101,16 +101,10 @@ fun ProductListScreen(
     }
 
     val referenceDate = uiState.currentDate
-    val freshCount = uiState.products.count { expiryStatus(it.expiryDate, referenceDate) == ExpiryStatus.FRESH }
-    val expiringCount = uiState.products.count { expiryStatus(it.expiryDate, referenceDate) == ExpiryStatus.EXPIRING_SOON }
-    val expiredCount = uiState.products.count { expiryStatus(it.expiryDate, referenceDate) == ExpiryStatus.EXPIRED }
-
-    val visibleProducts = when (uiState.filter) {
-        ProductFilter.ALL -> uiState.products
-        ProductFilter.FRESH -> uiState.products.filter { expiryStatus(it.expiryDate, referenceDate) == ExpiryStatus.FRESH }
-        ProductFilter.EXPIRING_SOON -> uiState.products.filter { expiryStatus(it.expiryDate, referenceDate) == ExpiryStatus.EXPIRING_SOON }
-        ProductFilter.EXPIRED -> uiState.products.filter { expiryStatus(it.expiryDate, referenceDate) == ExpiryStatus.EXPIRED }
-    }
+    val freshCount = uiState.freshCount
+    val expiringCount = uiState.expiringCount
+    val expiredCount = uiState.expiredCount
+    val visibleProducts = uiState.visibleProducts
 
     val topBarScrollBehavior = androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior()
 
