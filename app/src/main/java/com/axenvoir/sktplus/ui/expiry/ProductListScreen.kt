@@ -43,7 +43,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -187,7 +186,10 @@ fun ProductListScreen(
                         }
                     } else {
                         val listState = androidx.compose.foundation.lazy.rememberLazyListState()
-                        fabVisible = androidx.compose.runtime.derivedStateOf { listState.firstVisibleItemIndex == 0 }.value
+                        LaunchedEffect(listState) {
+                            androidx.compose.runtime.snapshotFlow { listState.firstVisibleItemIndex }
+                                .collect { index -> fabVisible = index == 0 }
+                        }
                         LazyColumn(
                             state = listState,
                             modifier = Modifier.fillMaxWidth(),
@@ -235,6 +237,13 @@ fun ProductListScreen(
                                             onClick = { onEditProduct(product.id) },
                                             onDelete = { productPendingDelete = product },
                                         )
+                                    }
+                                }
+                                androidx.compose.runtime.LaunchedEffect(productPendingDelete) {
+                                    if (productPendingDelete == null &&
+                                        dismissState.currentValue == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart
+                                    ) {
+                                        dismissState.snapTo(androidx.compose.material3.SwipeToDismissBoxValue.Settled)
                                     }
                                 }
                             }
