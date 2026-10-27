@@ -51,6 +51,7 @@ fun NoteEditScreen(
     val saved by viewModel.saved.collectAsStateWithLifecycle()
 
     val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
+    val suggestedTitle by viewModel.suggestedTitle.collectAsStateWithLifecycle()
     var showUnsavedDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(saved) {
@@ -140,6 +141,13 @@ fun NoteEditScreen(
                 },
                 singleLine = true,
             )
+            if (suggestedTitle.isNotBlank() && title.isBlank()) {
+                androidx.compose.material3.AssistChip(
+                    onClick = viewModel::applySuggestedTitle,
+                    label = { Text(suggestedTitle) },
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
             Spacer(modifier = Modifier.height(12.dp))
             OutlinedTextField(
                 value = content,

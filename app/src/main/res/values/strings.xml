@@ -74,4 +74,14 @@
     <string name="test_notification_sent">Test bildirimi gönderildi</string>
     <string name="version_label">Sürüm</string>
     <string name="edit">Düzenle</string>
+    <string name="onboarding_title_1">Ürünlerini ekle</string>
+    <string name="onboarding_text_1">Son kullanma tarihlerini takip et, yaklaşanları kaçırma</string>
+    <string name="onboarding_title_2">Günlük hatırlatma</string>
+    <string name="onboarding_text_2">3 gün kalan ürünler için her sabah bildirim al</string>
+    <string name="onboarding_title_3">Dilini seç</string>
+    <string name="onboarding_text_3">Türkçe ve İngilizce desteklenir — ayarlardan değiştir</string>
+    <string name="onboarding_skip">Atla</string>
+    <string name="onboarding_done">Başla</string>
+    <string name="onboarding_back">Geri</string>
+    <string name="onboarding_next">İleri</string>
 </resources>

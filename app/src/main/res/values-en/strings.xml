@@ -74,4 +74,14 @@
     <string name="test_notification_sent">Test notification sent</string>
     <string name="version_label">Version</string>
     <string name="edit">Edit</string>
+    <string name="onboarding_title_1">Add your products</string>
+    <string name="onboarding_text_1">Track expiry dates, never miss what's coming up</string>
+    <string name="onboarding_title_2">Daily reminder</string>
+    <string name="onboarding_text_2">Get notified every morning about items expiring in 3 days</string>
+    <string name="onboarding_title_3">Pick your language</string>
+    <string name="onboarding_text_3">Turkish and English supported — change it in settings</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_done">Start</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_next">Next</string>
 </resources>

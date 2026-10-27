@@ -24,8 +24,8 @@ android {
         minSdk = 26
         targetSdk = 36
         resourceConfigurations += listOf("tr", "en")
-        versionCode = 82
-        versionName = "1.4.1"
+        versionCode = 83
+        versionName = "1.5.0"
     }
 
     signingConfigs {

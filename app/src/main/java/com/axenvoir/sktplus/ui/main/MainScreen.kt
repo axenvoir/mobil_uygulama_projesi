@@ -13,6 +13,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -37,6 +40,18 @@ private val tabs = listOf(
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember { context.getSharedPreferences("app_settings", android.content.Context.MODE_PRIVATE) }
+    var showOnboarding by remember { mutableStateOf(prefs.getBoolean("onboarding_done", false).not()) }
+    val dismissOnboarding = {
+        prefs.edit().putBoolean("onboarding_done", true).apply()
+        showOnboarding = false
+    }
+    com.axenvoir.sktplus.ui.components.OnboardingOverlay(
+        visible = showOnboarding,
+        onDismiss = dismissOnboarding,
+        onOpenSettings = { navController.navigate(com.axenvoir.sktplus.ui.navigation.Screen.Settings.route) },
+    )
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
