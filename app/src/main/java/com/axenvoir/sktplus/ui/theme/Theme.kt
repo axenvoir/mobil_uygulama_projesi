@@ -69,7 +69,7 @@ private val AppShapes = Shapes(
 )
 
 @Composable
-fun SktPlusTheme(
+fun ExpiraTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {

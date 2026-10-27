@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltAndroidApp
-class SktPlusApplication : Application(), Configuration.Provider {
+class ExpiraApplication : Application(), Configuration.Provider {
 
     @Inject
     lateinit var productRepository: ProductRepository

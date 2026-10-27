@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Expira</string>
-    <string name="tab_expiry">Expiry Tracking</string>
+    <string name="tab_expiry">Products</string>
     <string name="tab_notes">My Notes</string>
     <string name="expiry_list_title">Expiry Dates</string>
     <string name="notes_list_title">My Notes</string>
@@ -40,7 +40,7 @@
     <string name="no">No</string>
     <string name="new_category">New category…</string>
     <string name="category_name">Category name</string>
-    <string name="notification_channel_name">Expiry Reminders</string>
+    <string name="notification_channel_name">Expira Reminders</string>
     <string name="notification_channel_desc">Reminders for approaching expiry dates</string>
     <string name="notification_title">Approaching expiry dates</string>
     <string name="notification_text">%1$d products are expiring soon</string>
@@ -70,6 +70,7 @@
     <string name="relative_yesterday">Updated yesterday</string>
     <string name="undo">Undo</string>
     <string name="search_products">Search products…</string>
+    <string name="clear_search">Clear search</string>
     <string name="empty_search">No products match your search</string>
     <string name="days_short">days</string>
     <string name="notifications_section">Notifications</string>

@@ -10,3 +10,7 @@
 keystore.properties
 *.jks
 *.keystore
+
+# Gradle and Android build outputs from every module
+**/build/
+.kotlin/

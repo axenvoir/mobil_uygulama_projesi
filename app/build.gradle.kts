@@ -24,8 +24,8 @@ android {
         minSdk = 26
         targetSdk = 36
         resourceConfigurations += listOf("tr", "en")
-        versionCode = 93
-        versionName = "1.9.1"
+        versionCode = 95
+        versionName = "1.9.3"
     }
 
     signingConfigs {
@@ -44,9 +44,6 @@ android {
             isMinifyEnabled = true
             signingConfig = keystoreProperties["storeFile"]?.let {
                 signingConfigs.getByName("release")
-            }
-            ndk {
-                debugSymbolLevel = "FULL"
             }
         }
     }

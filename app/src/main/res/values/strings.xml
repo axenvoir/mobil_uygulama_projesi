@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Expira</string>
-    <string name="tab_expiry">SKT Takibi</string>
+    <string name="tab_expiry">Ürünler</string>
     <string name="tab_notes">Notlarım</string>
     <string name="expiry_list_title">Son Kullanma Tarihleri</string>
     <string name="notes_list_title">Notlarım</string>
@@ -40,7 +40,7 @@
     <string name="no">Hayır</string>
     <string name="new_category">Yeni kategori…</string>
     <string name="category_name">Kategori adı</string>
-    <string name="notification_channel_name">SKT Hatırlatmaları</string>
+    <string name="notification_channel_name">Expira Hatırlatmaları</string>
     <string name="notification_channel_desc">Yaklaşan son kullanma tarihleri için hatırlatmalar</string>
     <string name="notification_title">Yaklaşan son kullanma tarihleri</string>
     <string name="notification_text">%1$d ürünün son kullanma tarihi yaklaşıyor</string>
@@ -70,6 +70,7 @@
     <string name="relative_yesterday">Dün güncellendi</string>
     <string name="undo">Geri al</string>
     <string name="search_products">Ürünlerde ara…</string>
+    <string name="clear_search">Aramayı temizle</string>
     <string name="empty_search">Aramanıza uyan ürün yok</string>
     <string name="days_short">gün</string>
     <string name="notifications_section">Bildirimler</string>

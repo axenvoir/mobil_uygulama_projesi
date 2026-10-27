@@ -50,6 +50,7 @@ fun NoteEditScreen(
     val isPinned by viewModel.isPinned.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val saved by viewModel.saved.collectAsStateWithLifecycle()
+    val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
 
     val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
     val suggestedTitle by viewModel.suggestedTitle.collectAsStateWithLifecycle()
@@ -115,7 +116,7 @@ fun NoteEditScreen(
                     )
                     TextButton(
                         onClick = viewModel::save,
-                        enabled = title.isNotBlank(),
+                        enabled = title.isNotBlank() && !isSaving,
                     ) { Text(stringResource(R.string.save)) }
                 },
             )

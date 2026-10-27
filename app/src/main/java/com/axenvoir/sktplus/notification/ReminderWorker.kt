@@ -19,6 +19,7 @@ class ReminderWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
+        if (!notificationHelper.canPostNotifications()) return Result.success()
         return try {
             val todayEpochDay = today().toEpochDay()
             val count = productDao.countExpiringSoon(
@@ -37,6 +38,7 @@ class ReminderWorker @AssistedInject constructor(
             }
             Result.success()
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
             if (runAttemptCount < MAX_RETRIES) Result.retry() else Result.failure()
         }
     }

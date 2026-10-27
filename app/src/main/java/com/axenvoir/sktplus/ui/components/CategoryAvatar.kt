@@ -25,7 +25,7 @@ private val categoryColors = listOf(
 
 @Composable
 fun CategoryAvatar(name: String, modifier: Modifier = Modifier) {
-    val color = categoryColors[(name.hashCode().let { if (it < 0) -it else it }) % categoryColors.size]
+    val color = categoryColors[Math.floorMod(name.hashCode(), categoryColors.size)]
     Box(
         modifier = modifier
             .size(28.dp)

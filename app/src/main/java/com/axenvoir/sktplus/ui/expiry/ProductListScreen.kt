@@ -40,6 +40,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -155,6 +156,29 @@ fun ProductListScreen(
                     .widthIn(max = 800.dp),
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = uiState.query,
+                        onValueChange = viewModel::onQueryChange,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        placeholder = { Text(stringResource(R.string.search_products)) },
+                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                        trailingIcon = if (uiState.query.isNotEmpty()) {
+                            {
+                                IconButton(onClick = { viewModel.onQueryChange("") }) {
+                                    Icon(
+                                        Icons.Filled.Close,
+                                        contentDescription = stringResource(R.string.clear_search),
+                                    )
+                                }
+                            }
+                        } else {
+                            null
+                        },
+                        singleLine = true,
+                        shape = MaterialTheme.shapes.extraLarge,
+                    )
                             val eatFirst = uiState.products
                         .filter { expiryStatus(it.expiryDate, referenceDate) != ExpiryStatus.EXPIRED }
                         .sortedBy { it.expiryDate }
@@ -173,7 +197,7 @@ fun ProductListScreen(
                                     text = stringResource(R.string.eat_first),
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    color = com.axenvoir.sktplus.ui.theme.BrandNavy,
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                                 eatFirst.forEach { item ->

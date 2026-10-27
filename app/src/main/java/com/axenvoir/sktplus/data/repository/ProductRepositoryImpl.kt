@@ -8,6 +8,8 @@ import com.axenvoir.sktplus.domain.model.Product
 import com.axenvoir.sktplus.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,6 +18,8 @@ import javax.inject.Singleton
 class ProductRepositoryImpl @Inject constructor(
     private val productDao: ProductDao,
 ) : ProductRepository {
+
+    private val seedMutex = Mutex()
 
     override fun observeAll(): Flow<List<Product>> =
         productDao.observeAllWithCategory().map { rows -> rows.map { it.toDomain() } }
@@ -60,16 +64,18 @@ class ProductRepositoryImpl @Inject constructor(
     }
 
     override suspend fun seedDefaultCategoriesIfEmpty() {
-        if (productDao.categoryCount() > 0) return
-        productDao.insertCategories(
-            listOf(
-                CategoryEntity(name = "Gıda", isDefault = true),
-                CategoryEntity(name = "İlaç", isDefault = true),
-                CategoryEntity(name = "Kozmetik", isDefault = true),
-                CategoryEntity(name = "Temizlik", isDefault = true),
-                CategoryEntity(name = "Diğer", isDefault = true),
+        seedMutex.withLock {
+            if (productDao.categoryCount() > 0) return
+            productDao.insertCategories(
+                listOf(
+                    CategoryEntity(name = "Gıda", isDefault = true),
+                    CategoryEntity(name = "İlaç", isDefault = true),
+                    CategoryEntity(name = "Kozmetik", isDefault = true),
+                    CategoryEntity(name = "Temizlik", isDefault = true),
+                    CategoryEntity(name = "Diğer", isDefault = true),
+                )
             )
-        )
+        }
     }
 
     private fun com.axenvoir.sktplus.data.local.ProductWithCategory.toDomain() = Product(
