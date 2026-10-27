@@ -32,7 +32,6 @@
     <string name="error_invalid_quantity">Quantity must be at least 1</string>
     <string name="empty_notes_search">No notes match your search</string>
     <string name="error_empty_name">Product name cannot be empty</string>
-    <string name="error_past_date">Past date is not allowed</string>
     <string name="error_empty_title">Title cannot be empty</string>
     <string name="error_generic">Something went wrong. Try again.</string>
     <string name="delete_confirm">Are you sure you want to delete?</string>
@@ -49,7 +48,6 @@
     </plurals>
     <string name="notification_test_title">Expira test notification</string>
     <string name="notification_test_text">Notifications are working on your device.</string>
-    <string name="enable_notifications">Enable notifications</string>
     <string name="all">All</string>
     <string name="select_date">Pick a date</string>
     <string name="expired_badge">EXPIRED</string>
