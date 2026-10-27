@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -13,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -31,6 +33,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,11 +60,21 @@ fun ProductEditScreen(
     val saved by viewModel.saved.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDatePicker by remember { mutableStateOf(false) }
+    var showPastDateWarning by remember { mutableStateOf(false) }
+    var pendingPastDate by remember { mutableStateOf<java.time.LocalDate?>(null) }
     val genericErrorText = stringResource(R.string.error_generic)
+
+    val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
+    var showUnsavedDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(saved) {
         if (saved) onBack()
     }
+
+    val confirmBack = {
+        if (isDirty) showUnsavedDialog = true else onBack()
+    }
+    BackHandler { confirmBack() }
 
     val emptyNameText = stringResource(R.string.error_empty_name)
     val missingDateText = stringResource(R.string.error_past_date)
@@ -94,7 +107,7 @@ fun ProductEditScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { confirmBack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.cancel),
@@ -109,27 +122,38 @@ fun ProductEditScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            OutlinedTextField(
-                value = uiState.name,
-                onValueChange = viewModel::onNameChange,
+            androidx.compose.foundation.layout.Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.product_name)) },
-                singleLine = true,
-            )
-            OutlinedTextField(
-                value = uiState.quantityText,
-                onValueChange = viewModel::onQuantityChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.quantity)) },
-                singleLine = true,
-            )
+            ) {
+                OutlinedTextField(
+                    value = uiState.name,
+                    onValueChange = viewModel::onNameChange,
+                    modifier = Modifier.weight(5f),
+                    label = { Text(stringResource(R.string.product_name)) },
+                    placeholder = { Text(stringResource(R.string.name_placeholder)) },
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        imeAction = androidx.compose.ui.text.input.ImeAction.Next,
+                    ),
+                )
+                OutlinedTextField(
+                    value = uiState.quantityText,
+                    onValueChange = viewModel::onQuantityChange,
+                    modifier = Modifier.weight(2f),
+                    label = { Text(stringResource(R.string.quantity)) },
+                    singleLine = true,
+                )
+            }
             Text(
                 text = stringResource(R.string.category),
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             CategorySelector(
                 uiState = uiState,
@@ -137,8 +161,30 @@ fun ProductEditScreen(
                 onNewCategoryChange = viewModel::onNewCategoryNameChange,
             )
             Text(
+                text = stringResource(R.string.storage_location),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            androidx.compose.foundation.layout.FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                listOf(
+                    "" to R.string.location_other,
+                    "fridge" to R.string.location_fridge,
+                    "pantry" to R.string.location_pantry,
+                    "freezer" to R.string.location_freezer,
+                ).forEach { (key, labelRes) ->
+                    androidx.compose.material3.FilterChip(
+                        selected = uiState.storageLocation == key,
+                        onClick = { viewModel.onStorageLocationChange(key) },
+                        label = { Text(stringResource(labelRes)) },
+                    )
+                }
+            }
+            Text(
                 text = stringResource(R.string.expiry_date),
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             OutlinedButton(
                 onClick = { showDatePicker = true },
@@ -153,9 +199,58 @@ fun ProductEditScreen(
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = viewModel::save,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
             ) { Text(stringResource(R.string.save)) }
         }
+    }
+
+    val pastDateToConfirm = pendingPastDate
+    if (showUnsavedDialog) {
+        AlertDialog(
+            onDismissRequest = { showUnsavedDialog = false },
+            title = { Text(stringResource(R.string.unsaved_title)) },
+            text = { Text(stringResource(R.string.unsaved_message)) },
+            confirmButton = {
+                TextButton(onClick = { showUnsavedDialog = false; onBack() }) {
+                    Text(stringResource(R.string.discard))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUnsavedDialog = false }) {
+                    Text(stringResource(R.string.no))
+                }
+            },
+        )
+    }
+
+    if (showPastDateWarning && pastDateToConfirm != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showPastDateWarning = false
+                pendingPastDate = null
+            },
+            title = { Text(stringResource(R.string.past_date_title)) },
+            text = { Text(stringResource(R.string.past_date_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.onExpiryDateChange(pastDateToConfirm)
+                        showPastDateWarning = false
+                        pendingPastDate = null
+                    },
+                ) { Text(stringResource(R.string.yes)) }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showPastDateWarning = false
+                        pendingPastDate = null
+                    },
+                ) { Text(stringResource(R.string.no)) }
+            },
+        )
     }
 
     if (showDatePicker) {
@@ -172,7 +267,12 @@ fun ProductEditScreen(
                             val date = Instant.ofEpochMilli(millis)
                                 .atZone(ZoneId.systemDefault())
                                 .toLocalDate()
-                            viewModel.onExpiryDateChange(date)
+                            if (date.isBefore(java.time.LocalDate.now())) {
+                                pendingPastDate = date
+                                showPastDateWarning = true
+                            } else {
+                                viewModel.onExpiryDateChange(date)
+                            }
                         }
                         showDatePicker = false
                     },

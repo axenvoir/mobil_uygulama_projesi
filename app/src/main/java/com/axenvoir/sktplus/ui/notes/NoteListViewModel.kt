@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -34,7 +35,7 @@ class NoteListViewModel @Inject constructor(
             note.title.contains(query, ignoreCase = true) ||
                 note.content.contains(query, ignoreCase = true)
         }
-    }.stateIn(
+    }.distinctUntilChanged().stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = emptyList(),
@@ -51,9 +52,17 @@ class NoteListViewModel @Inject constructor(
         }
     }
 
-    fun deleteNote(note: Note) {
+    fun deleteNote(note: Note, onDeleted: () -> Unit = {}) {
         viewModelScope.launch {
             runCatching { noteRepository.deleteById(note.id) }
+                .onSuccess { onDeleted() }
+                .onFailure { _events.value = NoteListEvent.Error }
+        }
+    }
+
+    fun restoreNote(note: Note) {
+        viewModelScope.launch {
+            runCatching { noteRepository.upsert(note) }
                 .onFailure { _events.value = NoteListEvent.Error }
         }
     }

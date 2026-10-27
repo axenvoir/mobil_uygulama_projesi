@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 data class ProductWithCategory(
@@ -15,6 +15,7 @@ data class ProductWithCategory(
     val expiryEpochDay: Long,
     val quantity: Int,
     val createdAt: Long,
+    val storageLocation: String,
 )
 
 @Dao
@@ -23,7 +24,8 @@ interface ProductDao {
         """
         SELECT p.id AS id, p.name AS name, p.categoryId AS categoryId,
                c.name AS categoryName, p.expiryEpochDay AS expiryEpochDay,
-               p.quantity AS quantity, p.createdAt AS createdAt
+               p.quantity AS quantity, p.createdAt AS createdAt,
+               p.storageLocation AS storageLocation
         FROM products AS p
         INNER JOIN categories AS c ON c.id = p.categoryId
         ORDER BY p.expiryEpochDay ASC
@@ -35,7 +37,8 @@ interface ProductDao {
         """
         SELECT p.id AS id, p.name AS name, p.categoryId AS categoryId,
                c.name AS categoryName, p.expiryEpochDay AS expiryEpochDay,
-               p.quantity AS quantity, p.createdAt AS createdAt
+               p.quantity AS quantity, p.createdAt AS createdAt,
+               p.storageLocation AS storageLocation
         FROM products AS p
         INNER JOIN categories AS c ON c.id = p.categoryId
         WHERE p.id = :id
@@ -46,8 +49,8 @@ interface ProductDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(product: ProductEntity): Long
 
-    @Update
-    suspend fun update(product: ProductEntity)
+    @Upsert
+    suspend fun upsert(product: ProductEntity)
 
     @Query("DELETE FROM products WHERE id = :id")
     suspend fun deleteById(id: Long)

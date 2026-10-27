@@ -24,4 +24,5 @@ data class ProductEntity(
     val expiryEpochDay: Long,
     val quantity: Int,
     val createdAt: Long,
+    val storageLocation: String = "",
 )

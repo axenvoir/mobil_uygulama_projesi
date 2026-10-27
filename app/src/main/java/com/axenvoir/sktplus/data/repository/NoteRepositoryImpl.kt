@@ -30,7 +30,7 @@ class NoteRepositoryImpl @Inject constructor(
             updatedAt = note.updatedAt,
         )
         return if (note.id == 0L) noteDao.insert(entity) else {
-            noteDao.update(entity)
+            noteDao.upsert(entity)
             note.id
         }
     }

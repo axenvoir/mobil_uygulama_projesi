@@ -23,8 +23,9 @@ android {
         applicationId = "com.expira.app.tr"
         minSdk = 26
         targetSdk = 36
-        versionCode = 69
-        versionName = "1.0.0"
+        resourceConfigurations += listOf("tr", "en")
+        versionCode = 93
+        versionName = "1.9.1"
     }
 
     signingConfigs {
@@ -40,7 +41,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             signingConfig = keystoreProperties["storeFile"]?.let {
                 signingConfigs.getByName("release")
             }
@@ -57,15 +58,21 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+        freeCompilerArgs += listOf(
+            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:experimentalStrongSkipping=true",
+        )
     }
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)

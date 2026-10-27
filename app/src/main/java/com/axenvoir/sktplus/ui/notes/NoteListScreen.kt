@@ -1,12 +1,15 @@
 package com.axenvoir.sktplus.ui.notes
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,9 +17,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,15 +35,17 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,12 +54,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.sktplus.R
 import com.axenvoir.sktplus.domain.model.Note
+import com.axenvoir.sktplus.ui.components.EmptyState
+import com.axenvoir.sktplus.ui.main.SettingsIconButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteListScreen(
     onAddNote: () -> Unit,
     onEditNote: (Long) -> Unit,
+    onOpenSettings: () -> Unit,
     viewModel: NoteListViewModel = hiltViewModel(),
 ) {
     val notes by viewModel.notes.collectAsStateWithLifecycle()
@@ -63,6 +72,10 @@ fun NoteListScreen(
     var notePendingDelete by remember { mutableStateOf<Note?>(null) }
     val errorText = stringResource(R.string.error_generic)
 
+    val hapticFeedback = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val undoText = stringResource(R.string.undo)
+
     LaunchedEffect(event) {
         if (event is NoteListEvent.Error) {
             snackbarHostState.showSnackbar(errorText)
@@ -70,8 +83,22 @@ fun NoteListScreen(
         }
     }
 
+    val scrollBehavior = androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior()
+
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.notes_list_title)) }) },
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            androidx.compose.material3.LargeTopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.notes_list_title),
+                        maxLines = 2,
+                    )
+                },
+                actions = { SettingsIconButton(onClick = onOpenSettings) },
+                scrollBehavior = scrollBehavior,
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddNote) {
@@ -84,34 +111,85 @@ fun NoteListScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            OutlinedTextField(
-                value = query,
-                onValueChange = viewModel::onQueryChange,
+            androidx.compose.foundation.layout.Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                placeholder = { Text(stringResource(R.string.search_notes)) },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                singleLine = true,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            if (notes.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.empty_notes))
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    items(notes, key = { it.id }) { note ->
-                        NoteCard(
-                            note = note,
-                            onClick = { onEditNote(note.id) },
-                            onTogglePin = { viewModel.togglePinned(note) },
-                            onDelete = { notePendingDelete = note },
-                        )
+                    .widthIn(max = 800.dp),
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = viewModel::onQueryChange,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        placeholder = { Text(stringResource(R.string.search_notes)) },
+                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                        singleLine = true,
+                        shape = MaterialTheme.shapes.extraLarge,
+                    )
+                    if (notes.isEmpty()) {
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            EmptyState(
+                                icon = Icons.Filled.Edit,
+                                title = stringResource(R.string.empty_notes_title),
+                                subtitle = stringResource(R.string.empty_notes),
+                                actionLabel = stringResource(R.string.add_note),
+                                onAction = onAddNote,
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            items(notes, key = { it.id }, contentType = { "note" }) { note ->
+                                val dismissState = androidx.compose.material3.rememberSwipeToDismissBoxState(
+                                    confirmValueChange = { value ->
+                                        if (value == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart) {
+                                            notePendingDelete = note
+                                        }
+                                        false
+                                    },
+                                )
+                                androidx.compose.foundation.layout.Box(
+                                    modifier = Modifier.animateItem(),
+                                ) {
+                                    androidx.compose.material3.SwipeToDismissBox(
+                                        state = dismissState,
+                                        enableDismissFromStartToEnd = false,
+                                        backgroundContent = {
+                                            androidx.compose.foundation.layout.Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(MaterialTheme.colorScheme.errorContainer),
+                                                contentAlignment = Alignment.CenterEnd,
+                                            ) {
+                                                Icon(
+                                                    Icons.Filled.Delete,
+                                                    contentDescription = stringResource(R.string.delete),
+                                                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                                                )
+                                            }
+                                        },
+                                    ) {
+                                        NoteCard(
+                                            note = note,
+                                            onClick = { onEditNote(note.id) },
+                                            onTogglePin = { viewModel.togglePinned(note) },
+                                            onDelete = { notePendingDelete = note },
+                                        )
+                                    }
+                                }
+
+                            }
+                        }
                     }
                 }
             }
@@ -122,10 +200,23 @@ fun NoteListScreen(
         AlertDialog(
             onDismissRequest = { notePendingDelete = null },
             title = { Text(stringResource(R.string.delete_confirm)) },
+            text = { Text(note.title) },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.deleteNote(note)
+                        hapticFeedback.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        viewModel.deleteNote(note) {
+                            scope.launch {
+                                val result = snackbarHostState.showSnackbar(
+                                    message = note.title,
+                                    actionLabel = undoText,
+                                    duration = androidx.compose.material3.SnackbarDuration.Long,
+                                )
+                                if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
+                                    viewModel.restoreNote(note)
+                                }
+                            }
+                        }
                         notePendingDelete = null
                     },
                 ) { Text(stringResource(R.string.yes)) }
@@ -140,6 +231,20 @@ fun NoteListScreen(
 }
 
 @Composable
+private fun relativeUpdatedAt(timestamp: Long): String {
+    val now = System.currentTimeMillis()
+    val days = java.time.temporal.ChronoUnit.DAYS.between(
+        java.time.Instant.ofEpochMilli(timestamp).atZone(java.time.ZoneId.systemDefault()).toLocalDate(),
+        java.time.Instant.ofEpochMilli(now).atZone(java.time.ZoneId.systemDefault()).toLocalDate(),
+    )
+    return when {
+        days <= 0L -> stringResource(R.string.relative_today)
+        days == 1L -> stringResource(R.string.relative_yesterday)
+        else -> stringResource(R.string.relative_days_ago, days)
+    }
+}
+
+@Composable
 private fun NoteCard(
     note: Note,
     onClick: () -> Unit,
@@ -149,15 +254,20 @@ private fun NoteCard(
     Card(
         onClick = onClick,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = if (note.isPinned) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surface
+            },
         ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = note.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -165,18 +275,23 @@ private fun NoteCard(
                 IconButton(onClick = onTogglePin) {
                     if (note.isPinned) {
                         Icon(
-                            Icons.Filled.PushPin,
-                            contentDescription = stringResource(R.string.tab_notes),
+                            Icons.Filled.Star,
+                            contentDescription = stringResource(R.string.pin),
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     } else {
-                        Icon(Icons.Outlined.PushPin, contentDescription = null)
+                        Icon(
+                            Icons.Outlined.FavoriteBorder,
+                            contentDescription = stringResource(R.string.pin),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
                 IconButton(onClick = onDelete) {
                     Icon(
                         Icons.Filled.Delete,
                         contentDescription = stringResource(R.string.delete),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -185,10 +300,17 @@ private fun NoteCard(
                 Text(
                     text = note.content,
                     style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = relativeUpdatedAt(note.updatedAt),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

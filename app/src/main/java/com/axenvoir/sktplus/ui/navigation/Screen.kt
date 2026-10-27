@@ -14,4 +14,5 @@ sealed class Screen(val route: String) {
         const val ARG_NOTE_ID = "noteId"
         fun createRoute(noteId: Long) = "note/edit/$noteId"
     }
+    data object Settings : Screen("settings")
 }

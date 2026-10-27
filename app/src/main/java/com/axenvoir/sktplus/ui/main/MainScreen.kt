@@ -2,15 +2,20 @@ package com.axenvoir.sktplus.ui.main
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notes
-import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -21,16 +26,32 @@ import com.axenvoir.sktplus.R
 import com.axenvoir.sktplus.ui.navigation.Screen
 import com.axenvoir.sktplus.ui.navigation.AppNavHost
 
-private data class BottomTab(val screen: Screen, val labelRes: Int, val icon: androidx.compose.ui.graphics.vector.ImageVector)
+private data class BottomTab(
+    val screen: Screen,
+    val labelRes: Int,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+)
 
 private val tabs = listOf(
-    BottomTab(Screen.ProductList, R.string.tab_expiry, Icons.Filled.Schedule),
-    BottomTab(Screen.NoteList, R.string.tab_notes, Icons.Filled.Notes),
+    BottomTab(Screen.ProductList, R.string.tab_expiry, Icons.Filled.DateRange),
+    BottomTab(Screen.NoteList, R.string.tab_notes, Icons.Filled.List),
 )
 
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember { context.getSharedPreferences("app_settings", android.content.Context.MODE_PRIVATE) }
+    var showOnboarding by remember { mutableStateOf(prefs.getBoolean("onboarding_done", false).not()) }
+    val dismissOnboarding = {
+        prefs.edit().putBoolean("onboarding_done", true).apply()
+        showOnboarding = false
+    }
+    com.axenvoir.sktplus.ui.components.OnboardingOverlay(
+        visible = showOnboarding,
+        onDismiss = dismissOnboarding,
+        onOpenSettings = { navController.navigate(com.axenvoir.sktplus.ui.navigation.Screen.Settings.route) },
+    )
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
@@ -58,6 +79,16 @@ fun MainScreen() {
         AppNavHost(
             navController = navController,
             modifier = Modifier.padding(innerPadding),
+        )
+    }
+}
+
+@Composable
+fun SettingsIconButton(onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(
+            Icons.Outlined.Settings,
+            contentDescription = stringResource(R.string.settings_title),
         )
     }
 }

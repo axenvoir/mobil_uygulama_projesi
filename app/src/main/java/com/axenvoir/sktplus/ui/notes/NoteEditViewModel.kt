@@ -10,7 +10,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -38,17 +41,40 @@ class NoteEditViewModel @Inject constructor(
     private val _saved = MutableStateFlow(false)
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
 
+    private var originalTitle: String = ""
+    private var originalContent: String = ""
+    private var originalIsPinned: Boolean = false
+    private var loaded = MutableStateFlow(false)
+
+    val isDirty: StateFlow<Boolean> = combine(
+        title,
+        content,
+        isPinned,
+        loaded,
+    ) { t, c, pinned, isLoaded ->
+        isLoaded && (t != originalTitle || c != originalContent || pinned != originalIsPinned)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = false,
+    )
+
     init {
         if (isEditMode) {
             viewModelScope.launch {
-                noteRepository.observeById(noteId).collect { note ->
-                    if (note != null) {
-                        _title.value = note.title
-                        _content.value = note.content
-                        _isPinned.value = note.isPinned
-                    }
+                val note = noteRepository.observeById(noteId).first()
+                if (note != null) {
+                    originalTitle = note.title
+                    originalContent = note.content
+                    originalIsPinned = note.isPinned
+                    _title.value = note.title
+                    _content.value = note.content
+                    _isPinned.value = note.isPinned
+                    loaded.value = true
                 }
             }
+        } else {
+            loaded.value = true
         }
     }
 
@@ -58,6 +84,21 @@ class NoteEditViewModel @Inject constructor(
 
     fun onContentChange(value: String) {
         _content.value = value
+        if (_title.value.isBlank()) {
+            _suggestedTitle.value = value.lineSequence().firstOrNull { it.isNotBlank() }?.trim().orEmpty()
+        } else {
+            _suggestedTitle.value = ""
+        }
+    }
+
+    private var _suggestedTitle = MutableStateFlow("")
+    val suggestedTitle: StateFlow<String> = _suggestedTitle.asStateFlow()
+
+    fun applySuggestedTitle() {
+        if (_title.value.isBlank() && _suggestedTitle.value.isNotBlank()) {
+            _title.value = _suggestedTitle.value.take(60)
+            _suggestedTitle.value = ""
+        }
     }
 
     fun onPinnedChange(value: Boolean) {
