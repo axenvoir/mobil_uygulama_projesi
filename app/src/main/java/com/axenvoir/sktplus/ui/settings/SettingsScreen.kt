@@ -48,6 +48,11 @@ fun SettingsScreen(
     val selected by viewModel.current.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = androidx.compose.ui.platform.LocalContext.current
+    val exportDoneMessage = stringResource(R.string.export_done)
+    val exportFailedMessage = stringResource(R.string.export_failed)
+    val testNotificationSentMessage = stringResource(R.string.test_notification_sent)
+    val notificationsBlockedMessage = stringResource(R.string.notifications_blocked)
+    val openSettingsLabel = stringResource(R.string.open_settings)
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     val exportLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         contract = androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/csv"),
@@ -57,7 +62,7 @@ fun SettingsScreen(
                 val result = viewModel.exportCsv(context, uri)
                 snackbarHostState.showSnackbar(
                     context.getString(
-                        if (result.isSuccess) R.string.export_done else R.string.export_failed
+                        if (result.isSuccess) exportDoneMessage else exportFailedMessage
                     )
                 )
             }
@@ -117,11 +122,9 @@ fun SettingsScreen(
                             val sent = viewModel.sendTestNotification()
                             scope.launch {
                                 val result = snackbarHostState.showSnackbar(
-                                    message = context.getString(
-                                        if (sent) R.string.test_notification_sent
-                                        else R.string.notifications_blocked
-                                    ),
-                                    actionLabel = if (sent) null else context.getString(R.string.open_settings),
+                                    message = if (sent) testNotificationSentMessage
+                                    else notificationsBlockedMessage,
+                                    actionLabel = if (sent) null else openSettingsLabel,
                                 )
                                 if (!sent && result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
                                     val intent = android.content.Intent(
