@@ -35,6 +35,7 @@ class NotificationHelper @Inject constructor(
         manager.createNotificationChannel(channel)
     }
 
+    @androidx.annotation.CheckResult
     fun canPostNotifications(): Boolean =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(
@@ -66,7 +67,9 @@ class NotificationHelper @Inject constructor(
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .build()
-        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+        if (canPostNotifications()) {
+            NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+        }
     }
 
     companion object {
