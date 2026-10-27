@@ -48,7 +48,7 @@ class NoteListViewModel @Inject constructor(
     fun togglePinned(note: Note) {
         viewModelScope.launch {
             runCatching { noteRepository.setPinned(id = note.id, isPinned = !note.isPinned) }
-                .onFailure { _events.value = NoteListEvent.Error }
+                .onFailure { if (it is kotlinx.coroutines.CancellationException) throw it else _events.value = NoteListEvent.Error }
         }
     }
 

@@ -41,6 +41,9 @@ class NoteEditViewModel @Inject constructor(
     private val _saved = MutableStateFlow(false)
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
 
+    private val _isSaving = MutableStateFlow(false)
+    val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
+
     private var originalTitle: String = ""
     private var originalContent: String = ""
     private var originalIsPinned: Boolean = false
@@ -63,6 +66,7 @@ class NoteEditViewModel @Inject constructor(
         if (isEditMode) {
             viewModelScope.launch {
                 val note = noteRepository.observeById(noteId).first()
+                loaded.value = true
                 if (note != null) {
                     originalTitle = note.title
                     originalContent = note.content
@@ -70,7 +74,6 @@ class NoteEditViewModel @Inject constructor(
                     _title.value = note.title
                     _content.value = note.content
                     _isPinned.value = note.isPinned
-                    loaded.value = true
                 }
             }
         } else {
@@ -106,12 +109,14 @@ class NoteEditViewModel @Inject constructor(
     }
 
     fun save() {
+        if (_isSaving.value || _saved.value) return
         val trimmedTitle = _title.value.trim()
         if (trimmedTitle.isEmpty()) {
             _error.value = NoteEditError.EmptyTitle
             return
         }
         viewModelScope.launch {
+            _isSaving.value = true
             try {
                 val now = System.currentTimeMillis()
                 val existing = if (isEditMode) noteRepository.observeById(noteId).first() else null
@@ -126,7 +131,10 @@ class NoteEditViewModel @Inject constructor(
                 noteRepository.upsert(note)
                 _saved.value = true
             } catch (e: IllegalStateException) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 _error.value = NoteEditError.Generic
+            } finally {
+                _isSaving.value = false
             }
         }
     }

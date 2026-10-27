@@ -46,7 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.sktplus.R
 import java.time.Instant
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -58,6 +58,7 @@ fun ProductEditScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val saved by viewModel.saved.collectAsStateWithLifecycle()
+    val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDatePicker by remember { mutableStateOf(false) }
     var showPastDateWarning by remember { mutableStateOf(false) }
@@ -202,6 +203,7 @@ fun ProductEditScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
+                enabled = !isSaving,
             ) { Text(stringResource(R.string.save)) }
         }
     }
@@ -255,7 +257,7 @@ fun ProductEditScreen(
 
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = uiState.expiryDate?.atStartOfDay(ZoneId.systemDefault())
+            initialSelectedDateMillis = uiState.expiryDate?.atStartOfDay(ZoneOffset.UTC)
                 ?.toInstant()?.toEpochMilli()
         )
         DatePickerDialog(
@@ -265,7 +267,7 @@ fun ProductEditScreen(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
                             val date = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
+                                .atZone(ZoneOffset.UTC)
                                 .toLocalDate()
                             if (date.isBefore(java.time.LocalDate.now())) {
                                 pendingPastDate = date

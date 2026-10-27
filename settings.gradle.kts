@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SKT-Plus"
+rootProject.name = "Expira"
 include(":app")

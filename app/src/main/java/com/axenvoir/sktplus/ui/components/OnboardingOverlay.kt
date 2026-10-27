@@ -83,7 +83,7 @@ fun OnboardingOverlay(
                     Text(
                         stringResource(
                             if (step < pages.lastIndex) R.string.onboarding_next
-                            else R.string.onboarding_done
+                            else page.actionLabelRes ?: R.string.onboarding_done
                         )
                     )
                 }

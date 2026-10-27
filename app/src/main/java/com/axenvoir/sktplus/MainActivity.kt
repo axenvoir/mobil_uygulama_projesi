@@ -3,8 +3,6 @@ package com.axenvoir.sktplus
 import android.Manifest
 import android.os.Build
 import android.os.Bundle
-import android.content.pm.PackageManager
-import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -14,7 +12,7 @@ import com.axenvoir.sktplus.notification.NotificationHelper
 import com.axenvoir.sktplus.ui.settings.LanguageManager
 import com.axenvoir.sktplus.notification.ReminderScheduler
 import com.axenvoir.sktplus.ui.main.MainScreen
-import com.axenvoir.sktplus.ui.theme.SktPlusTheme
+import com.axenvoir.sktplus.ui.theme.ExpiraTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -60,7 +58,7 @@ class MainActivity : AppCompatActivity() {
         languageManager.applyOnStartup()
         enableEdgeToEdge()
         setContent {
-            SktPlusTheme {
+            ExpiraTheme {
                 MainScreen()
             }
         }
@@ -69,14 +67,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun requestNotificationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val granted = ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS,
-            ) == PackageManager.PERMISSION_GRANTED
-            if (granted) {
-                reminderScheduler.scheduleDailyReminder()
-            } else {
+            if (!notificationHelper.canPostNotifications()) {
+                if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) return
                 permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                reminderScheduler.scheduleDailyReminder()
             }
         } else {
             reminderScheduler.scheduleDailyReminder()
