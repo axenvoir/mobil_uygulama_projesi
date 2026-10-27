@@ -53,6 +53,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -107,9 +108,12 @@ fun ProductListScreen(
         ProductFilter.EXPIRED -> uiState.products.filter { expiryStatus(it.expiryDate) == ExpiryStatus.EXPIRED }
     }
 
+    val topBarScrollBehavior = androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(topBarScrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
+            androidx.compose.material3.LargeTopAppBar(
                 title = {
                     Text(
                         text = stringResource(R.string.expiry_list_title),
@@ -118,6 +122,7 @@ fun ProductListScreen(
                     )
                 },
                 actions = { SettingsIconButton(onClick = onOpenSettings) },
+                scrollBehavior = topBarScrollBehavior,
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
