@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -154,7 +155,7 @@ fun NoteEditScreen(
                 onValueChange = viewModel::onContentChange,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(240.dp),
+                    .heightIn(min = 160.dp, max = 320.dp),
                 label = { Text(stringResource(R.string.note_content)) },
             )
             if (error is NoteEditError.Generic) {

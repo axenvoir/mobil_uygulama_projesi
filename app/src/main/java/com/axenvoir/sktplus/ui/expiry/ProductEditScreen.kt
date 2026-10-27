@@ -127,24 +127,29 @@ fun ProductEditScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            OutlinedTextField(
-                value = uiState.name,
-                onValueChange = viewModel::onNameChange,
+            androidx.compose.foundation.layout.Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.product_name)) },
-                placeholder = { Text(stringResource(R.string.name_placeholder)) },
-                singleLine = true,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                    imeAction = androidx.compose.ui.text.input.ImeAction.Next,
-                ),
-            )
-            OutlinedTextField(
-                value = uiState.quantityText,
-                onValueChange = viewModel::onQuantityChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.quantity)) },
-                singleLine = true,
-            )
+            ) {
+                OutlinedTextField(
+                    value = uiState.name,
+                    onValueChange = viewModel::onNameChange,
+                    modifier = Modifier.weight(3f),
+                    label = { Text(stringResource(R.string.product_name)) },
+                    placeholder = { Text(stringResource(R.string.name_placeholder)) },
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        imeAction = androidx.compose.ui.text.input.ImeAction.Next,
+                    ),
+                )
+                OutlinedTextField(
+                    value = uiState.quantityText,
+                    onValueChange = viewModel::onQuantityChange,
+                    modifier = Modifier.weight(1f),
+                    label = { Text(stringResource(R.string.quantity)) },
+                    singleLine = true,
+                )
+            }
             Text(
                 text = stringResource(R.string.category),
                 style = MaterialTheme.typography.labelLarge,
@@ -194,7 +199,9 @@ fun ProductEditScreen(
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = viewModel::save,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
             ) { Text(stringResource(R.string.save)) }
         }
     }
