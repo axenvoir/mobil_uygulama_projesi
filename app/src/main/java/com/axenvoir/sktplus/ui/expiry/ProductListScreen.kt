@@ -2,6 +2,7 @@ package com.axenvoir.sktplus.ui.expiry
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -549,7 +550,7 @@ fun remainingDaysText(expiryDate: java.time.LocalDate): String {
     }
 }
 
-@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 private fun ProductCard(
     product: Product,
@@ -564,8 +565,12 @@ private fun ProductCard(
         ExpiryStatus.EXPIRED -> com.axenvoir.sktplus.ui.theme.ExpiredRedContainer
     }
     Card(
-        onClick = onClick,
-        onLongClick = onLongClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
         colors = CardDefaults.cardColors(
             containerColor = statusContainer,
         ),
