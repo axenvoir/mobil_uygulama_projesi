@@ -155,10 +155,8 @@ fun NoteListScreen(
                                     confirmValueChange = { value ->
                                         if (value == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart) {
                                             notePendingDelete = note
-                                            true
-                                        } else {
-                                            false
                                         }
+                                        false
                                     },
                                 )
                                 androidx.compose.foundation.layout.Box(
@@ -194,13 +192,7 @@ fun NoteListScreen(
                                         )
                                     }
                                 }
-                                androidx.compose.runtime.LaunchedEffect(notePendingDelete) {
-                                    if (notePendingDelete == null &&
-                                        dismissState.currentValue == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart
-                                    ) {
-                                        dismissState.snapTo(androidx.compose.material3.SwipeToDismissBoxValue.Settled)
-                                    }
-                                }
+
                             }
                         }
                     }

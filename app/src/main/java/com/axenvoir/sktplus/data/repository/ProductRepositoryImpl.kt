@@ -34,7 +34,7 @@ class ProductRepositoryImpl @Inject constructor(
             storageLocation = product.storageLocation,
         )
         return if (product.id == 0L) productDao.insert(entity) else {
-            productDao.update(entity)
+            productDao.upsert(entity)
             product.id
         }
     }

@@ -257,10 +257,8 @@ fun ProductListScreen(
                                     confirmValueChange = { value ->
                                         if (value == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart) {
                                             productPendingDelete = product
-                                            true
-                                        } else {
-                                            false
                                         }
+                                        false
                                     },
                                 )
                                 androidx.compose.foundation.layout.Box(
@@ -297,13 +295,7 @@ fun ProductListScreen(
                                         )
                                     }
                                 }
-                                androidx.compose.runtime.LaunchedEffect(productPendingDelete) {
-                                    if (productPendingDelete == null &&
-                                        dismissState.currentValue == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart
-                                    ) {
-                                        dismissState.snapTo(androidx.compose.material3.SwipeToDismissBoxValue.Settled)
-                                    }
-                                }
+
                             }
                         }
                     }
