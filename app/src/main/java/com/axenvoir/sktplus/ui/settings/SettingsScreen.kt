@@ -61,9 +61,7 @@ fun SettingsScreen(
             scope.launch {
                 val result = viewModel.exportCsv(context, uri)
                 snackbarHostState.showSnackbar(
-                    context.getString(
-                        if (result.isSuccess) exportDoneMessage else exportFailedMessage
-                    )
+                    if (result.isSuccess) exportDoneMessage else exportFailedMessage
                 )
             }
         }
