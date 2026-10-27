@@ -549,6 +549,7 @@ fun remainingDaysText(expiryDate: java.time.LocalDate): String {
     }
 }
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 private fun ProductCard(
     product: Product,
