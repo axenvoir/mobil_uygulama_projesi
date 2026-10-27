@@ -563,11 +563,7 @@ private fun ProductCard(
     onDelete: () -> Unit,
 ) {
     val status = expiryStatus(product.expiryDate, referenceDate)
-    val statusContainer = when (status) {
-        ExpiryStatus.FRESH -> MaterialTheme.colorScheme.surface
-        ExpiryStatus.EXPIRING_SOON -> com.axenvoir.sktplus.ui.theme.WarningOrangeContainer
-        ExpiryStatus.EXPIRED -> com.axenvoir.sktplus.ui.theme.ExpiredRedContainer
-    }
+    val days = daysUntil(product.expiryDate, referenceDate)
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -576,7 +572,7 @@ private fun ProductCard(
                 onLongClick = onLongClick,
             ),
         colors = CardDefaults.cardColors(
-            containerColor = statusContainer,
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -584,107 +580,71 @@ private fun ProductCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 4.dp)
-                .height(IntrinsicSize.Min),
+                .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier = Modifier
-                    .width(6.dp)
-                    .fillMaxSize()
-                    .padding(vertical = 10.dp)
-                    .background(
-                        color = statusColor(status),
-                        shape = MaterialTheme.shapes.small,
-                    ),
-            )
             Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = product.name,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
-                            com.axenvoir.sktplus.ui.components.CategoryAvatar(name = product.categoryName)
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = product.categoryName,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        Text(
-                            text = "x${product.quantity}",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier
-                                .background(
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                    MaterialTheme.shapes.small,
-                                )
-                                .padding(horizontal = 10.dp, vertical = 4.dp),
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        val days = daysUntil(product.expiryDate, referenceDate)
-                        Text(
-                            text = if (days < 0) days.toString() else days.toString(),
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = statusColor(status),
-                        )
-                        Text(
-                            text = if (days < 0) stringResource(R.string.status_expired)
-                            else stringResource(R.string.days_short),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    IconButton(onClick = onDelete) {
-                        Icon(
-                            Icons.Filled.Delete,
-                            contentDescription = stringResource(R.string.delete),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Filled.DateRange,
-                        contentDescription = null,
-                        tint = statusColor(status),
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = product.expiryDate.format(
-                            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
+                Text(
+                    text = product.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                androidx.compose.foundation.layout.Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    com.axenvoir.sktplus.ui.components.CategoryAvatar(name = product.categoryName)
                     Spacer(modifier = Modifier.width(8.dp))
-                    StatusDot(statusColor(status))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    androidx.compose.material3.Text(
-                        text = androidx.compose.ui.text.buildAnnotatedString {
-                            withStyle(
-                                androidx.compose.ui.text.SpanStyle(
-                                    color = statusColor(status),
-                                    fontWeight = FontWeight.Medium,
-                                )
-                            ) { append(statusLabel(status)) }
-                            append(" · ")
-                            withStyle(
-                                androidx.compose.ui.text.SpanStyle(
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            ) { append(remainingDaysText(product.expiryDate)) }
-                        },
+                    Text(
+                        text = product.categoryName,
                         style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = "x${product.quantity}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .background(
+                                MaterialTheme.colorScheme.surfaceVariant,
+                                MaterialTheme.shapes.small,
+                            )
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
                     )
                 }
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = product.expiryDate.format(
+                        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(horizontal = 12.dp),
+            ) {
+                Text(
+                    text = kotlin.math.abs(days).toString(),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = statusColor(status),
+                )
+                Text(
+                    text = if (days < 0) stringResource(R.string.days_passed_short)
+                    else stringResource(R.string.days_short),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Filled.Delete,
+                    contentDescription = stringResource(R.string.delete),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }

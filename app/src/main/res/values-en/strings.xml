@@ -84,4 +84,5 @@
     <string name="onboarding_done">Start</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_next">Next</string>
+    <string name="days_passed_short">days past</string>
 </resources>

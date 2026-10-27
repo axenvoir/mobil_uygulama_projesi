@@ -84,4 +84,5 @@
     <string name="onboarding_done">Başla</string>
     <string name="onboarding_back">Geri</string>
     <string name="onboarding_next">İleri</string>
+    <string name="days_passed_short">gün geçti</string>
 </resources>
