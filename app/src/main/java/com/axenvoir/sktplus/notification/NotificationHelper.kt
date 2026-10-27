@@ -3,11 +3,14 @@ package com.axenvoir.sktplus.notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.axenvoir.sktplus.MainActivity
 import com.axenvoir.sktplus.R
 import dagger.hilt.android.qualifiers.ApplicationContext
