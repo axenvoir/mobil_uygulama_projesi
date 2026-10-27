@@ -92,8 +92,7 @@ fun NoteListScreen(
                 title = {
                     Text(
                         text = stringResource(R.string.notes_list_title),
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        maxLines = 2,
                     )
                 },
                 actions = { SettingsIconButton(onClick = onOpenSettings) },
@@ -147,7 +146,7 @@ fun NoteListScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             items(notes, key = { it.id }, contentType = { "note" }) { note ->
@@ -168,12 +167,8 @@ fun NoteListScreen(
                                         backgroundContent = {
                                             androidx.compose.foundation.layout.Box(
                                                 modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .background(
-                                                        MaterialTheme.colorScheme.errorContainer,
-                                                        MaterialTheme.shapes.medium,
-                                                    )
-                                                    .padding(horizontal = 20.dp),
+                                                    .fillMaxSize()
+                                                    .background(MaterialTheme.colorScheme.errorContainer),
                                                 contentAlignment = Alignment.CenterEnd,
                                             ) {
                                                 Icon(

@@ -134,7 +134,7 @@ fun ProductEditScreen(
                 OutlinedTextField(
                     value = uiState.name,
                     onValueChange = viewModel::onNameChange,
-                    modifier = Modifier.weight(3f),
+                    modifier = Modifier.weight(5f),
                     label = { Text(stringResource(R.string.product_name)) },
                     placeholder = { Text(stringResource(R.string.name_placeholder)) },
                     singleLine = true,
@@ -145,7 +145,7 @@ fun ProductEditScreen(
                 OutlinedTextField(
                     value = uiState.quantityText,
                     onValueChange = viewModel::onQuantityChange,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(2f),
                     label = { Text(stringResource(R.string.quantity)) },
                     singleLine = true,
                 )

@@ -117,8 +117,7 @@ fun ProductListScreen(
                 title = {
                     Text(
                         text = stringResource(R.string.expiry_list_title),
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        maxLines = 2,
                     )
                 },
                 actions = { SettingsIconButton(onClick = onOpenSettings) },
@@ -196,7 +195,7 @@ fun ProductListScreen(
                                         Text(
                                             text = "$d ${stringResource(R.string.days_short)}",
                                             style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            color = com.axenvoir.sktplus.ui.theme.BrandNavy,
                                         )
                                     }
                                 }
@@ -258,7 +257,7 @@ fun ProductListScreen(
                         LazyColumn(
                             state = listState,
                             modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             items(visibleProducts, key = { it.id }, contentType = { "product" }) { product ->
@@ -279,12 +278,8 @@ fun ProductListScreen(
                                         backgroundContent = {
                                             androidx.compose.foundation.layout.Box(
                                                 modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .background(
-                                                        MaterialTheme.colorScheme.errorContainer,
-                                                        MaterialTheme.shapes.medium,
-                                                    )
-                                                    .padding(horizontal = 20.dp),
+                                                    .fillMaxSize()
+                                                    .background(MaterialTheme.colorScheme.errorContainer),
                                                 contentAlignment = Alignment.CenterEnd,
                                             ) {
                                                 Icon(
@@ -549,9 +544,6 @@ private fun FilterRow(
             label = { Text(stringResource(R.string.status_fresh)) },
             leadingIcon = { StatusDot(FreshGreenDot) },
             trailingIcon = if (freshBadge > 0) trailingBadge(freshBadge) else null,
-            colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            ),
         )
         FilterChip(
             selected = selected == ProductFilter.EXPIRING_SOON,
