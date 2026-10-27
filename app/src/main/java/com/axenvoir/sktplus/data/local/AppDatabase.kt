@@ -9,8 +9,12 @@ import androidx.room.RoomDatabase
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
+    abstract fun productDao(): ProductDao
+    abstract fun noteDao(): NoteDao
 
     companion object {
+        const val NAME = "skt_plus.db"
+
         val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
             override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                 db.execSQL(
@@ -18,11 +22,5 @@ abstract class AppDatabase : RoomDatabase() {
                 )
             }
         }
-    }
-    abstract fun productDao(): ProductDao
-    abstract fun noteDao(): NoteDao
-
-    companion object {
-        const val NAME = "skt_plus.db"
     }
 }
