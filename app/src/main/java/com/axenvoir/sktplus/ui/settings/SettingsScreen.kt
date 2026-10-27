@@ -28,14 +28,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.sktplus.BuildConfig
 import com.axenvoir.sktplus.R
@@ -49,6 +48,11 @@ fun SettingsScreen(
     val selected by viewModel.current.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = androidx.compose.ui.platform.LocalContext.current
+    val exportDoneMessage = stringResource(R.string.export_done)
+    val exportFailedMessage = stringResource(R.string.export_failed)
+    val testNotificationSentMessage = stringResource(R.string.test_notification_sent)
+    val notificationsBlockedMessage = stringResource(R.string.notifications_blocked)
+    val openSettingsLabel = stringResource(R.string.open_settings)
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     val exportLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         contract = androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/csv"),
@@ -57,9 +61,7 @@ fun SettingsScreen(
             scope.launch {
                 val result = viewModel.exportCsv(context, uri)
                 snackbarHostState.showSnackbar(
-                    context.getString(
-                        if (result.isSuccess) R.string.export_done else R.string.export_failed
-                    )
+                    if (result.isSuccess) exportDoneMessage else exportFailedMessage
                 )
             }
         }
@@ -118,11 +120,9 @@ fun SettingsScreen(
                             val sent = viewModel.sendTestNotification()
                             scope.launch {
                                 val result = snackbarHostState.showSnackbar(
-                                    message = context.getString(
-                                        if (sent) R.string.test_notification_sent
-                                        else R.string.notifications_blocked
-                                    ),
-                                    actionLabel = if (sent) null else context.getString(R.string.open_settings),
+                                    message = if (sent) testNotificationSentMessage
+                                    else notificationsBlockedMessage,
+                                    actionLabel = if (sent) null else openSettingsLabel,
                                 )
                                 if (!sent && result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
                                     val intent = android.content.Intent(
@@ -140,9 +140,15 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.data_section)) {
                     OutlinedButton(
-                        onClick = { exportLauncher.launch("expira-backup.csv") },
+                        onClick = { exportLauncher.launch("expira-verileri.csv") },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.export_csv)) }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.export_csv_description),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.about_section)) {

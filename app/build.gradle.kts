@@ -1,8 +1,8 @@
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
@@ -17,15 +17,18 @@ val keystoreProperties = Properties().apply {
 
 android {
     namespace = "com.axenvoir.sktplus"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.expira.app.tr"
         minSdk = 26
         targetSdk = 36
-        resourceConfigurations += listOf("tr", "en")
-        versionCode = 95
-        versionName = "1.9.3"
+        versionCode = 96
+        versionName = "1.9.4"
+    }
+
+    androidResources {
+        localeFilters += listOf("tr", "en")
     }
 
     signingConfigs {
@@ -53,16 +56,17 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-        freeCompilerArgs += listOf(
-            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:experimentalStrongSkipping=true",
-        )
-    }
+
 
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 
@@ -83,7 +87,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons)
 
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

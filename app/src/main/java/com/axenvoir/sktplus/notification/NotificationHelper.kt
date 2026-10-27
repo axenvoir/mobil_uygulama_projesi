@@ -1,9 +1,9 @@
 package com.axenvoir.sktplus.notification
 
-import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -43,7 +43,31 @@ class NotificationHelper @Inject constructor(
             ) == PackageManager.PERMISSION_GRANTED
 
     fun showExpiryReminder(count: Int, topNames: List<String>) {
-        if (count <= 0 || !canPostNotifications()) return
+        if (count <= 0) return
+        val countText = context.resources.getQuantityString(
+            R.plurals.notification_text,
+            count,
+            count,
+        )
+        val details = listOf(countText, topNames.joinToString(separator = "\n"))
+            .filter(String::isNotBlank)
+            .joinToString(separator = "\n")
+        showNotification(
+            title = context.getString(R.string.notification_title),
+            text = countText,
+            details = details,
+        )
+    }
+
+    fun showTestNotification() {
+        showNotification(
+            title = context.getString(R.string.notification_test_title),
+            text = context.getString(R.string.notification_test_text),
+        )
+    }
+
+    private fun showNotification(title: String, text: String, details: String = text) {
+        if (!canPostNotifications()) return
         val openAppIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
@@ -54,15 +78,10 @@ class NotificationHelper @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(com.axenvoir.sktplus.R.drawable.ic_notification)
-            .setContentTitle(context.getString(R.string.notification_title))
-            .setContentText(context.getString(R.string.notification_text, count))
-            .setStyle(
-                NotificationCompat.BigTextStyle().bigText(
-                    context.getString(R.string.notification_text, count) + "\n" +
-                        topNames.joinToString(separator = "\n"),
-                )
-            )
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(details))
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .build()

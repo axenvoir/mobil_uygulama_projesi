@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import com.axenvoir.sktplus.domain.model.Note
 import com.axenvoir.sktplus.domain.model.Product
-import kotlinx.coroutines.flow.first
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
