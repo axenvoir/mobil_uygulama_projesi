@@ -33,13 +33,6 @@ class MainActivity : AppCompatActivity() {
             if (granted) {
                 notificationHelper.createChannel()
                 reminderScheduler.scheduleDailyReminder()
-            } else {
-                val intent = android.content.Intent(
-                    android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS
-                ).apply {
-                    putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName)
-                }
-                runCatching { startActivity(intent) }
             }
         }
 
@@ -74,8 +67,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun requestNotificationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            if (!notificationHelper.canPostNotifications()) {
+                if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                    return
+                }
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                notificationHelper.createChannel()
+                reminderScheduler.scheduleDailyReminder()
+            }
         } else {
+            notificationHelper.createChannel()
             reminderScheduler.scheduleDailyReminder()
         }
     }

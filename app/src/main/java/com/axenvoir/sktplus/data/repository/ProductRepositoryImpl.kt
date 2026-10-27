@@ -61,7 +61,9 @@ class ProductRepositoryImpl @Inject constructor(
 
     override suspend fun seedDefaultCategoriesIfEmpty() {
         if (productDao.categoryCount() > 0) return
-        productDao.insertCategories(
+        synchronized(this) {
+            if (productDao.categoryCount() > 0) return
+            productDao.insertCategories(
             listOf(
                 CategoryEntity(name = "Gıda", isDefault = true),
                 CategoryEntity(name = "İlaç", isDefault = true),
@@ -69,7 +71,8 @@ class ProductRepositoryImpl @Inject constructor(
                 CategoryEntity(name = "Temizlik", isDefault = true),
                 CategoryEntity(name = "Diğer", isDefault = true),
             )
-        )
+            )
+        }
     }
 
     private fun com.axenvoir.sktplus.data.local.ProductWithCategory.toDomain() = Product(

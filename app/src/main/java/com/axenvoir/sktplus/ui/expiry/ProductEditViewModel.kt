@@ -65,6 +65,9 @@ class ProductEditViewModel @Inject constructor(
     private val _saved = MutableStateFlow(false)
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
 
+    private val _isSaving = MutableStateFlow(false)
+    val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
+
     val uiState: StateFlow<ProductEditUiState> = combine(
         productRepository.observeCategories(),
         name,
@@ -120,6 +123,7 @@ class ProductEditViewModel @Inject constructor(
         if (isEditMode) {
             viewModelScope.launch {
                 val product = productRepository.observeById(productId).first()
+                loaded.value = true
                 if (product != null) {
                     originalName = product.name
                     originalQuantityText = product.quantity.toString()
@@ -167,6 +171,7 @@ class ProductEditViewModel @Inject constructor(
     }
 
     fun save() {
+        if (_isSaving.value || _saved.value) return
         val trimmedName = name.value.trim()
         val quantity = quantityText.value.toIntOrNull() ?: 0
         val date = expiryDate.value
@@ -188,6 +193,7 @@ class ProductEditViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            _isSaving.value = true
             try {
                 val resolvedCategoryId = categoryId ?: run {
                     val customName = newCategoryName.value.trim()
@@ -210,7 +216,10 @@ class ProductEditViewModel @Inject constructor(
             } catch (e: IllegalArgumentException) {
                 error.value = ProductEditError.MissingCategory
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 error.value = ProductEditError.Generic
+            } finally {
+                _isSaving.value = false
             }
         }
     }

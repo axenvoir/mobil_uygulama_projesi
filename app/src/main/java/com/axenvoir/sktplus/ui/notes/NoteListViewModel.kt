@@ -48,7 +48,7 @@ class NoteListViewModel @Inject constructor(
     fun togglePinned(note: Note) {
         viewModelScope.launch {
             runCatching { noteRepository.setPinned(id = note.id, isPinned = !note.isPinned) }
-                .onFailure { _events.value = NoteListEvent.Error }
+                .onFailure { if (it is kotlinx.coroutines.CancellationException) throw it else _events.value = NoteListEvent.Error }
         }
     }
 
@@ -56,14 +56,14 @@ class NoteListViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { noteRepository.deleteById(note.id) }
                 .onSuccess { onDeleted() }
-                .onFailure { _events.value = NoteListEvent.Error }
+                .onFailure { if (it is kotlinx.coroutines.CancellationException) throw it else _events.value = NoteListEvent.Error }
         }
     }
 
     fun restoreNote(note: Note) {
         viewModelScope.launch {
             runCatching { noteRepository.upsert(note) }
-                .onFailure { _events.value = NoteListEvent.Error }
+                .onFailure { if (it is kotlinx.coroutines.CancellationException) throw it else _events.value = NoteListEvent.Error }
         }
     }
 

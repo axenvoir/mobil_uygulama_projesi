@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -47,7 +48,7 @@ class ProductListViewModel @Inject constructor(
     val error: StateFlow<Boolean> = _error.asStateFlow()
 
     val uiState: StateFlow<ProductListUiState> = combine(
-        productRepository.observeAll(),
+        productRepository.observeAll().onEach { loaded.value = true },
         filter,
         searchQuery,
         com.axenvoir.sktplus.domain.util.todayFlow(),
@@ -95,14 +96,14 @@ class ProductListViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { productRepository.deleteById(product.id) }
                 .onSuccess { onDeleted() }
-                .onFailure { _error.value = true }
+                .onFailure { if (it is kotlinx.coroutines.CancellationException) throw it else _error.value = true }
         }
     }
 
     fun restoreProduct(product: Product) {
         viewModelScope.launch {
             runCatching { productRepository.upsert(product) }
-                .onFailure { _error.value = true }
+                .onFailure { if (it is kotlinx.coroutines.CancellationException) throw it else _error.value = true }
         }
     }
 
