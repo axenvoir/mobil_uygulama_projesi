@@ -130,7 +130,7 @@ class NoteEditViewModel @Inject constructor(
                 )
                 noteRepository.upsert(note)
                 _saved.value = true
-            } catch (e: IllegalStateException) {
+            } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
                 _error.value = NoteEditError.Generic
             } finally {

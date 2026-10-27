@@ -21,7 +21,7 @@ class SettingsViewModel @Inject constructor(
     fun sendTestNotification(): Boolean {
         notificationHelper.createChannel()
         if (!notificationHelper.canPostNotifications()) return false
-        notificationHelper.showExpiryReminder(count = 1, topNames = emptyList())
+        notificationHelper.showTestNotification()
         return true
     }
 

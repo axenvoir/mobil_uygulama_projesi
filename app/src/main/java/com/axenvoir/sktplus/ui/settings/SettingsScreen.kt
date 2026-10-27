@@ -140,9 +140,15 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.data_section)) {
                     OutlinedButton(
-                        onClick = { exportLauncher.launch("expira-backup.csv") },
+                        onClick = { exportLauncher.launch("expira-verileri.csv") },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.export_csv)) }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.export_csv_description),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.about_section)) {

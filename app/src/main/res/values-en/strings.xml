@@ -43,7 +43,12 @@
     <string name="notification_channel_name">Expira Reminders</string>
     <string name="notification_channel_desc">Reminders for approaching expiry dates</string>
     <string name="notification_title">Approaching expiry dates</string>
-    <string name="notification_text">%1$d products are expiring soon</string>
+    <plurals name="notification_text">
+        <item quantity="one">%1$d product is expiring soon</item>
+        <item quantity="other">%1$d products are expiring soon</item>
+    </plurals>
+    <string name="notification_test_title">Expira test notification</string>
+    <string name="notification_test_text">Notifications are working on your device.</string>
     <string name="enable_notifications">Enable notifications</string>
     <string name="all">All</string>
     <string name="select_date">Pick a date</string>
@@ -92,6 +97,7 @@
     <string name="days_passed_short">days past</string>
     <string name="eat_first">Use these first</string>
     <string name="export_csv">Export data as CSV</string>
+    <string name="export_csv_description">This file is an export; the app cannot restore data from a CSV file.</string>
     <string name="export_done">Exported</string>
     <string name="export_failed">Export failed</string>
     <string name="data_section">Data</string>

@@ -56,14 +56,20 @@ class NoteListViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { noteRepository.deleteById(note.id) }
                 .onSuccess { onDeleted() }
-                .onFailure { _events.value = NoteListEvent.Error }
+                .onFailure {
+                    if (it is kotlinx.coroutines.CancellationException) throw it
+                    _events.value = NoteListEvent.Error
+                }
         }
     }
 
     fun restoreNote(note: Note) {
         viewModelScope.launch {
             runCatching { noteRepository.upsert(note) }
-                .onFailure { _events.value = NoteListEvent.Error }
+                .onFailure {
+                    if (it is kotlinx.coroutines.CancellationException) throw it
+                    _events.value = NoteListEvent.Error
+                }
         }
     }
 

@@ -43,7 +43,12 @@
     <string name="notification_channel_name">Expira Hatırlatmaları</string>
     <string name="notification_channel_desc">Yaklaşan son kullanma tarihleri için hatırlatmalar</string>
     <string name="notification_title">Yaklaşan son kullanma tarihleri</string>
-    <string name="notification_text">%1$d ürünün son kullanma tarihi yaklaşıyor</string>
+    <plurals name="notification_text">
+        <item quantity="one">%1$d ürünün son kullanma tarihi yaklaşıyor</item>
+        <item quantity="other">%1$d ürünün son kullanma tarihi yaklaşıyor</item>
+    </plurals>
+    <string name="notification_test_title">Expira test bildirimi</string>
+    <string name="notification_test_text">Bildirimler cihazınızda çalışıyor.</string>
     <string name="enable_notifications">Bildirimleri etkinleştir</string>
     <string name="all">Tümü</string>
     <string name="select_date">Tarih seç</string>
@@ -92,6 +97,7 @@
     <string name="days_passed_short">gün geçti</string>
     <string name="eat_first">Önce bunları tüket</string>
     <string name="export_csv">Verileri CSV olarak dışa aktar</string>
+    <string name="export_csv_description">Bu dosya dışa aktarımdır; uygulama CSV dosyasından geri yükleme yapmaz.</string>
     <string name="export_done">Dışa aktarıldı</string>
     <string name="export_failed">Dışa aktarma başarısız</string>
     <string name="data_section">Veriler</string>
