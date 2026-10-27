@@ -24,8 +24,8 @@ android {
         minSdk = 26
         targetSdk = 36
         resourceConfigurations += listOf("tr", "en")
-        versionCode = 81
-        versionName = "1.4.0"
+        versionCode = 82
+        versionName = "1.4.1"
     }
 
     signingConfigs {
@@ -58,6 +58,9 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+        freeCompilerArgs += listOf(
+            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:experimentalStrongSkipping=true",
+        )
     }
 
     buildFeatures {

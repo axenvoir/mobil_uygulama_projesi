@@ -58,6 +58,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -99,15 +100,16 @@ fun ProductListScreen(
         }
     }
 
-    val freshCount = uiState.products.count { expiryStatus(it.expiryDate) == ExpiryStatus.FRESH }
-    val expiringCount = uiState.products.count { expiryStatus(it.expiryDate) == ExpiryStatus.EXPIRING_SOON }
-    val expiredCount = uiState.products.count { expiryStatus(it.expiryDate) == ExpiryStatus.EXPIRED }
+    val referenceDate = uiState.currentDate
+    val freshCount = uiState.products.count { expiryStatus(it.expiryDate, referenceDate) == ExpiryStatus.FRESH }
+    val expiringCount = uiState.products.count { expiryStatus(it.expiryDate, referenceDate) == ExpiryStatus.EXPIRING_SOON }
+    val expiredCount = uiState.products.count { expiryStatus(it.expiryDate, referenceDate) == ExpiryStatus.EXPIRED }
 
     val visibleProducts = when (uiState.filter) {
         ProductFilter.ALL -> uiState.products
-        ProductFilter.FRESH -> uiState.products.filter { expiryStatus(it.expiryDate) == ExpiryStatus.FRESH }
-        ProductFilter.EXPIRING_SOON -> uiState.products.filter { expiryStatus(it.expiryDate) == ExpiryStatus.EXPIRING_SOON }
-        ProductFilter.EXPIRED -> uiState.products.filter { expiryStatus(it.expiryDate) == ExpiryStatus.EXPIRED }
+        ProductFilter.FRESH -> uiState.products.filter { expiryStatus(it.expiryDate, referenceDate) == ExpiryStatus.FRESH }
+        ProductFilter.EXPIRING_SOON -> uiState.products.filter { expiryStatus(it.expiryDate, referenceDate) == ExpiryStatus.EXPIRING_SOON }
+        ProductFilter.EXPIRED -> uiState.products.filter { expiryStatus(it.expiryDate, referenceDate) == ExpiryStatus.EXPIRED }
     }
 
     val topBarScrollBehavior = androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -247,6 +249,7 @@ fun ProductListScreen(
                                     ) {
                                         ProductCard(
                                             product = product,
+                                            referenceDate = referenceDate,
                                             onClick = { onEditProduct(product.id) },
                                             onLongClick = { productDetail = product },
                                             onDelete = { productPendingDelete = product },
@@ -269,7 +272,7 @@ fun ProductListScreen(
     }
 
     productDetail?.let { product ->
-        val status = expiryStatus(product.expiryDate)
+        val status = expiryStatus(product.expiryDate, uiState.currentDate)
         androidx.compose.material3.ModalBottomSheet(
             onDismissRequest = { productDetail = null },
         ) {
@@ -554,11 +557,12 @@ fun remainingDaysText(expiryDate: java.time.LocalDate): String {
 @Composable
 private fun ProductCard(
     product: Product,
+    referenceDate: java.time.LocalDate,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val status = expiryStatus(product.expiryDate)
+    val status = expiryStatus(product.expiryDate, referenceDate)
     val statusContainer = when (status) {
         ExpiryStatus.FRESH -> MaterialTheme.colorScheme.surface
         ExpiryStatus.EXPIRING_SOON -> com.axenvoir.sktplus.ui.theme.WarningOrangeContainer
@@ -623,7 +627,7 @@ private fun ProductCard(
                         )
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        val days = daysUntil(product.expiryDate)
+                        val days = daysUntil(product.expiryDate, referenceDate)
                         Text(
                             text = if (days < 0) days.toString() else days.toString(),
                             style = MaterialTheme.typography.headlineSmall,
@@ -663,11 +667,22 @@ private fun ProductCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     StatusDot(statusColor(status))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${statusLabel(status)} · ${remainingDaysText(product.expiryDate)}",
+                    androidx.compose.material3.Text(
+                        text = androidx.compose.ui.text.buildAnnotatedString {
+                            withStyle(
+                                androidx.compose.ui.text.SpanStyle(
+                                    color = statusColor(status),
+                                    fontWeight = FontWeight.Medium,
+                                )
+                            ) { append(statusLabel(status)) }
+                            append(" · ")
+                            withStyle(
+                                androidx.compose.ui.text.SpanStyle(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            ) { append(remainingDaysText(product.expiryDate)) }
+                        },
                         style = MaterialTheme.typography.bodySmall,
-                        color = statusColor(status),
-                        fontWeight = FontWeight.Medium,
                     )
                 }
             }

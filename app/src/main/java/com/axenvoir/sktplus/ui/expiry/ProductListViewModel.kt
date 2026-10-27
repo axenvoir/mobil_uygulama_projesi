@@ -22,6 +22,7 @@ data class ProductListUiState(
     val products: List<Product> = emptyList(),
     val filter: ProductFilter = ProductFilter.ALL,
     val query: String = "",
+    val currentDate: java.time.LocalDate = java.time.LocalDate.now(),
     val isLoading: Boolean = true,
 )
 
@@ -43,8 +44,9 @@ class ProductListViewModel @Inject constructor(
         productRepository.observeAll(),
         filter,
         searchQuery,
+        com.axenvoir.sktplus.domain.util.todayFlow(),
         loaded,
-    ) { products, selectedFilter, queryText, isLoaded ->
+    ) { products, selectedFilter, queryText, today, isLoaded ->
         val filtered = if (queryText.isBlank()) products else products.filter {
             it.name.contains(queryText, ignoreCase = true) ||
                 it.categoryName.contains(queryText, ignoreCase = true)
@@ -53,6 +55,7 @@ class ProductListViewModel @Inject constructor(
             products = filtered,
             filter = selectedFilter,
             query = queryText,
+            currentDate = today,
             isLoading = !isLoaded,
         )
     }.stateIn(
