@@ -18,9 +18,11 @@ class SettingsViewModel @Inject constructor(
     private val csvExporter: com.axenvoir.sktplus.data.repository.CsvExporter,
 ) : ViewModel() {
 
-    fun sendTestNotification() {
+    fun sendTestNotification(): Boolean {
         notificationHelper.createChannel()
+        if (!notificationHelper.canPostNotifications()) return false
         notificationHelper.showExpiryReminder(count = 1, topNames = emptyList())
+        return true
     }
 
     suspend fun exportCsv(context: android.content.Context, uri: android.net.Uri): Result<Unit> {

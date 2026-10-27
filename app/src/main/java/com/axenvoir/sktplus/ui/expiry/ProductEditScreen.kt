@@ -77,9 +77,9 @@ fun ProductEditScreen(
     BackHandler { confirmBack() }
 
     val emptyNameText = stringResource(R.string.error_empty_name)
-    val missingDateText = stringResource(R.string.error_past_date)
-    val missingCategoryText = stringResource(R.string.category_name)
-    val invalidQuantityText = stringResource(R.string.quantity)
+    val missingDateText = stringResource(R.string.error_missing_expiry_date)
+    val missingCategoryText = stringResource(R.string.error_missing_category)
+    val invalidQuantityText = stringResource(R.string.error_invalid_quantity)
 
     LaunchedEffect(uiState.error) {
         val message = when (uiState.error) {

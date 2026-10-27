@@ -114,7 +114,26 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.notifications_section)) {
                     OutlinedButton(
-                        onClick = { viewModel.sendTestNotification() },
+                        onClick = {
+                            val sent = viewModel.sendTestNotification()
+                            scope.launch {
+                                val result = snackbarHostState.showSnackbar(
+                                    message = context.getString(
+                                        if (sent) R.string.test_notification_sent
+                                        else R.string.notifications_blocked
+                                    ),
+                                    actionLabel = if (sent) null else context.getString(R.string.open_settings),
+                                )
+                                if (!sent && result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
+                                    val intent = android.content.Intent(
+                                        android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS,
+                                    ).apply {
+                                        putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                    }
+                                    runCatching { context.startActivity(intent) }
+                                }
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.test_notification)) }
                 }

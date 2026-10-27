@@ -27,6 +27,10 @@
     <string name="expired_days">Expired %1$d days ago</string>
     <string name="empty_products">No products yet. Add your first one.</string>
     <string name="empty_notes">No notes yet. Take your first note.</string>
+    <string name="error_missing_expiry_date">Choose an expiry date</string>
+    <string name="error_missing_category">Select a category or enter a new one</string>
+    <string name="error_invalid_quantity">Quantity must be at least 1</string>
+    <string name="empty_notes_search">No notes match your search</string>
     <string name="error_empty_name">Product name cannot be empty</string>
     <string name="error_past_date">Past date is not allowed</string>
     <string name="error_empty_title">Title cannot be empty</string>
