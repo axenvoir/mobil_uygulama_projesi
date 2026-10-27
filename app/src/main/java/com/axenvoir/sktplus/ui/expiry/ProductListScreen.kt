@@ -129,8 +129,15 @@ fun ProductListScreen(
         floatingActionButton = {
             androidx.compose.animation.AnimatedVisibility(
                 visible = fabVisible,
-                enter = androidx.compose.animation.fadeIn(),
-                exit = androidx.compose.animation.fadeOut(),
+                enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(
+                    initialScale = 0.85f,
+                    animationSpec = androidx.compose.animation.core.spring(
+                        dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+                    ),
+                ),
+                exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(
+                    targetScale = 0.85f,
+                ),
             ) {
                 FloatingActionButton(onClick = onAddProduct) {
                     Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_product))
@@ -612,8 +619,7 @@ private fun ProductCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Row(
             modifier = Modifier

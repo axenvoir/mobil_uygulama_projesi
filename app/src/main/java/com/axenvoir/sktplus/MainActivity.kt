@@ -44,8 +44,23 @@ class MainActivity : AppCompatActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            splash.setOnExitAnimationListener { provider ->
+                val iconView = provider.iconView
+                iconView.animate()
+                    .scaleX(0.6f)
+                    .scaleY(0.6f)
+                    .alpha(0f)
+                    .setDuration(220L)
+                    .setInterpolator(android.view.animation.DecelerateInterpolator())
+                    .withEndAction {
+                        provider.remove()
+                    }
+                    .start()
+            }
+        }
         notificationHelper.createChannel()
         languageManager.applyOnStartup()
         enableEdgeToEdge()
