@@ -14,9 +14,10 @@ object CrashReporter {
             throwable.printStackTrace(PrintWriter(stringWriter))
             val stackTrace = stringWriter.toString()
             runCatching {
+                val crashFile = java.io.File(context.cacheDir, "crash_last.txt")
+                crashFile.writeText(stackTrace.take(8000))
                 val intent = Intent(context, CrashDisplayActivity::class.java).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    putExtra(CrashDisplayActivity.EXTRA_STACK_TRACE, stackTrace.take(8000))
                 }
                 context.startActivity(intent)
             }.onFailure { error ->

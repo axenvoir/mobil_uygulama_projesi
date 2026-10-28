@@ -74,6 +74,7 @@ class NoteEditViewModel @Inject constructor(
                     _title.value = note.title
                     _content.value = note.content
                     _isPinned.value = note.isPinned
+                    _userEditedTitle.value = true
                 }
             }
         } else {

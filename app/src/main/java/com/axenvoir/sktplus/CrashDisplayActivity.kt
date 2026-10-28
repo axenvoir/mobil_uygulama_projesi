@@ -18,11 +18,17 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import android.content.Intent
+import java.io.File
+
 class CrashDisplayActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val stackTrace = intent.getStringExtra(EXTRA_STACK_TRACE) ?: "No stack trace captured"
+        val stackTrace = runCatching {
+            File(cacheDir, "crash_last.txt").readText()
+        }.getOrDefault(intent.getStringExtra(EXTRA_STACK_TRACE) ?: "No stack trace captured")
+        runCatching { File(cacheDir, "crash_last.txt").delete() }
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
