@@ -33,7 +33,9 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Run tests and debug build
-        run: yes | sdkmanager --licenses && ./gradlew --no-daemon :app:assembleDebug -x test
+        run: |
+          echo y | sdkmanager "platforms;android-37" "build-tools;35.0.0" >/dev/null
+          ./gradlew --no-daemon :app:assembleDebug -x test
         env:
           ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
 
