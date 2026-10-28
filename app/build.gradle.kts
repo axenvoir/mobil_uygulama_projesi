@@ -23,8 +23,8 @@ android {
         applicationId = "com.expira.app.tr"
         minSdk = 26
         targetSdk = 36
-        versionCode = 96
-        versionName = "1.9.4"
+        versionCode = 97
+        versionName = "1.9.5"
     }
 
     androidResources {
@@ -44,11 +44,16 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            isShrinkResources = false
-            signingConfig = keystoreProperties["storeFile"]?.let {
-                signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            useProguard = true
+            if (keystoreProperties.isNotEmpty()) {
+                signingConfig = signingConfigs.getByName("release")
             }
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
         debug {
             isMinifyEnabled = false
@@ -77,7 +82,7 @@ android {
     lint {
         abortOnError = false
         checkReleaseBuilds = true
-        warningsAsErrors = false
+        warningsAsErrors = true
     }
 }
 

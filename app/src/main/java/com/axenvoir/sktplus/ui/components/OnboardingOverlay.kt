@@ -56,9 +56,15 @@ fun OnboardingOverlay(
     )
     val page = pages[step]
 
+    val pageContentDescription = when (page.icon) {
+        Icons.Filled.DateRange -> stringResource(R.string.onboarding_icon_date_range)
+        Icons.Filled.Settings -> stringResource(R.string.onboarding_icon_settings)
+        Icons.Filled.Edit -> stringResource(R.string.onboarding_icon_edit)
+        else -> null
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(page.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+        icon = { Icon(page.icon, contentDescription = pageContentDescription, tint = MaterialTheme.colorScheme.primary) },
         title = { Text(stringResource(page.titleRes), fontWeight = FontWeight.SemiBold) },
         text = { Text(stringResource(page.textRes)) },
         confirmButton = {

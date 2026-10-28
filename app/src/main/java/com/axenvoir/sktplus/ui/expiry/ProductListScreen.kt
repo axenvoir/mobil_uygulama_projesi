@@ -91,6 +91,7 @@ fun ProductListScreen(
     var productPendingDelete by remember { mutableStateOf<Product?>(null) }
     var productDetail by remember { mutableStateOf<Product?>(null) }
     val errorText = stringResource(R.string.error_generic)
+    val listState = rememberLazyListState()
 
     val hapticFeedback = androidx.compose.ui.platform.LocalHapticFeedback.current
     var fabVisible by remember { mutableStateOf(true) }
@@ -149,6 +150,7 @@ fun ProductListScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(innerPadding),
         ) {
             androidx.compose.foundation.layout.Box(
@@ -164,7 +166,7 @@ fun ProductListScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         placeholder = { Text(stringResource(R.string.search_products)) },
-                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.search_products)) },
                         trailingIcon = if (uiState.query.isNotEmpty()) {
                             {
                                 IconButton(onClick = { viewModel.onQueryChange("") }) {
@@ -180,10 +182,12 @@ fun ProductListScreen(
                         singleLine = true,
                         shape = MaterialTheme.shapes.extraLarge,
                     )
-                    val eatFirst = uiState.products
-                        .filter { expiryStatus(it.expiryDate, referenceDate) != ExpiryStatus.EXPIRED }
-                        .sortedBy { it.expiryDate }
-                        .take(3)
+                    val eatFirst = remember(uiState.products, referenceDate) {
+                        uiState.products
+                            .filter { expiryStatus(it.expiryDate, referenceDate) != ExpiryStatus.EXPIRED }
+                            .sortedBy { it.expiryDate }
+                            .take(3)
+                    }
                     if (eatFirst.isNotEmpty()) {
                         Card(
                             colors = CardDefaults.cardColors(
@@ -275,14 +279,16 @@ fun ProductListScreen(
                             }
                         }
                     } else {
-                        val listState = androidx.compose.foundation.lazy.rememberLazyListState()
                         LaunchedEffect(listState) {
-                            androidx.compose.runtime.snapshotFlow { listState.firstVisibleItemIndex }
+                            snapshotFlow { listState.firstVisibleItemIndex }
                                 .collect { index -> fabVisible = index == 0 }
                         }
                         LazyColumn(
                             state = listState,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState())
+                                .background(MaterialTheme.colorScheme.surface),
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {

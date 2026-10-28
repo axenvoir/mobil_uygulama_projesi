@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -69,6 +70,7 @@ fun NoteListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var notePendingDelete by remember { mutableStateOf<Note?>(null) }
     val errorText = stringResource(R.string.error_generic)
+    val listState = rememberLazyListState()
 
     val hapticFeedback = androidx.compose.ui.platform.LocalHapticFeedback.current
     val scope = androidx.compose.runtime.rememberCoroutineScope()
@@ -122,7 +124,7 @@ fun NoteListScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         placeholder = { Text(stringResource(R.string.search_notes)) },
-                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.search_notes)) },
                         singleLine = true,
                         shape = MaterialTheme.shapes.extraLarge,
                     )
@@ -137,7 +139,7 @@ fun NoteListScreen(
                                 EmptyState(
                                     icon = Icons.Filled.Search,
                                     title = stringResource(R.string.empty_notes_search),
-                                    subtitle = "",
+                                    subtitle = stringResource(R.string.empty_notes_search),
                                 )
                             } else {
                                 EmptyState(
@@ -150,8 +152,15 @@ fun NoteListScreen(
                             }
                         }
                     } else {
+                        LaunchedEffect(listState) {
+                            snapshotFlow { listState.firstVisibleItemIndex }
+                                .collect { index -> }
+                        }
                         LazyColumn(
-                            modifier = Modifier.fillMaxWidth(),
+                            state = listState,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.surface),
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {

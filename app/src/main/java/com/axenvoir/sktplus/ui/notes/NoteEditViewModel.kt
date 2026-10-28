@@ -51,6 +51,7 @@ class NoteEditViewModel @Inject constructor(
     private var originalContent: String = ""
     private var originalIsPinned: Boolean = false
     private var loaded = MutableStateFlow(false)
+    private val _userEditedTitle = MutableStateFlow(false)
 
     val isDirty: StateFlow<Boolean> = combine(
         title,
@@ -77,7 +78,6 @@ class NoteEditViewModel @Inject constructor(
                     _title.value = note.title
                     _content.value = note.content
                     _isPinned.value = note.isPinned
-                    _userEditedTitle.value = true
                 }
             }
         } else {

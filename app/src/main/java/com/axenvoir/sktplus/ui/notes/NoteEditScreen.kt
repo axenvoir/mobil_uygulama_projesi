@@ -139,13 +139,13 @@ fun NoteEditScreen(
                         selected = isPinned,
                         onClick = { viewModel.onPinnedChange(!isPinned) },
                         label = { Text(stringResource(R.string.pin)) },
-                        leadingIcon = {
-                            if (isPinned) {
-                                Icon(Icons.Filled.Star, contentDescription = null)
-                            } else {
-                                Icon(Icons.Outlined.FavoriteBorder, contentDescription = null)
-                            }
-                        },
+leadingIcon = {
+                        if (isPinned) {
+                            Icon(Icons.Filled.Star, contentDescription = stringResource(R.string.pin))
+                        } else {
+                            Icon(Icons.Outlined.FavoriteBorder, contentDescription = stringResource(R.string.pin))
+                        }
+                    },
                     )
                     TextButton(
                         onClick = viewModel::save,

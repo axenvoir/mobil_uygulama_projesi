@@ -33,7 +33,7 @@ class SettingsViewModel @Inject constructor(
 
     val current: StateFlow<AppLanguage> = languageManager.current.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.Eagerly,
+        started = SharingStarted.WhileSubscribed(5_000),
         initialValue = AppLanguage.SYSTEM,
     )
 

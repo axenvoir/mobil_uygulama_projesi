@@ -84,6 +84,9 @@
     <string name="edit">Düzenle</string>
     <string name="edit_record_missing_title">Kayıt bulunamadı</string>
     <string name="edit_record_missing_message">Bu ürün artık mevcut değil. Yeni bir ürün eklemek ister misiniz?</string>
+    <string name="onboarding_icon_date_range">Takip</string>
+    <string name="onboarding_icon_settings">Ayarlar</string>
+    <string name="onboarding_icon_edit">Düzenle</string>
     <string name="onboarding_title_1">Ürünlerini ekle</string>
     <string name="onboarding_text_1">Son kullanma tarihlerini takip et, yaklaşanları kaçırma</string>
     <string name="onboarding_title_2">Günlük hatırlatma</string>

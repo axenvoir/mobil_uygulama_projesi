@@ -41,6 +41,7 @@ fun EmptyState(
     subtitle: String,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
+    iconContentDescription: String? = null,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -52,7 +53,7 @@ fun EmptyState(
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = null,
+            contentDescription = iconContentDescription,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(64.dp),
         )

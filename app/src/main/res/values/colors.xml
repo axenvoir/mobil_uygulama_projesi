@@ -2,4 +2,46 @@
 <resources>
     <color name="ic_launcher_background">#16324F</color>
     <color name="ic_launcher_foreground">#FFFFFF</color>
+
+    <color name="md_theme_light_primary">#1F8BFF</color>
+    <color name="md_theme_light_onPrimary">#FFFFFF</color>
+    <color name="md_theme_light_primaryContainer">#E8F3FF</color>
+    <color name="md_theme_light_onPrimaryContainer">#00366D</color>
+    <color name="md_theme_light_secondary">#475569</color>
+    <color name="md_theme_light_onSecondary">#FFFFFF</color>
+    <color name="md_theme_light_secondaryContainer">#E2E8F0</color>
+    <color name="md_theme_light_onSecondaryContainer">#1E293B</color>
+    <color name="md_theme_light_tertiary">#22C55E</color>
+    <color name="md_theme_light_onTertiary">#FFFFFF</color>
+    <color name="md_theme_light_background">#F8FAFC</color>
+    <color name="md_theme_light_surface">#FFFFFFFF</color>
+    <color name="md_theme_light_surfaceVariant">#F1F5F9</color>
+    <color name="md_theme_light_onSurface">#1F2937</color>
+    <color name="md_theme_light_onSurfaceVariant">#475569</color>
+    <color name="md_theme_light_outline">#E5E7EB</color>
+    <color name="md_theme_light_error">#EF4444</color>
+    <color name="md_theme_light_onError">#FFFFFF</color>
+
+    <color name="md_theme_dark_primary">#4C9BFF</color>
+    <color name="md_theme_dark_onPrimary">#FFFFFF</color>
+    <color name="md_theme_dark_primaryContainer">#1A2F4D</color>
+    <color name="md_theme_dark_onPrimaryContainer">#E8F3FF</color>
+    <color name="md_theme_dark_secondary">#94A3B8</color>
+    <color name="md_theme_dark_onSecondary">#0F1026</color>
+    <color name="md_theme_dark_secondaryContainer">#2D3142</color>
+    <color name="md_theme_dark_onSecondaryContainer">#E2E8F0</color>
+    <color name="md_theme_dark_tertiary">#22C55E</color>
+    <color name="md_theme_dark_onTertiary">#0F3D24</color>
+    <color name="md_theme_dark_background">#0F1026</color>
+    <color name="md_theme_dark_surface">#1C1F2B</color>
+    <color name="md_theme_dark_surfaceVariant">#242736</color>
+    <color name="md_theme_dark_onSurface">#E5E7EB</color>
+    <color name="md_theme_dark_onSurfaceVariant">#9CA3AF</color>
+    <color name="md_theme_dark_outline">#2D3142</color>
+    <color name="md_theme_dark_error">#EF4444</color>
+    <color name="md_theme_dark_onError">#FFFFFF</color>
+
+    <color name="fresh_green">#22C55E</color>
+    <color name="warning_orange">#F59E0B</color>
+    <color name="expired_red">#EF4444</color>
 </resources>
