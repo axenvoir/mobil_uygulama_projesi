@@ -156,11 +156,27 @@ fun ProductEditScreen(
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            CategorySelector(
-                uiState = uiState,
-                onSelect = viewModel::onCategorySelect,
-                onNewCategoryChange = viewModel::onNewCategoryNameChange,
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    uiState.categories.forEach { category ->
+                        FilterChip(
+                            selected = uiState.selectedCategoryId == category.id,
+                            onClick = { viewModel.onCategorySelect(category.id) },
+                            label = { Text(category.name) },
+                        )
+                    }
+                }
+                OutlinedTextField(
+                    value = uiState.newCategoryName,
+                    onValueChange = viewModel::onNewCategoryNameChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.new_category)) },
+                    singleLine = true,
+                )
+            }
             Text(
                 text = stringResource(R.string.storage_location),
                 style = MaterialTheme.typography.labelLarge,
