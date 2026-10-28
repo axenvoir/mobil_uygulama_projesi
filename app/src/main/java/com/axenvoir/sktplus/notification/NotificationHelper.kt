@@ -43,6 +43,7 @@ class NotificationHelper @Inject constructor(
             ) == PackageManager.PERMISSION_GRANTED
 
     fun showExpiryReminder(count: Int, topNames: List<String>) {
+        createChannel()
         if (count <= 0) return
         val countText = context.resources.getQuantityString(
             R.plurals.notification_text,
