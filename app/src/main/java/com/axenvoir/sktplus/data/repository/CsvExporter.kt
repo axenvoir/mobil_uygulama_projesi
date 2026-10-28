@@ -17,44 +17,43 @@ class CsvExporter @Inject constructor() {
         products: List<Product>,
         notes: List<Note>,
     ): Result<Unit> = runCatching {
-        val csv = buildString {
-            appendLine("type,name,category,quantity,expiry_date,storage_location,title,content,pinned,updated_at")
-            val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
-            products.forEach { p ->
-                appendLine(
-                    listOf(
-                        "product",
-                        escape(p.name),
-                        escape(p.categoryName),
-                        p.quantity.toString(),
-                        p.expiryDate.format(dateFormatter),
-                        escape(p.storageLocation),
-                        "",
-                        "",
-                        "",
-                        "",
-                    ).joinToString(",")
-                )
-            }
-            notes.forEach { n ->
-                appendLine(
-                    listOf(
-                        "note",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        escape(n.title),
-                        escape(n.content),
-                        n.isPinned.toString(),
-                        java.time.Instant.ofEpochMilli(n.updatedAt).toString(),
-                    ).joinToString(",")
-                )
-            }
-        }
         context.contentResolver.openOutputStream(uri)?.use { stream ->
-            stream.write(csv.toByteArray(Charsets.UTF_8))
+            java.io.OutputStreamWriter(stream, Charsets.UTF_8).use { writer ->
+                val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
+                writer.appendLine("type,name,category,quantity,expiry_date,storage_location,title,content,pinned,updated_at")
+                products.forEach { p ->
+                    writer.appendLine(
+                        listOf(
+                            "product",
+                            escape(p.name),
+                            escape(p.categoryName),
+                            p.quantity.toString(),
+                            p.expiryDate.format(dateFormatter),
+                            escape(p.storageLocation),
+                            "",
+                            "",
+                            "",
+                            "",
+                        ).joinToString(",")
+                    )
+                }
+                notes.forEach { n ->
+                    writer.appendLine(
+                        listOf(
+                            "note",
+                            "",
+                            "",
+                            "",
+                            "",
+                            "",
+                            escape(n.title),
+                            escape(n.content),
+                            n.isPinned.toString(),
+                            java.time.Instant.ofEpochMilli(n.updatedAt).toString(),
+                        ).joinToString(",")
+                    )
+                }
+            }
         } ?: throw IllegalStateException("Cannot open output stream")
     }
 
