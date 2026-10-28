@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +20,8 @@ import androidx.compose.ui.unit.sp
 import android.content.Intent
 import java.io.File
 
+import com.axenvoir.sktplus.ui.theme.ExpiraTheme
+
 class CrashDisplayActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +31,7 @@ class CrashDisplayActivity : ComponentActivity() {
         }.getOrDefault(intent.getStringExtra(EXTRA_STACK_TRACE) ?: "No stack trace captured")
         runCatching { File(cacheDir, "crash_last.txt").delete() }
         setContent {
-            MaterialTheme {
+            ExpiraTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     CrashScreen(stackTrace)
                 }

@@ -82,6 +82,8 @@
     <string name="test_notification_sent">Test notification sent</string>
     <string name="version_label">Version</string>
     <string name="edit">Edit</string>
+    <string name="edit_record_missing_title">Record not found</string>
+    <string name="edit_record_missing_message">This product no longer exists. Would you like to add a new one?</string>
     <string name="onboarding_title_1">Add your products</string>
     <string name="onboarding_text_1">Track expiry dates and never miss what is coming up</string>
     <string name="onboarding_title_2">Daily reminder</string>

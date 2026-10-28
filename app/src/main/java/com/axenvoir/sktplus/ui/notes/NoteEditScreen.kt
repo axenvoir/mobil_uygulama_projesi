@@ -43,6 +43,7 @@ import com.axenvoir.sktplus.R
 @Composable
 fun NoteEditScreen(
     onBack: () -> Unit,
+    onNavigateToAdd: () -> Unit,
     viewModel: NoteEditViewModel = hiltViewModel(),
 ) {
     val title by viewModel.title.collectAsStateWithLifecycle()
@@ -51,13 +52,19 @@ fun NoteEditScreen(
     val error by viewModel.error.collectAsStateWithLifecycle()
     val saved by viewModel.saved.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
+    val editRecordMissing by viewModel.editRecordMissing.collectAsStateWithLifecycle()
 
     val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
     val suggestedTitle by viewModel.suggestedTitle.collectAsStateWithLifecycle()
     var showUnsavedDialog by remember { mutableStateOf(false) }
+    var showEditRecordMissingDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(saved) {
         if (saved) onBack()
+    }
+
+    LaunchedEffect(editRecordMissing) {
+        if (editRecordMissing) showEditRecordMissingDialog = true
     }
 
     val confirmBack = {
@@ -79,6 +86,32 @@ fun NoteEditScreen(
                 TextButton(onClick = { showUnsavedDialog = false }) {
                     Text(stringResource(R.string.no))
                 }
+            },
+        )
+    }
+
+    if (showEditRecordMissingDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showEditRecordMissingDialog = false
+                viewModel.consumeEditRecordMissing()
+            },
+            title = { Text(stringResource(R.string.edit_record_missing_title)) },
+            text = { Text(stringResource(R.string.edit_record_missing_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showEditRecordMissingDialog = false
+                        viewModel.consumeEditRecordMissing()
+                        onNavigateToAdd()
+                    },
+                ) { Text(stringResource(R.string.yes)) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showEditRecordMissingDialog = false
+                    viewModel.consumeEditRecordMissing()
+                }) { Text(stringResource(R.string.no)) }
             },
         )
     }
