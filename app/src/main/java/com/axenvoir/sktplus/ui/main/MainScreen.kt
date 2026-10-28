@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,7 +41,7 @@ private data class BottomTab(
 
 private val tabs = listOf(
     BottomTab(Screen.ProductList, R.string.tab_expiry, Icons.Filled.DateRange),
-    BottomTab(Screen.NoteList, R.string.tab_notes, Icons.Filled.List),
+    BottomTab(Screen.NoteList, R.string.tab_notes, Icons.AutoMirrored.Filled.List),
 )
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
