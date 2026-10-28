@@ -29,18 +29,11 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK environment
-        run: |
-          export ANDROID_HOME=/usr/local/lib/android/sdk
-          export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
-          export PATH=/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/cmdline-tools/16.0/bin:/usr/local/lib/android/sdk/platform-tools:$PATH
-          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-          echo "PATH=$PATH" >> $GITHUB_ENV
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-
       - name: Build debug APK
-        run: ./gradlew :app:assembleDebug -x test
+        run: yes | sdkmanager --licenses > /dev/null 2>&1 || true && ./gradlew :app:assembleDebug -x test
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
