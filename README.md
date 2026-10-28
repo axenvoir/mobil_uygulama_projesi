@@ -36,3 +36,4 @@ For local signing, copy `keystore.properties.example` to `keystore.properties`, 
 ## Compatibility and data
 
 The public application ID (`com.expira.app.tr`), internal Kotlin namespace (`com.axenvoir.sktplus`), Room database filename (`skt_plus.db`), and signing key are intentionally preserved. Changing these can prevent existing users from installing an update or accessing their saved data. The app currently keeps product and note data locally; CSV export is the available way to copy that data outside the app.
+# inceleme başlatıldı..
