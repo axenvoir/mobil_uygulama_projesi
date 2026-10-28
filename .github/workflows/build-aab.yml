@@ -34,9 +34,11 @@ jobs:
 
       - name: Accept licenses and build
         run: |
-          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-          yes | sdkmanager --licenses || true
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          yes | sdkmanager "platforms;android-37" "build-tools;35.0.0" > /dev/null 2>&1 || true
           ./gradlew :app:assembleDebug -x test
         shell: bash
 
