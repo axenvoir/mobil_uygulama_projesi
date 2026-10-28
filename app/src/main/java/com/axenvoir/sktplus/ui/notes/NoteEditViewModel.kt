@@ -51,6 +51,7 @@ class NoteEditViewModel @Inject constructor(
     private var originalContent: String = ""
     private var originalIsPinned: Boolean = false
     private var loaded = MutableStateFlow(false)
+    private val _userEditedTitle = MutableStateFlow(false)
 
     val isDirty: StateFlow<Boolean> = combine(
         title,
@@ -87,7 +88,6 @@ class NoteEditViewModel @Inject constructor(
 
     private val _suggestedTitle = MutableStateFlow("")
     val suggestedTitle: StateFlow<String> = _suggestedTitle.asStateFlow()
-    private val _userEditedTitle = MutableStateFlow(false)
 
     fun onTitleChange(value: String) {
         _userEditedTitle.value = true
