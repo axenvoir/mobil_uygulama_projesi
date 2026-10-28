@@ -11,12 +11,12 @@
 
 # Hilt ViewModels
 -keep class * extends androidx.lifecycle.ViewModel { *; }
--keep,allowobfuscation @dagger.hilt.android.AndroidEntryPoint <methods>;
+-keep,allowobfuscation @dagger.hilt.android.AndroidEntryPoint class * { *; }
 
 # Room
 -keep class com.axenvoir.sktplus.data.local.** { *; }
 -keep class com.axenvoir.sktplus.domain.model.** { *; }
--keep class * extends androidx.room.RoomDatabase
+-keep class * extends androidx.room.RoomDatabase { *; }
 -keep @androidx.room.Entity class com.axenvoir.sktplus.data.local.**
 -keep class kotlin.reflect.** { *; }
 -keep class androidx.room.paging.** { *; }
