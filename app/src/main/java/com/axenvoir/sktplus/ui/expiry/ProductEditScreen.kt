@@ -206,6 +206,7 @@ fun ProductEditScreen(
             OutlinedButton(
                 onClick = { showDatePicker = true },
                 modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.large,
             ) {
                 Text(
                     text = uiState.expiryDate?.format(
@@ -220,6 +221,7 @@ fun ProductEditScreen(
                     .fillMaxWidth()
                     .height(52.dp),
                 enabled = !isSaving,
+                shape = MaterialTheme.shapes.large,
             ) { Text(stringResource(R.string.save)) }
         }
     }

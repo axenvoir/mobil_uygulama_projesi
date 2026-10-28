@@ -186,8 +186,9 @@ fun ProductListScreen(
                     if (eatFirst.isNotEmpty()) {
                         Card(
                             colors = CardDefaults.cardColors(
-                                containerColor = com.axenvoir.sktplus.ui.theme.AccentSageContainer,
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
                             ),
+                            shape = MaterialTheme.shapes.large,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 4.dp),
@@ -197,7 +198,7 @@ fun ProductListScreen(
                                     text = stringResource(R.string.eat_first),
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = com.axenvoir.sktplus.ui.theme.BrandNavy,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                                 eatFirst.forEach { item ->
@@ -219,7 +220,7 @@ fun ProductListScreen(
                                         Text(
                                             text = "$d ${stringResource(R.string.days_short)}",
                                             style = MaterialTheme.typography.labelMedium,
-                                            color = com.axenvoir.sktplus.ui.theme.BrandNavy,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
                                     }
                                 }
@@ -451,9 +452,11 @@ private fun SummaryCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
             modifier = Modifier
@@ -632,10 +635,12 @@ private fun ProductCard(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Row(
             modifier = Modifier
@@ -666,9 +671,10 @@ private fun ProductCard(
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
-                            .background(
-                                MaterialTheme.colorScheme.surfaceVariant,
-                                MaterialTheme.shapes.small,
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline,
+                                shape = MaterialTheme.shapes.small,
                             )
                             .padding(horizontal = 8.dp, vertical = 2.dp),
                     )
@@ -697,13 +703,6 @@ private fun ProductCard(
                     else stringResource(R.string.days_short),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            IconButton(onClick = onDelete) {
-                Icon(
-                    Icons.Filled.Delete,
-                    contentDescription = stringResource(R.string.delete),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
