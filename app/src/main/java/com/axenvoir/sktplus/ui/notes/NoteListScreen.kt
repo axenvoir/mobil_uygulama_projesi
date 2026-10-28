@@ -266,7 +266,7 @@ private fun NoteCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = androidx.compose.foundation.BorderStroke(
             width = 1.dp,
-            color = if (note.isPinned) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant,
+            color = if (note.isPinned) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.outlineVariant,
         ),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
