@@ -79,6 +79,7 @@ android {
         checkReleaseBuilds = false
         warningsAsErrors = false
     }
+}
 
 kotlin {
     compilerOptions {
