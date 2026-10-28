@@ -1,7 +1,7 @@
 # Codebase Analysis Report
 
 ## Overview
-Analysis of `/workspace/app/app/src/main/java/com/axenvoir/sktplus/` for a planned major UI redesign + Play Store release.
+Analysis of `/workspace/app/app/src/main/java/com/axenvoir/expira/` for a planned major UI redesign + Play Store release.
 
 ## File Inventory
 - 35 Kotlin source files across `domain`, `data`, `di`, `notification`, `ui`, `CrashReporter`, `MainActivity`, `ExpiraApplication`

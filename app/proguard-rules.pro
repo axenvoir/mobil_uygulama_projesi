@@ -3,9 +3,9 @@
 # Hilt / Dagger
 -keep class dagger.hilt.** { *; }
 -keep,allowobfuscation @interface dagger.hilt.*.internal.*
--keep class com.axenvoir.sktplus.**Hilt* { *; }
--keep class com.axenvoir.sktplus.**_Factory { *; }
--keep class com.axenvoir.sktplus.**_MembersInjector { *; }
+-keep class com.axenvoir.expira.**Hilt* { *; }
+-keep class com.axenvoir.expira.**_Factory { *; }
+-keep class com.axenvoir.expira.**_MembersInjector { *; }
 -keep class dagger.hilt.internal.managers.* { *; }
 -keep class dagger.hilt.internal.** { *; }
 
@@ -14,10 +14,10 @@
 -keep,allowobfuscation @dagger.hilt.android.AndroidEntryPoint class * { *; }
 
 # Room
--keep class com.axenvoir.sktplus.data.local.** { *; }
--keep class com.axenvoir.sktplus.domain.model.** { *; }
+-keep class com.axenvoir.expira.data.local.** { *; }
+-keep class com.axenvoir.expira.domain.model.** { *; }
 -keep class * extends androidx.room.RoomDatabase { *; }
--keep @androidx.room.Entity class com.axenvoir.sktplus.data.local.**
+-keep @androidx.room.Entity class com.axenvoir.expira.data.local.**
 -keep class kotlin.reflect.** { *; }
 -keep class androidx.room.paging.** { *; }
 
@@ -29,7 +29,7 @@
 
 # WorkManager
 -keep class androidx.work.** { *; }
--keep class com.axenvoir.sktplus.notification.** { *; }
+-keep class com.axenvoir.expira.notification.** { *; }
 
 # Compose
 -dontwarn androidx.compose.**
@@ -37,8 +37,8 @@
 -keep class androidx.compose.ui.** { *; }
 
 # CrashReporter
--keep class com.axenvoir.sktplus.CrashReporter { *; }
--keep class com.axenvoir.sktplus.CrashDisplayActivity { *; }
+-keep class com.axenvoir.expira.CrashReporter { *; }
+-keep class com.axenvoir.expira.CrashDisplayActivity { *; }
 
 # Gson / JSON (if any)
 -keep class com.google.gson.** { *; }
