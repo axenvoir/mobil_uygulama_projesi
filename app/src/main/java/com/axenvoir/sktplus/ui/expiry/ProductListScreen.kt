@@ -280,15 +280,13 @@ fun ProductListScreen(
                         }
                     } else {
                         LaunchedEffect(listState) {
-                            snapshotFlow { listState.firstVisibleItemIndex }
+                            androidx.compose.runtime.snapshotFlow { listState.firstVisibleItemIndex }
                                 .collect { index -> fabVisible = index == 0 }
                         }
                         LazyColumn(
                             state = listState,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .verticalScroll(rememberScrollState())
-                                .background(MaterialTheme.colorScheme.surface),
+                                .fillMaxWidth(),
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {

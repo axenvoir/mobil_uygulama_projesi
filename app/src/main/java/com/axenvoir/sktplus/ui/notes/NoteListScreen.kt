@@ -152,10 +152,6 @@ fun NoteListScreen(
                             }
                         }
                     } else {
-                        LaunchedEffect(listState) {
-                            snapshotFlow { listState.firstVisibleItemIndex }
-                                .collect { index -> }
-                        }
                         LazyColumn(
                             state = listState,
                             modifier = Modifier

@@ -87,7 +87,6 @@ class NoteEditViewModel @Inject constructor(
 
     private val _suggestedTitle = MutableStateFlow("")
     val suggestedTitle: StateFlow<String> = _suggestedTitle.asStateFlow()
-    private val _userEditedTitle = MutableStateFlow(false)
 
     fun onTitleChange(value: String) {
         _userEditedTitle.value = true
