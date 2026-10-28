@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             splash.setOnExitAnimationListener { provider ->
                 val iconView = provider.iconView
                 iconView.animate()
@@ -66,11 +66,7 @@ class MainActivity : AppCompatActivity() {
     private fun requestNotificationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (!notificationHelper.canPostNotifications()) {
-                if (!shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
-                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                } else {
-                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                }
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
         reminderScheduler.scheduleDailyReminder()
