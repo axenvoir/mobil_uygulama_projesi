@@ -11,6 +11,6 @@ fun todayFlow(): Flow<java.time.LocalDate> = flow {
         val now = LocalDateTime.now()
         val nextMidnight = now.toLocalDate().plusDays(1).atStartOfDay()
         emit(now.toLocalDate())
-        delay(Duration.between(now, nextMidnight).toMillis() + 60_000)
+        delay(Duration.between(now, nextMidnight).toMillis())
     }
 }

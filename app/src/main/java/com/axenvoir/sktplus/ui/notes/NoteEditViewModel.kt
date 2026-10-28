@@ -81,24 +81,26 @@ class NoteEditViewModel @Inject constructor(
         }
     }
 
+    private val _suggestedTitle = MutableStateFlow("")
+    val suggestedTitle: StateFlow<String> = _suggestedTitle.asStateFlow()
+    private val _userEditedTitle = MutableStateFlow(false)
+
     fun onTitleChange(value: String) {
+        _userEditedTitle.value = true
         _title.value = value
     }
 
     fun onContentChange(value: String) {
         _content.value = value
-        if (_title.value.isBlank()) {
+        if (_title.value.isBlank() && !_userEditedTitle.value) {
             _suggestedTitle.value = value.lineSequence().firstOrNull { it.isNotBlank() }?.trim().orEmpty()
         } else {
             _suggestedTitle.value = ""
         }
     }
 
-    private var _suggestedTitle = MutableStateFlow("")
-    val suggestedTitle: StateFlow<String> = _suggestedTitle.asStateFlow()
-
     fun applySuggestedTitle() {
-        if (_title.value.isBlank() && _suggestedTitle.value.isNotBlank()) {
+        if (_title.value.isBlank() && _suggestedTitle.value.isNotBlank() && !_userEditedTitle.value) {
             _title.value = _suggestedTitle.value.take(60)
             _suggestedTitle.value = ""
         }
