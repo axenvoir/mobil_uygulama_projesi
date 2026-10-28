@@ -24,7 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -200,6 +200,30 @@ fun SettingsScreen(
                         onClick = { billingViewModel.restorePurchases() },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.support_restore)) }
+                }
+Spacer(modifier = Modifier.height(16.dp))
+                SettingsCard(title = stringResource(R.string.appearance_section)) {
+                    val dynamicColor by viewModel.dynamicColor.collectAsStateWithLifecycle()
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.dynamic_color),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Text(
+                                text = stringResource(R.string.dynamic_color_description),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Switch(
+                            checked = dynamicColor,
+                            onCheckedChange = viewModel::setDynamicColor,
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.about_section)) {

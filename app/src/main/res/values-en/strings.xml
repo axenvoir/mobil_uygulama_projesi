@@ -106,4 +106,7 @@
     <string name="location_pantry">Pantry</string>
     <string name="location_freezer">Freezer</string>
     <string name="location_other">Other</string>
+    <string name="appearance_section">Appearance</string>
+    <string name="dynamic_color">Dynamic color</string>
+    <string name="dynamic_color_description">Use Material You colors (Android 12+)</string>
 </resources>

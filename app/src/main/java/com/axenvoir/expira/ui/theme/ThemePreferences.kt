@@ -33,7 +33,7 @@ class ThemePreferences @Inject constructor(
     }
 
     val dynamicColor: Flow<Boolean> = context.themeDataStore.data.map { prefs ->
-        prefs[dynamicColorKey] ?: true
+        prefs[dynamicColorKey] ?: false
     }
 
     suspend fun setThemeMode(mode: ThemeMode) {

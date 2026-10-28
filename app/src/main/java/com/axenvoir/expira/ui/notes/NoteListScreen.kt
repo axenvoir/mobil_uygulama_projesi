@@ -25,7 +25,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,7 +53,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.expira.R
 import com.axenvoir.expira.domain.model.Note
-import com.axenvoir.expira.ui.components.EmptyState
 import com.axenvoir.expira.ui.components.ExpiraEmptyState
 import com.axenvoir.expira.ui.main.SettingsIconButton
 
@@ -70,6 +68,7 @@ fun NoteListScreen(
     val query by viewModel.query.collectAsStateWithLifecycle()
     val event by viewModel.events.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    var isRefreshing by remember { mutableStateOf(false) }
     var notePendingDelete by remember { mutableStateOf<Note?>(null) }
     val errorText = stringResource(R.string.error_generic)
     val listState = rememberLazyListState()
@@ -90,11 +89,11 @@ fun NoteListScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            androidx.compose.material3.LargeTopAppBar(
+            androidx.compose.material3.MediumTopAppBar(
                 title = {
                     Text(
                         text = stringResource(R.string.notes_list_title),
-                        maxLines = 2,
+                        maxLines = 1,
                     )
                 },
                 actions = { SettingsIconButton(onClick = onOpenSettings) },
@@ -103,14 +102,23 @@ fun NoteListScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
+            FloatingActionButton(
                 onClick = onAddNote,
-                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text(stringResource(R.string.add_note)) },
-            )
+                modifier = Modifier.padding(16.dp),
+            ) {
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_note))
+            }
         },
     ) { innerPadding ->
-        Column(
+        androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                isRefreshing = true
+                scope.launch {
+                    kotlinx.coroutines.delay(800)
+                    isRefreshing = false
+                }
+            },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
@@ -272,9 +280,9 @@ private fun NoteCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (note.isPinned) 2.dp else 1.dp, pressedElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp, pressedElevation = 4.dp),
         border = if (note.isPinned) androidx.compose.foundation.BorderStroke(
-            width = 1.dp,
+            width = 2.dp,
             color = MaterialTheme.colorScheme.primary,
         ) else null,
     ) {
@@ -282,7 +290,7 @@ private fun NoteCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = note.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f),
                     maxLines = 1,

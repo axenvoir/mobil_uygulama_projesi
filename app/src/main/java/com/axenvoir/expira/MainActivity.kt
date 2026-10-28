@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContent {
             val themeMode by themePreferences.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
-            val dynamicColor by themePreferences.dynamicColor.collectAsState(initial = true)
+            val dynamicColor by themePreferences.dynamicColor.collectAsState(initial = false)
             val darkTheme = when (themeMode) {
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true

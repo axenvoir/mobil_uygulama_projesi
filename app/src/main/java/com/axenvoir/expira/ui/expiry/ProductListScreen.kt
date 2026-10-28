@@ -38,7 +38,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -72,9 +71,9 @@ import com.axenvoir.expira.domain.model.ExpiryStatus
 import com.axenvoir.expira.domain.model.Product
 import com.axenvoir.expira.domain.util.daysUntil
 import com.axenvoir.expira.domain.util.expiryStatus
-import com.axenvoir.expira.ui.components.EmptyState
 import com.axenvoir.expira.ui.components.ExpiraEmptyState
 import com.axenvoir.expira.ui.main.SettingsIconButton
+import com.axenvoir.expira.ui.components.ExpiraStatusDot
 import com.axenvoir.expira.ui.components.StatusDot
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -90,6 +89,7 @@ fun ProductListScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    var isRefreshing by remember { mutableStateOf(false) }
     var productPendingDelete by remember { mutableStateOf<Product?>(null) }
     var productDetail by remember { mutableStateOf<Product?>(null) }
     val errorText = stringResource(R.string.error_generic)
@@ -118,11 +118,11 @@ fun ProductListScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(topBarScrollBehavior.nestedScrollConnection),
         topBar = {
-            androidx.compose.material3.LargeTopAppBar(
+            androidx.compose.material3.MediumTopAppBar(
                 title = {
                     Text(
                         text = stringResource(R.string.expiry_list_title),
-                        maxLines = 2,
+                        maxLines = 1,
                     )
                 },
                 actions = { SettingsIconButton(onClick = onOpenSettings) },
@@ -143,15 +143,24 @@ fun ProductListScreen(
                     targetScale = 0.85f,
                 ),
             ) {
-                ExtendedFloatingActionButton(
+                FloatingActionButton(
                     onClick = onAddProduct,
-                    icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                    text = { Text(stringResource(R.string.add_product)) },
-                )
+                    modifier = Modifier.padding(16.dp),
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_product))
+                }
             }
         },
     ) { innerPadding ->
-        Column(
+        androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                isRefreshing = true
+                scope.launch {
+                    kotlinx.coroutines.delay(800)
+                    isRefreshing = false
+                }
+            },
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
@@ -465,7 +474,8 @@ private fun SummaryCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Row(
             modifier = Modifier
@@ -520,7 +530,7 @@ private fun SummaryItem(
     ) {
         Text(
             text = count.toString(),
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = color,
         )
@@ -536,7 +546,7 @@ private fun SummaryItem(
             color = color,
             modifier = Modifier
                 .width(48.dp)
-                .height(4.dp),
+                .height(6.dp),
         )
     }
 }
@@ -573,27 +583,35 @@ private fun FilterRow(
             selected = selected == ProductFilter.ALL,
             onClick = { onFilterChange(ProductFilter.ALL) },
             label = { Text(stringResource(R.string.all)) },
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
+            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer),
         )
         FilterChip(
             selected = selected == ProductFilter.FRESH,
             onClick = { onFilterChange(ProductFilter.FRESH) },
             label = { Text(stringResource(R.string.status_fresh)) },
-            leadingIcon = { StatusDot(FreshGreenDot) },
+            leadingIcon = { com.axenvoir.expira.ui.components.ExpiraStatusDot(FreshGreenDot) },
             trailingIcon = if (freshBadge > 0) trailingBadge(freshBadge) else null,
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
+            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer),
         )
         FilterChip(
             selected = selected == ProductFilter.EXPIRING_SOON,
             onClick = { onFilterChange(ProductFilter.EXPIRING_SOON) },
             label = { Text(stringResource(R.string.status_expiring_soon)) },
-            leadingIcon = { StatusDot(WarningOrangeDot) },
+            leadingIcon = { com.axenvoir.expira.ui.components.ExpiraStatusDot(WarningOrangeDot) },
             trailingIcon = if (soonBadge > 0) trailingBadge(soonBadge) else null,
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
+            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer),
         )
         FilterChip(
             selected = selected == ProductFilter.EXPIRED,
             onClick = { onFilterChange(ProductFilter.EXPIRED) },
             label = { Text(stringResource(R.string.status_expired)) },
-            leadingIcon = { StatusDot(ExpiredRedDot) },
+            leadingIcon = { com.axenvoir.expira.ui.components.ExpiraStatusDot(ExpiredRedDot) },
             trailingIcon = if (expiredBadge > 0) trailingBadge(expiredBadge) else null,
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
+            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer),
         )
     }
 }
@@ -644,11 +662,11 @@ private fun ProductCard(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
-        shape = MaterialTheme.shapes.large,
+        shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp, pressedElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp, pressedElevation = 6.dp),
     ) {
         Row(
             modifier = Modifier
@@ -660,13 +678,13 @@ private fun ProductCard(
                 modifier = Modifier
                     .width(4.dp)
                     .height(48.dp)
-                    .background(statusColor(status), MaterialTheme.shapes.extraSmall),
+                    .background(statusColor(status), androidx.compose.foundation.shape.RoundedCornerShape(topStart = 2.dp, bottomStart = 2.dp)),
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = product.name,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(modifier = Modifier.height(6.dp))
@@ -709,7 +727,7 @@ private fun ProductCard(
             ) {
                 Text(
                     text = kotlin.math.abs(days).toString(),
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = statusColor(status),
                 )

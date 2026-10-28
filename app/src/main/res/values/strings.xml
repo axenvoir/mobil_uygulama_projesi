@@ -117,4 +117,7 @@
     <string name="location_pantry">Kiler</string>
     <string name="location_freezer">Dondurucu</string>
     <string name="location_other">Diğer</string>
+    <string name="appearance_section">Görünüm</string>
+    <string name="dynamic_color">Dinamik renk</string>
+    <string name="dynamic_color_description">Material You renklerini kullan (Android 12+)</string>
 </resources>

@@ -70,7 +70,7 @@ fun ExpiraEmptyState(
             contentDescription = iconContentDescription,
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier
-                .size(72.dp)
+                .size(96.dp)
                 .align(Alignment.CenterHorizontally)
                 .scale(scale)
                 .alpha(alpha),
@@ -78,7 +78,7 @@ fun ExpiraEmptyState(
         Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
@@ -86,7 +86,7 @@ fun ExpiraEmptyState(
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = subtitle,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )

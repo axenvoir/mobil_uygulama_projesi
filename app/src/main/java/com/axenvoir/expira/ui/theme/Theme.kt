@@ -66,7 +66,7 @@ val AppShapes = ExpiraShapes
 @Composable
 fun ExpiraTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
