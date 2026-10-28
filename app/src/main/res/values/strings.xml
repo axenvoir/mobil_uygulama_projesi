@@ -79,7 +79,7 @@
     <string name="notifications_section">Bildirimler</string>
     <string name="about_section">Hakkında</string>
     <string name="support_section">Destek Ol</string>
-    <string name="support_description">Expira'yi gelistirmemize yardimci olun. Premium ozellikler ve reklamsiz deneyim icin destek olun.</string>
+    <string name="support_description">Expira\'yi gelistirmemize yardimci olun. Premium ozellikler ve reklamsiz deneyim icin destek olun.</string>
     <string name="support_tier_supporter">Destekci — 9.99 TL/ay</string>
     <string name="support_tier_premium">Premium — 19.99 TL/ay</string>
     <string name="support_tier_lifetime">Omur Boyu — 249.99 TL</string>

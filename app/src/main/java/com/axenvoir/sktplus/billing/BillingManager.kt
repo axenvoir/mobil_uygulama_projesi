@@ -9,6 +9,7 @@ import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.PurchasesResponseListener
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
@@ -46,8 +47,8 @@ class BillingManager @Inject constructor(
 
     fun connect() {
         billingClient.startConnection(object : BillingClientStateListener {
-            override fun onBillingSetupFinished(result: BillingResult) {
-                if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+            override fun onBillingSetupFinished(billingResult: BillingResult) {
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     _connectionState.value = true
                     queryPurchases()
                     queryProductDetails()
@@ -66,48 +67,51 @@ class BillingManager @Inject constructor(
     }
 
     private fun queryPurchases() {
-        scope.launch {
-            val params = QueryPurchasesParams.newBuilder()
-                .setProductType(BillingClient.ProductType.SUBS)
-                .build()
-            val result = billingClient.queryPurchasesAsync(params)
-            if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                _purchases.value = result.purchasesList
-                acknowledgePurchases(result.purchasesList)
+        val params = QueryPurchasesParams.newBuilder()
+            .setProductType(BillingClient.ProductType.SUBS)
+            .build()
+        billingClient.queryPurchasesAsync(params, object : PurchasesResponseListener {
+            override fun onQueryPurchasesResponse(
+                billingResult: BillingResult,
+                purchases: MutableList<Purchase>,
+            ) {
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    _purchases.value = purchases
+                    acknowledgePurchases(purchases)
+                }
             }
-        }
+        })
     }
 
     private fun queryProductDetails() {
-        scope.launch {
-            val productList = listOf(
-                QueryProductDetailsParams.Product.newBuilder()
-                    .setProductId("supporter_monthly")
-                    .setProductType(BillingClient.ProductType.SUBS)
-                    .build(),
-                QueryProductDetailsParams.Product.newBuilder()
-                    .setProductId("supporter_yearly")
-                    .setProductType(BillingClient.ProductType.SUBS)
-                    .build(),
-                QueryProductDetailsParams.Product.newBuilder()
-                    .setProductId("premium_monthly")
-                    .setProductType(BillingClient.ProductType.SUBS)
-                    .build(),
-                QueryProductDetailsParams.Product.newBuilder()
-                    .setProductId("premium_yearly")
-                    .setProductType(BillingClient.ProductType.SUBS)
-                    .build(),
-                QueryProductDetailsParams.Product.newBuilder()
-                    .setProductId("premium_lifetime")
-                    .setProductType(BillingClient.ProductType.INAPP)
-                    .build(),
-            )
-            val params = QueryProductDetailsParams.newBuilder()
-                .setProductList(productList)
-                .build()
-            val result = billingClient.queryProductDetails(params)
-            if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                _productDetails.value = result.productDetailsList ?: emptyList()
+        val productList = listOf(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId("supporter_monthly")
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build(),
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId("supporter_yearly")
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build(),
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId("premium_monthly")
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build(),
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId("premium_yearly")
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build(),
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId("premium_lifetime")
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build(),
+        )
+        val params = QueryProductDetailsParams.newBuilder()
+            .setProductList(productList)
+            .build()
+        billingClient.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                _productDetails.value = productDetailsList ?: emptyList()
             }
         }
     }
