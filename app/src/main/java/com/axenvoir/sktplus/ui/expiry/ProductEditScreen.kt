@@ -54,11 +54,13 @@ import java.time.format.FormatStyle
 @Composable
 fun ProductEditScreen(
     onBack: () -> Unit,
+    onNavigateToAdd: () -> Unit,
     viewModel: ProductEditViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val saved by viewModel.saved.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
+    val editRecordMissing by viewModel.editRecordMissing.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDatePicker by remember { mutableStateOf(false) }
     var showPastDateWarning by remember { mutableStateOf(false) }
@@ -67,9 +69,14 @@ fun ProductEditScreen(
 
     val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
     var showUnsavedDialog by remember { mutableStateOf(false) }
+    var showEditRecordMissingDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(saved) {
         if (saved) onBack()
+    }
+
+    LaunchedEffect(editRecordMissing) {
+        if (editRecordMissing) showEditRecordMissingDialog = true
     }
 
     val confirmBack = {
@@ -273,11 +280,39 @@ fun ProductEditScreen(
         )
     }
 
-    if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = uiState.expiryDate?.atStartOfDay(ZoneOffset.UTC)
-                ?.toInstant()?.toEpochMilli()
+    if (showEditRecordMissingDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showEditRecordMissingDialog = false
+                viewModel.consumeEditRecordMissing()
+            },
+            title = { Text(stringResource(R.string.edit_record_missing_title)) },
+            text = { Text(stringResource(R.string.edit_record_missing_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showEditRecordMissingDialog = false
+                        viewModel.consumeEditRecordMissing()
+                        onNavigateToAdd()
+                    },
+                ) { Text(stringResource(R.string.yes)) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showEditRecordMissingDialog = false
+                    viewModel.consumeEditRecordMissing()
+                }) { Text(stringResource(R.string.no)) }
+            },
         )
+    }
+
+    if (showDatePicker) {
+        val datePickerState = remember(uiState.expiryDate) {
+            rememberDatePickerState(
+                initialSelectedDateMillis = uiState.expiryDate?.atStartOfDay(ZoneOffset.UTC)
+                    ?.toInstant()?.toEpochMilli()
+            )
+        }
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {

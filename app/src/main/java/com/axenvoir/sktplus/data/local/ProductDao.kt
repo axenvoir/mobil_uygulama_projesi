@@ -67,7 +67,7 @@ interface ProductDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertCategory(category: CategoryEntity): Long
 
-    @Query("SELECT id FROM categories WHERE name = :name LIMIT 1")
+    @Query("SELECT id FROM categories WHERE LOWER(name) = LOWER(:name) LIMIT 1")
     suspend fun findCategoryIdByName(name: String): Long?
 
     @Query(

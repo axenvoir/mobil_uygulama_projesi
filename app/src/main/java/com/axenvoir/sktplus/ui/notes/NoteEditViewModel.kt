@@ -38,6 +38,9 @@ class NoteEditViewModel @Inject constructor(
     private val _error = MutableStateFlow<NoteEditError?>(null)
     val error: StateFlow<NoteEditError?> = _error.asStateFlow()
 
+    private val _editRecordMissing = MutableStateFlow(false)
+    val editRecordMissing: StateFlow<Boolean> = _editRecordMissing.asStateFlow()
+
     private val _saved = MutableStateFlow(false)
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
 
@@ -123,6 +126,10 @@ class NoteEditViewModel @Inject constructor(
             try {
                 val now = System.currentTimeMillis()
                 val existing = if (isEditMode) noteRepository.observeById(noteId).first() else null
+                if (isEditMode && existing == null) {
+                    _editRecordMissing.value = true
+                    return@launch
+                }
                 val note = Note(
                     id = existing?.id ?: 0L,
                     title = trimmedTitle,
@@ -144,6 +151,10 @@ class NoteEditViewModel @Inject constructor(
 
     fun consumeError() {
         _error.value = null
+    }
+
+    fun consumeEditRecordMissing() {
+        _editRecordMissing.value = false
     }
 }
 

@@ -62,6 +62,9 @@ class ProductEditViewModel @Inject constructor(
     private val storageLocation = MutableStateFlow("")
     private val error = MutableStateFlow<ProductEditError?>(null)
 
+    private val _editRecordMissing = MutableStateFlow(false)
+    val editRecordMissing: StateFlow<Boolean> = _editRecordMissing.asStateFlow()
+
     private val _saved = MutableStateFlow(false)
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
 
@@ -203,6 +206,10 @@ class ProductEditViewModel @Inject constructor(
                     productRepository.addCategory(customName)
                 }
                 val existing = if (isEditMode) productRepository.observeById(productId).first() else null
+                if (isEditMode && existing == null) {
+                    _editRecordMissing.value = true
+                    return@launch
+                }
                 val product = Product(
                     id = existing?.id ?: 0L,
                     name = trimmedName,
@@ -228,5 +235,9 @@ class ProductEditViewModel @Inject constructor(
 
     fun consumeError() {
         error.value = null
+    }
+
+    fun consumeEditRecordMissing() {
+        _editRecordMissing.value = false
     }
 }

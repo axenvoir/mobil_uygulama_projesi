@@ -28,13 +28,19 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             )
         }
         composable(Screen.AddProduct.route) {
-            ProductEditScreen(onBack = { navController.popBackStack() })
+            ProductEditScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToAdd = { navController.navigate(Screen.AddProduct.route) },
+            )
         }
         composable(
             route = Screen.EditProduct.route,
             arguments = listOf(navArgument(Screen.EditProduct.ARG_PRODUCT_ID) { type = NavType.LongType }),
         ) {
-            ProductEditScreen(onBack = { navController.popBackStack() })
+            ProductEditScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToAdd = { navController.navigate(Screen.AddProduct.route) },
+            )
         }
         composable(Screen.NoteList.route) {
             NoteListScreen(
@@ -44,13 +50,19 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             )
         }
         composable(Screen.AddNote.route) {
-            NoteEditScreen(onBack = { navController.popBackStack() })
+            NoteEditScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToAdd = { navController.navigate(Screen.AddNote.route) },
+            )
         }
         composable(
             route = Screen.EditNote.route,
             arguments = listOf(navArgument(Screen.EditNote.ARG_NOTE_ID) { type = NavType.LongType }),
         ) {
-            NoteEditScreen(onBack = { navController.popBackStack() })
+            NoteEditScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToAdd = { navController.navigate(Screen.AddNote.route) },
+            )
         }
         composable(Screen.Settings.route) {
             SettingsScreen(onBack = { navController.popBackStack() })

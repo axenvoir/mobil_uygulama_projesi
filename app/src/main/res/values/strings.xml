@@ -82,6 +82,8 @@
     <string name="test_notification_sent">Test bildirimi gönderildi</string>
     <string name="version_label">Sürüm</string>
     <string name="edit">Düzenle</string>
+    <string name="edit_record_missing_title">Kayıt bulunamadı</string>
+    <string name="edit_record_missing_message">Bu ürün artık mevcut değil. Yeni bir ürün eklemek ister misiniz?</string>
     <string name="onboarding_title_1">Ürünlerini ekle</string>
     <string name="onboarding_text_1">Son kullanma tarihlerini takip et, yaklaşanları kaçırma</string>
     <string name="onboarding_title_2">Günlük hatırlatma</string>

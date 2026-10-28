@@ -39,17 +39,20 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             splash.setOnExitAnimationListener { provider ->
-                val iconView = provider.iconView
-                iconView.animate()
-                    .scaleX(0.6f)
-                    .scaleY(0.6f)
-                    .alpha(0f)
-                    .setDuration(220L)
-                    .setInterpolator(android.view.animation.DecelerateInterpolator())
-                    .withEndAction {
-                        provider.remove()
-                    }
-                    .start()
+                provider.iconView?.let { iconView ->
+                    iconView.animate()
+                        .scaleX(0.6f)
+                        .scaleY(0.6f)
+                        .alpha(0f)
+                        .setDuration(220L)
+                        .setInterpolator(android.view.animation.DecelerateInterpolator())
+                        .withEndAction {
+                            provider.remove()
+                        }
+                        .start()
+                } ?: run {
+                    provider.remove()
+                }
             }
         }
         notificationHelper.createChannel()
