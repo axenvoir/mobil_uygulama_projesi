@@ -5,6 +5,8 @@ import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.collectAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,6 +15,8 @@ import com.axenvoir.sktplus.ui.settings.LanguageManager
 import com.axenvoir.sktplus.notification.ReminderScheduler
 import com.axenvoir.sktplus.ui.main.MainScreen
 import com.axenvoir.sktplus.ui.theme.ExpiraTheme
+import com.axenvoir.sktplus.ui.theme.ThemeMode
+import com.axenvoir.sktplus.ui.theme.ThemePreferences
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -27,6 +31,9 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var languageManager: LanguageManager
+
+    @Inject
+    lateinit var themePreferences: ThemePreferences
 
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
@@ -59,7 +66,14 @@ class MainActivity : AppCompatActivity() {
         languageManager.applyOnStartup()
         enableEdgeToEdge()
         setContent {
-            ExpiraTheme {
+            val themeMode by themePreferences.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
+            val dynamicColor by themePreferences.dynamicColor.collectAsState(initial = true)
+            val darkTheme = when (themeMode) {
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+            }
+            ExpiraTheme(darkTheme = darkTheme, dynamicColor = dynamicColor) {
                 MainScreen()
             }
         }

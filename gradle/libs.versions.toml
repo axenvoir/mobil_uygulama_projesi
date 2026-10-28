@@ -15,6 +15,7 @@ hiltExt = "1.4.0"
 workManager = "2.12.0"
 junit = "4.13.2"
 coroutinesTest = "1.11.0"
+datastore = "1.1.1"
 billing = "7.1.1"
 archCoreTesting = "2.2.0"
 truth = "1.4.5"
@@ -36,6 +37,7 @@ androidx-compose-material3-window-size = { group = "androidx.compose.material3",
 androidx-compose-material-icons = { group = "androidx.compose.material", name = "material-icons-core" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-billing = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
