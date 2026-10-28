@@ -14,7 +14,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,8 +36,7 @@ fun ExpiraEmptyState(
     iconContentDescription: String? = null,
     modifier: Modifier = Modifier,
 ) {
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { visible = true }
+    var visible by remember { mutableStateOf(true) }
 
     val scale by animateFloatAsState(
         targetValue = if (visible) 1f else 0.8f,

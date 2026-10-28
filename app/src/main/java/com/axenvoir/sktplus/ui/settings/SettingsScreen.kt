@@ -165,17 +165,26 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                     if (tier == UserTier.FREE) {
                         OutlinedButton(
-                            onClick = { },
+                            onClick = {
+                                val activity = context as? android.app.Activity
+                                if (activity != null) billingViewModel.purchaseSupporter(activity)
+                            },
                             modifier = Modifier.fillMaxWidth(),
                         ) { Text(stringResource(R.string.support_tier_supporter)) }
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedButton(
-                            onClick = { },
+                            onClick = {
+                                val activity = context as? android.app.Activity
+                                if (activity != null) billingViewModel.purchasePremium(activity)
+                            },
                             modifier = Modifier.fillMaxWidth(),
                         ) { Text(stringResource(R.string.support_tier_premium)) }
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedButton(
-                            onClick = { },
+                            onClick = {
+                                val activity = context as? android.app.Activity
+                                if (activity != null) billingViewModel.purchaseLifetime(activity)
+                            },
                             modifier = Modifier.fillMaxWidth(),
                         ) { Text(stringResource(R.string.support_tier_lifetime)) }
                     } else {
