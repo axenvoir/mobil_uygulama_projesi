@@ -30,11 +30,12 @@ class NoteListViewModel @Inject constructor(
         noteRepository.observeAll(),
         searchQuery,
     ) { allNotes, query ->
-        if (query.isBlank()) allNotes
+        val filtered = if (query.isBlank()) allNotes
         else allNotes.filter { note ->
             note.title.contains(query, ignoreCase = true) ||
                 note.content.contains(query, ignoreCase = true)
         }
+        filtered.sortedWith(compareByDescending<Note> { it.isPinned }.thenByDescending { it.updatedAt })
     }.distinctUntilChanged().stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
