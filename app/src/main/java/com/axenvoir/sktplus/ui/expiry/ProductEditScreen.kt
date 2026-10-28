@@ -307,12 +307,10 @@ fun ProductEditScreen(
     }
 
     if (showDatePicker) {
-        val datePickerState = remember(uiState.expiryDate) {
-            rememberDatePickerState(
-                initialSelectedDateMillis = uiState.expiryDate?.atStartOfDay(ZoneOffset.UTC)
-                    ?.toInstant()?.toEpochMilli()
-            )
-        }
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = uiState.expiryDate?.atStartOfDay(ZoneOffset.UTC)
+                ?.toInstant()?.toEpochMilli()
+        )
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
