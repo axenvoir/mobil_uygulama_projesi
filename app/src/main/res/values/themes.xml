@@ -25,8 +25,4 @@
         <item name="android:navigationBarColor">#FF0F1026</item>
         <item name="android:statusBarColor">#FF0F1026</item>
     </style>
-
-    <style name="Theme.Expira.Splash" parent="Theme.Expira">
-        <item name="android:windowBackground">@drawable/splash_background</item>
-    </style>
 </resources>
