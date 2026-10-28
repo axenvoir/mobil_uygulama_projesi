@@ -35,7 +35,7 @@ jobs:
           gradle-version: '9.5.0'
 
       - name: Run tests and debug build
-        run: ./gradlew --no-daemon :app:assembleDebug -x test --stacktrace 2>&1 | tail -40
+        run: ./gradlew --no-daemon :app:assembleDebug -x test 2>&1 | tail -80
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
