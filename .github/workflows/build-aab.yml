@@ -33,7 +33,9 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Run tests and debug build
-        run: ./gradlew --no-daemon :app:assembleDebug -x test 2>&1 | tail -80
+        run: ./gradlew --no-daemon :app:assembleDebug -x test
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
