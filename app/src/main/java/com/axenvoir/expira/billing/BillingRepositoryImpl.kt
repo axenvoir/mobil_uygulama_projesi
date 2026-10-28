@@ -71,7 +71,7 @@ class BillingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun restorePurchases(): Boolean {
-        // BillingManager already queries purchases on connect
+        billingManager.connect()
         return true
     }
 }

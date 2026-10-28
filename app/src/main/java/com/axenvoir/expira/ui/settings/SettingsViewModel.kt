@@ -47,6 +47,16 @@ class SettingsViewModel @Inject constructor(
         initialValue = false,
     )
 
+    val themeMode: StateFlow<ThemeMode> = themePreferences.themeMode.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = ThemeMode.SYSTEM,
+    )
+
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch { themePreferences.setThemeMode(mode) }
+    }
+
     fun setLanguage(language: AppLanguage) {
         languageManager.setLanguage(language)
     }

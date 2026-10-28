@@ -139,8 +139,8 @@ fun NoteEditScreen(
                         selected = isPinned,
                         onClick = { viewModel.onPinnedChange(!isPinned) },
                         label = { Text(stringResource(R.string.pin)) },
-leadingIcon = {
-                        if (isPinned) {
+                        leadingIcon = {
+                            if (isPinned) {
                             Icon(Icons.Filled.Star, contentDescription = stringResource(R.string.pin))
                         } else {
                             Icon(Icons.Outlined.FavoriteBorder, contentDescription = stringResource(R.string.pin))
@@ -189,7 +189,7 @@ leadingIcon = {
                 onValueChange = viewModel::onContentChange,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 160.dp, max = 320.dp),
+                    .heightIn(min = 160.dp, max = 480.dp),
                 label = { Text(stringResource(R.string.note_content)) },
             )
             if (error is NoteEditError.Generic) {

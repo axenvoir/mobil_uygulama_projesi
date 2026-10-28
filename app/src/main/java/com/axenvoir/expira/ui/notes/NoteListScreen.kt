@@ -150,12 +150,14 @@ fun NoteListScreen(
                             if (query.isNotBlank()) {
                                 ExpiraEmptyState(
                                     icon = Icons.Filled.Search,
+                                    iconContentDescription = stringResource(R.string.search_notes),
                                     title = stringResource(R.string.empty_notes_search),
                                     subtitle = stringResource(R.string.empty_notes_search),
                                 )
                             } else {
                                 ExpiraEmptyState(
                                     icon = Icons.Filled.Edit,
+                                    iconContentDescription = stringResource(R.string.add_note),
                                     title = stringResource(R.string.empty_notes_title),
                                     subtitle = stringResource(R.string.empty_notes),
                                     actionLabel = stringResource(R.string.add_note),

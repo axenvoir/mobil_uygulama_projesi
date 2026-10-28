@@ -23,8 +23,8 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,6 +41,7 @@ import com.axenvoir.expira.BuildConfig
 import com.axenvoir.expira.R
 import com.axenvoir.expira.billing.BillingViewModel
 import com.axenvoir.expira.billing.UserTier
+import com.axenvoir.expira.ui.theme.ThemeMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -201,7 +202,26 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.support_restore)) }
                 }
-Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+                SettingsCard(title = stringResource(R.string.theme_section)) {
+                    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+                    LanguageOption(
+                        label = stringResource(R.string.theme_system),
+                        isSelected = themeMode == ThemeMode.SYSTEM,
+                        onClick = { viewModel.setThemeMode(ThemeMode.SYSTEM) },
+                    )
+                    LanguageOption(
+                        label = stringResource(R.string.theme_light),
+                        isSelected = themeMode == ThemeMode.LIGHT,
+                        onClick = { viewModel.setThemeMode(ThemeMode.LIGHT) },
+                    )
+                    LanguageOption(
+                        label = stringResource(R.string.theme_dark),
+                        isSelected = themeMode == ThemeMode.DARK,
+                        onClick = { viewModel.setThemeMode(ThemeMode.DARK) },
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.appearance_section)) {
                     val dynamicColor by viewModel.dynamicColor.collectAsStateWithLifecycle()
                     Row(

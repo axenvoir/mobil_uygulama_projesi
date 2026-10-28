@@ -4,13 +4,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription as semanticsContentDescription
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
@@ -20,10 +24,11 @@ fun ExpiraStatusDot(
     modifier: Modifier = Modifier,
     size: androidx.compose.ui.unit.Dp = 12.dp,
 ) {
-    androidx.compose.foundation.layout.Box(
+    Box(
         modifier = modifier
             .size(size)
-            .background(color, CircleShape),
+            .background(color, CircleShape)
+            .semantics { semanticsContentDescription = null },
     )
 }
 
@@ -35,7 +40,7 @@ fun ExpiraStatusPill(
 ) {
     Row(
         modifier = modifier
-            .background(color.copy(alpha = 0.12f), androidx.compose.foundation.shape.RoundedCornerShape(50))
+            .background(color.copy(alpha = 0.12f), RoundedCornerShape(50))
             .padding(horizontal = 10.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),

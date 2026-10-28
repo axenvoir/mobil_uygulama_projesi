@@ -36,22 +36,23 @@ fun ExpiraEmptyState(
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
     iconContentDescription: String? = null,
+    reduceMotion: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     var visible by remember { mutableStateOf(false) }
     androidx.compose.runtime.LaunchedEffect(Unit) { visible = true }
 
     val scale by animateFloatAsState(
-        targetValue = if (visible) 1f else 0.8f,
-        animationSpec = tween(
+        targetValue = if (visible) 1f else (if (reduceMotion) 1f else 0.8f),
+        animationSpec = if (reduceMotion) tween(0) else tween(
             durationMillis = ExpiraMotion.durationMedium,
             easing = ExpiraMotion.easingDecelerate,
         ),
         label = "emptyStateScale",
     )
     val alpha by animateFloatAsState(
-        targetValue = if (visible) 1f else 0f,
-        animationSpec = tween(
+        targetValue = if (visible) 1f else (if (reduceMotion) 1f else 0f),
+        animationSpec = if (reduceMotion) tween(0) else tween(
             durationMillis = ExpiraMotion.durationMedium,
             easing = ExpiraMotion.easingDecelerate,
         ),
@@ -67,7 +68,7 @@ fun ExpiraEmptyState(
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = iconContentDescription,
+            contentDescription = iconContentDescription ?: title,
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier
                 .size(96.dp)

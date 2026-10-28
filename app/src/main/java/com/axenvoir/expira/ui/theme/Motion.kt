@@ -17,9 +17,9 @@ object ExpiraMotion {
     val easingDecelerate = LinearOutSlowInEasing
 
     // Tweens
-    val tweenFast = tween<Float>(durationMillis = durationFast, easing = easingStandard)
-    val tweenMedium = tween<Float>(durationMillis = durationMedium, easing = easingStandard)
-    val tweenSlow = tween<Float>(durationMillis = durationSlow, easing = easingStandard)
+    val tweenFast = tween(durationMillis = durationFast, easing = easingStandard)
+    val tweenMedium = tween(durationMillis = durationMedium, easing = easingStandard)
+    val tweenSlow = tween(durationMillis = durationSlow, easing = easingStandard)
 
     // Springs
     val springDefault = spring<Float>(

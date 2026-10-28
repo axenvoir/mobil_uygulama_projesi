@@ -57,6 +57,7 @@ class BillingManager @Inject constructor(
 
             override fun onBillingServiceDisconnected() {
                 _connectionState.value = false
+                billingClient.startConnection(this)
             }
         })
     }
@@ -142,7 +143,11 @@ class BillingManager @Inject constructor(
                 val params = AcknowledgePurchaseParams.newBuilder()
                     .setPurchaseToken(purchase.purchaseToken)
                     .build()
-                billingClient.acknowledgePurchase(params) { }
+                billingClient.acknowledgePurchase(params) { result ->
+                    if (result.responseCode != BillingClient.BillingResponseCode.OK) {
+                        android.util.Log.w("BillingManager", "Acknowledge failed: ${result.debugMessage}")
+                    }
+                }
             }
         }
     }

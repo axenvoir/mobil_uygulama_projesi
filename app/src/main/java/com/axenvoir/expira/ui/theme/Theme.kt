@@ -61,7 +61,7 @@ private val DarkColors = darkColorScheme(
     outline = OutlineDark,
 )
 
-val AppShapes = ExpiraShapes
+
 
 @Composable
 fun ExpiraTheme(
@@ -81,7 +81,8 @@ fun ExpiraTheme(
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
-            val window = (view.context as Activity).window
+            val activity = view.context as? Activity ?: return@SideEffect
+            val window = activity.window
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
             WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
         }
@@ -90,7 +91,7 @@ fun ExpiraTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = AppTypography,
-        shapes = AppShapes,
+        shapes = ExpiraShapes,
         content = content,
     )
 }
