@@ -19,6 +19,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -36,7 +38,8 @@ fun ExpiraEmptyState(
     iconContentDescription: String? = null,
     modifier: Modifier = Modifier,
 ) {
-    var visible by remember { mutableStateOf(true) }
+    var visible by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(Unit) { visible = true }
 
     val scale by animateFloatAsState(
         targetValue = if (visible) 1f else 0.8f,
@@ -68,7 +71,9 @@ fun ExpiraEmptyState(
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier
                 .size(72.dp)
-                .align(Alignment.CenterHorizontally),
+                .align(Alignment.CenterHorizontally)
+                .scale(scale)
+                .alpha(alpha),
         )
         Spacer(modifier = Modifier.height(20.dp))
         Text(
