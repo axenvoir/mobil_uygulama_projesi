@@ -78,6 +78,14 @@
     <string name="days_short">gün</string>
     <string name="notifications_section">Bildirimler</string>
     <string name="about_section">Hakkında</string>
+    <string name="support_section">Destek Ol</string>
+    <string name="support_description">Expira'yi gelistirmemize yardimci olun. Premium ozellikler ve reklamsiz deneyim icin destek olun.</string>
+    <string name="support_tier_supporter">Destekci — 9.99 TL/ay</string>
+    <string name="support_tier_premium">Premium — 19.99 TL/ay</string>
+    <string name="support_tier_lifetime">Omur Boyu — 249.99 TL</string>
+    <string name="support_current_tier">Mevcut planiniz</string>
+    <string name="support_restore">Satin alimlari geri yukle</string>
+    <string name="support_thanks">Desteginiz icin tesekkurler!</string>
     <string name="test_notification">Test bildirimi göster</string>
     <string name="test_notification_sent">Test bildirimi gönderildi</string>
     <string name="version_label">Sürüm</string>

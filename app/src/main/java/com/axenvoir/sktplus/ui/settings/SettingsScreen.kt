@@ -38,12 +38,15 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.sktplus.BuildConfig
 import com.axenvoir.sktplus.R
+import com.axenvoir.sktplus.billing.BillingViewModel
+import com.axenvoir.sktplus.billing.UserTier
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
+    billingViewModel: BillingViewModel = hiltViewModel(),
 ) {
     val selected by viewModel.current.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -149,6 +152,44 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                SettingsCard(title = stringResource(R.string.support_section)) {
+                    val tier by billingViewModel.userTier.collectAsStateWithLifecycle()
+                    Text(
+                        text = stringResource(R.string.support_description),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    if (tier == UserTier.FREE) {
+                        OutlinedButton(
+                            onClick = { },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text(stringResource(R.string.support_tier_supporter)) }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = { },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text(stringResource(R.string.support_tier_premium)) }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = { },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text(stringResource(R.string.support_tier_lifetime)) }
+                    } else {
+                        Text(
+                            text = stringResource(R.string.support_thanks),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextButton(
+                        onClick = { billingViewModel.restorePurchases() },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text(stringResource(R.string.support_restore)) }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.about_section)) {
