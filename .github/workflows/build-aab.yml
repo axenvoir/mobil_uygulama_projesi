@@ -34,10 +34,11 @@ jobs:
 
       - name: Accept licenses and build
         run: |
-          yes | sdkmanager --licenses
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+          yes | sdkmanager --licenses || true
           ./gradlew :app:assembleDebug -x test
-        env:
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
+        shell: bash
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
