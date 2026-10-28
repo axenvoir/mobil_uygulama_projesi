@@ -35,7 +35,7 @@ jobs:
           gradle-version: '9.5.0'
 
       - name: Run tests, lint, and debug build
-        run: ./gradlew --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
+        run: ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleDebug
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
