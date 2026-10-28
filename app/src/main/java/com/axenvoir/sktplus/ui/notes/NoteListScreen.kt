@@ -54,6 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.sktplus.R
 import com.axenvoir.sktplus.domain.model.Note
 import com.axenvoir.sktplus.ui.components.EmptyState
+import com.axenvoir.sktplus.ui.components.ExpiraEmptyState
 import com.axenvoir.sktplus.ui.main.SettingsIconButton
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,13 +137,13 @@ fun NoteListScreen(
                             contentAlignment = Alignment.Center,
                         ) {
                             if (query.isNotBlank()) {
-                                EmptyState(
+                                ExpiraEmptyState(
                                     icon = Icons.Filled.Search,
                                     title = stringResource(R.string.empty_notes_search),
                                     subtitle = stringResource(R.string.empty_notes_search),
                                 )
                             } else {
-                                EmptyState(
+                                ExpiraEmptyState(
                                     icon = Icons.Filled.Edit,
                                     title = stringResource(R.string.empty_notes_title),
                                     subtitle = stringResource(R.string.empty_notes),

@@ -72,6 +72,7 @@ import com.axenvoir.sktplus.domain.model.Product
 import com.axenvoir.sktplus.domain.util.daysUntil
 import com.axenvoir.sktplus.domain.util.expiryStatus
 import com.axenvoir.sktplus.ui.components.EmptyState
+import com.axenvoir.sktplus.ui.components.ExpiraEmptyState
 import com.axenvoir.sktplus.ui.main.SettingsIconButton
 import com.axenvoir.sktplus.ui.components.StatusDot
 import java.time.format.DateTimeFormatter
@@ -263,13 +264,13 @@ fun ProductListScreen(
                             contentAlignment = Alignment.Center,
                         ) {
                             if (uiState.query.isNotEmpty()) {
-                                EmptyState(
+                                ExpiraEmptyState(
                                     icon = Icons.Filled.Search,
                                     title = stringResource(R.string.empty_search),
                                     subtitle = "",
                                 )
                             } else {
-                                EmptyState(
+                                ExpiraEmptyState(
                                     icon = Icons.Filled.DateRange,
                                     title = stringResource(R.string.empty_products_title),
                                     subtitle = stringResource(R.string.empty_products),
