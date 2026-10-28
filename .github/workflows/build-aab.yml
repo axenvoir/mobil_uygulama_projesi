@@ -31,9 +31,11 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: 12266719
 
       - name: Run tests and debug build
-        run: ./gradlew :app:assembleDebug -x test --no-daemon
+        run: ./gradlew :app:assembleDebug -x test
         env:
           ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
 
