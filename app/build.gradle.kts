@@ -46,7 +46,6 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            useProguard = true
             if (keystoreProperties.isNotEmpty()) {
                 signingConfig = signingConfigs.getByName("release")
             }
