@@ -23,8 +23,8 @@ android {
         applicationId = "com.expira.app.tr"
         minSdk = 26
         targetSdk = 37
-        versionCode = 98
-        versionName = "2.0.0"
+        versionCode = 99
+        versionName = "2.0.1"
     }
 
     androidResources {
