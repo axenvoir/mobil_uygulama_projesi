@@ -103,7 +103,7 @@ fun ProductEditScreen(
             ProductEditError.Generic -> genericErrorText
             null -> null
         }
-        if (message != null) {
+        if (message != null && uiState.error == ProductEditError.Generic) {
             snackbarHostState.showSnackbar(message)
         }
     }
@@ -170,14 +170,11 @@ fun ProductEditScreen(
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            androidx.compose.foundation.layout.Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = uiState.name,
                     onValueChange = viewModel::onNameChange,
-                    modifier = Modifier.weight(5f),
+                    modifier = Modifier.fillMaxWidth(),
                     label = { Text(stringResource(R.string.product_name)) },
                     placeholder = { Text(stringResource(R.string.name_placeholder)) },
                     isError = uiState.error is ProductEditError.EmptyName,
@@ -192,7 +189,7 @@ fun ProductEditScreen(
                 OutlinedTextField(
                     value = uiState.quantityText,
                     onValueChange = viewModel::onQuantityChange,
-                    modifier = Modifier.weight(2f),
+                    modifier = Modifier.fillMaxWidth(),
                     label = { Text(stringResource(R.string.quantity)) },
                     isError = uiState.error is ProductEditError.InvalidQuantity,
                     supportingText = if (uiState.error is ProductEditError.InvalidQuantity) {

@@ -29,7 +29,9 @@
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
     <string name="note_title">Title</string>
+    <string name="note_basic_info">Basic information</string>
     <string name="note_content">Content</string>
+    <string name="note_content_section">Note content</string>
     <string name="note_title_placeholder">e.g. Shopping list</string>
     <string name="note_content_placeholder">Write your note here…</string>
     <string name="note_title_counter">%1$d/%2$d characters</string>

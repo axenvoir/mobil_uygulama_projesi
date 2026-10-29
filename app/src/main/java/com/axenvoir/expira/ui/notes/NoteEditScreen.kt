@@ -171,6 +171,12 @@ fun NoteEditScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
         ) {
+            Text(
+                text = stringResource(R.string.note_basic_info),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
             OutlinedTextField(
                 value = title,
                 onValueChange = viewModel::onTitleChange,
@@ -199,6 +205,12 @@ fun NoteEditScreen(
                 Spacer(modifier = Modifier.height(4.dp))
             }
             Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = stringResource(R.string.note_content_section),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
             OutlinedTextField(
                 value = content,
                 onValueChange = viewModel::onContentChange,
