@@ -93,7 +93,9 @@ fun MainScreen() {
     if (useRail) {
         Row {
             if (showNavigation) {
-                NavigationRail {
+                NavigationRail(
+                    containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+                ) {
                     tabs.forEach { tab ->
                         val selected = currentDestination?.hierarchy?.any { it.route == tab.screen.route } == true
                         NavigationRailItem(
@@ -101,6 +103,11 @@ fun MainScreen() {
                             onClick = { onTabClick(tab.screen) },
                             icon = { Icon(tab.icon, contentDescription = stringResource(tab.labelRes)) },
                             label = { Text(stringResource(tab.labelRes)) },
+                            colors = androidx.compose.material3.NavigationRailItemDefaults.colors(
+                                selectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.onPrimaryContainer,
+                                selectedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                                indicatorColor = androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer,
+                            ),
                         )
                     }
                 }
@@ -119,7 +126,9 @@ fun MainScreen() {
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 if (showNavigation) {
-                    NavigationBar {
+                    NavigationBar(
+                        containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+                    ) {
                         tabs.forEach { tab ->
                             val selected = currentDestination?.hierarchy?.any { it.route == tab.screen.route } == true
                             NavigationBarItem(
@@ -127,6 +136,11 @@ fun MainScreen() {
                                 onClick = { onTabClick(tab.screen) },
                                 icon = { Icon(tab.icon, contentDescription = stringResource(tab.labelRes)) },
                                 label = { Text(stringResource(tab.labelRes)) },
+                                colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
+                                    selectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.onPrimaryContainer,
+                                    selectedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                                    indicatorColor = androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer,
+                                ),
                             )
                         }
                     }
