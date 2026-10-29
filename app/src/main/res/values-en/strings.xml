@@ -124,7 +124,6 @@
     <string name="support_tier_supporter">Supporter</string>
     <string name="support_tier_premium">Premium</string>
     <string name="support_tier_lifetime">Lifetime</string>
-    <string name="support_plan_monthly">Monthly</string>
     <string name="support_plan_yearly">Yearly</string>
     <string name="support_plan_yearly_hint">Annual plan</string>
     <string name="support_restore">Restore purchases</string>
