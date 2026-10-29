@@ -124,4 +124,9 @@
     <string name="theme_dark">Koyu</string>
     <string name="dynamic_color">Dinamik renk</string>
     <string name="dynamic_color_description">Material You renklerini kullan (Android 12+)</string>
+    <string name="category_food">Gıda</string>
+    <string name="category_medicine">İlaç</string>
+    <string name="category_cosmetics">Kozmetik</string>
+    <string name="category_cleaning">Temizlik</string>
+    <string name="category_other">Diğer</string>
 </resources>

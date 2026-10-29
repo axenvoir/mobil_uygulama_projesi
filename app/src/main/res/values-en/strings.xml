@@ -109,4 +109,24 @@
     <string name="appearance_section">Appearance</string>
     <string name="dynamic_color">Dynamic color</string>
     <string name="dynamic_color_description">Use Material You colors (Android 12+)</string>
+    <string name="category_food">Food</string>
+    <string name="category_medicine">Medicine</string>
+    <string name="category_cosmetics">Cosmetics</string>
+    <string name="category_cleaning">Cleaning</string>
+    <string name="category_other">Other</string>
+    <string name="support_section">Support Expira</string>
+    <string name="support_description">Help us improve Expira. Support the app for premium features and an ad-free experience.</string>
+    <string name="support_tier_supporter">Supporter — ₺9.99/month</string>
+    <string name="support_tier_premium">Premium — ₺19.99/month</string>
+    <string name="support_tier_lifetime">Lifetime — ₺249.99</string>
+    <string name="support_current_tier">Current plan</string>
+    <string name="support_restore">Restore purchases</string>
+    <string name="support_thanks">Thanks for your support!</string>
+    <string name="theme_section">Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="onboarding_icon_date_range">Expiry tracking</string>
+    <string name="onboarding_icon_settings">Settings</string>
+    <string name="onboarding_icon_edit">Edit</string>
 </resources>

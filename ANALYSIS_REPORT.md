@@ -1,24 +1,27 @@
 # Codebase Analysis Report
 
-## Overview
-Analysis of `/workspace/app/app/src/main/java/com/axenvoir/expira/` for a planned major UI redesign + Play Store release.
+## Scope
 
-## File Inventory
-- 35 Kotlin source files across `domain`, `data`, `di`, `notification`, `ui`, `CrashReporter`, `MainActivity`, `ExpiraApplication`
-- 3 unit test files (`DateUtilsTest`, `FilterTest`, `ModelsTest`)
+Static review of the Android app source and release configuration. The app has 57 Kotlin source files and 3 unit-test files.
 
-## Architecture
-Single-activity MVVM + Repository + Room + Hilt + WorkManager.
-- 9 NavRoutes (Screen.kt:3-18), MainActivity hosts the Compose Scaffold
-- ViewModels all `@HiltViewModel` with `StateFlow`+WhileSubscribed
-- Clean `domain↔data` separation with mappers in `*RepositoryImpl`
+## Architecture and strengths
 
-## Key Findings (see message for detail)
-- CRITICAL: `NoteEditViewModel.kt:80` references `_userEditedTitle` (declared line 90) → NPE on edit-existing-note
-- Localization bug: Turkish seed categories hardcoded in `ProductRepositoryImpl.kt:72-76`
-- Release not hardened: minify disabled, lint abortOnError=false
-- `CrashDisplayActivity` is dead code; no Crashlytics
-- Room DB plaintext; no SQLCipher
-- Recompose waste in `ProductListScreen.kt:183`
+- Single-activity Jetpack Compose UI with MVVM, repositories, Room, Hilt, Coroutines/Flow, and WorkManager.
+- Product and note data are stored locally; Android backup is disabled.
+- Date and expiry-status logic is separated into domain utilities and has boundary-focused unit tests.
+- CSV export escapes delimiters and prefixes formula-like values to reduce spreadsheet formula injection risk.
+- The app has Turkish and English resources, light/dark themes, product search/filtering, pinned notes, and responsive navigation.
 
-Full report posted to board.
+## Release and maintenance notes
+
+- Release builds enable code minification and resource shrinking.
+- Google Play Billing is on version 8.3.0. Subscription purchases pass an available offer token, and entitlement refresh queries both subscriptions and one-time products.
+- The original Room database name, `skt_plus.db`, is retained for existing local data.
+- CI runs unit tests, Android lint, and a debug build.
+- Default category labels are localized at display time; notification permission is requested only after a user action in notification settings.
+
+## Remaining limitations
+
+- Automated coverage is limited to domain/model tests; billing, database migrations, repositories, WorkManager, and UI flows still need focused tests.
+- CSV export is one-way; the app does not yet import or restore from an exported file.
+- A release build and Play Billing purchase flow should be verified in an Android SDK/Play test environment before publishing.
