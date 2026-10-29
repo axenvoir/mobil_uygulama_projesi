@@ -90,6 +90,7 @@ fun NoteListScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             androidx.compose.material3.MediumTopAppBar(
+                colors = com.axenvoir.expira.ui.components.expiraTopAppBarColors(),
                 title = {
                     Text(
                         text = stringResource(R.string.notes_list_title),
@@ -102,11 +103,13 @@ fun NoteListScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddNote,
-                modifier = Modifier.padding(16.dp),
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_note))
+            if (notes.isNotEmpty()) {
+                FloatingActionButton(
+                    onClick = onAddNote,
+                    modifier = Modifier.padding(16.dp),
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_note))
+                }
             }
         },
     ) { innerPadding ->
@@ -152,7 +155,7 @@ fun NoteListScreen(
                                     icon = Icons.Filled.Search,
                                     iconContentDescription = stringResource(R.string.search_notes),
                                     title = stringResource(R.string.empty_notes_search),
-                                    subtitle = stringResource(R.string.empty_notes_search),
+                                    subtitle = "",
                                 )
                             } else {
                                 ExpiraEmptyState(
@@ -170,7 +173,7 @@ fun NoteListScreen(
                             state = listState,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.surface),
+                                .background(MaterialTheme.colorScheme.background),
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
