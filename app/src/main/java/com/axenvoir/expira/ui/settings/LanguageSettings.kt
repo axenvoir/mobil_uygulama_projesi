@@ -2,6 +2,7 @@ package com.axenvoir.expira.ui.settings
 
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -27,7 +28,7 @@ class LanguageManager @Inject constructor(
     val current: Flow<AppLanguage> = _current.asStateFlow()
 
     fun setLanguage(language: AppLanguage) {
-        prefs.edit().putString(KEY_LANGUAGE, language.name).apply()
+        prefs.edit { putString(KEY_LANGUAGE, language.name) }
         _current.value = language
         val locales = if (language == AppLanguage.SYSTEM) {
             LocaleListCompat.getEmptyLocaleList()

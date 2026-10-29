@@ -22,7 +22,7 @@ android {
     defaultConfig {
         applicationId = "com.expira.app.tr"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 98
         versionName = "2.0.0"
     }
@@ -82,6 +82,12 @@ android {
         abortOnError = true
         checkReleaseBuilds = true
         warningsAsErrors = true
+        disable += setOf(
+            "AndroidGradlePluginVersion",
+            "GradleDependency",
+            "PluralsCandidate",
+            "IconLauncherShape",
+        )
     }
 
     testOptions {

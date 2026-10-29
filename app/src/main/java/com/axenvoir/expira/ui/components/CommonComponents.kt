@@ -44,10 +44,10 @@ fun EmptyState(
     icon: ImageVector,
     title: String,
     subtitle: String,
+    modifier: Modifier = Modifier,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
     iconContentDescription: String? = null,
-    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
