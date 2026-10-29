@@ -50,9 +50,27 @@ class BillingViewModelTest {
         }
     }
 
+    @Test
+    fun ad_eligibility_requires_a_checked_free_entitlement_snapshot() {
+        assertThat(BillingEntitlementState().canShowAds).isFalse()
+        assertThat(
+            BillingEntitlementState(
+                userTier = UserTier.FREE,
+                entitlementsChecked = true,
+            ).canShowAds,
+        ).isTrue()
+        assertThat(
+            BillingEntitlementState(
+                userTier = UserTier.PREMIUM,
+                entitlementsChecked = true,
+            ).canShowAds,
+        ).isFalse()
+    }
+
     private class FakeBillingRepository(
         private val restoreResult: Boolean,
     ) : BillingRepository {
+        override val entitlementState = MutableStateFlow(BillingEntitlementState())
         override val userTier = MutableStateFlow(UserTier.FREE)
         override val entitlementsChecked = MutableStateFlow(false)
 

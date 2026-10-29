@@ -18,25 +18,37 @@ class BillingRepositoryImpl @Inject constructor(
 ) : BillingRepository {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    private val _entitlementState = MutableStateFlow(BillingEntitlementState())
+    override val entitlementState: StateFlow<BillingEntitlementState> = _entitlementState.asStateFlow()
+
     private val _userTier = MutableStateFlow(UserTier.FREE)
     override val userTier: StateFlow<UserTier> = _userTier.asStateFlow()
 
-    override val entitlementsChecked: StateFlow<Boolean> = billingManager.entitlementsChecked
+    private val _entitlementsChecked = MutableStateFlow(false)
+    override val entitlementsChecked: StateFlow<Boolean> = _entitlementsChecked.asStateFlow()
 
     init {
         scope.launch {
-            billingManager.purchases.collect(::updateTierFromPurchases)
+            billingManager.purchaseQueryState.collect { queryState ->
+                val tier = tierFromPurchases(queryState.purchases)
+                _entitlementState.value = BillingEntitlementState(
+                    userTier = tier,
+                    entitlementsChecked = queryState.entitlementsChecked,
+                )
+                _userTier.value = tier
+                _entitlementsChecked.value = queryState.entitlementsChecked
+            }
         }
         billingManager.refreshPurchases()
     }
 
-    private fun updateTierFromPurchases(purchases: List<Purchase>) {
+    private fun tierFromPurchases(purchases: List<Purchase>): UserTier {
         val activeProductIds = purchases.asSequence()
             .filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
             .flatMap { it.products.asSequence() }
             .toSet()
 
-        _userTier.value = when {
+        return when {
             PRODUCT_PREMIUM_LIFETIME in activeProductIds -> UserTier.LIFETIME
             PRODUCT_PREMIUM_MONTHLY in activeProductIds || PRODUCT_PREMIUM_YEARLY in activeProductIds -> UserTier.PREMIUM
             PRODUCT_SUPPORTER_MONTHLY in activeProductIds || PRODUCT_SUPPORTER_YEARLY in activeProductIds -> UserTier.SUPPORTER

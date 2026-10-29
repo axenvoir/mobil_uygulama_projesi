@@ -83,12 +83,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
         reminderScheduler.scheduleDailyReminder()
-        if (savedInstanceState == null) {
-            if (CrashReporter.consumeCrashMarker(this)) {
-                crashRecoveryLauncher.launch(Intent(this, CrashDisplayActivity::class.java))
-            } else {
-                adsManager.requestConsentAtLaunch(this)
-            }
+        if (CrashReporter.consumeCrashMarker(this)) {
+            crashRecoveryLauncher.launch(Intent(this, CrashDisplayActivity::class.java))
+        } else {
+            adsManager.requestConsentAtLaunch(this)
         }
     }
 }

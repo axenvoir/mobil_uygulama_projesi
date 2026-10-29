@@ -1,19 +1,9 @@
 package com.axenvoir.expira.ui.expiry
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,7 +18,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -40,7 +30,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,11 +40,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.semantics.Role
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -66,12 +57,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -85,9 +76,8 @@ import com.axenvoir.expira.domain.model.Product
 import com.axenvoir.expira.domain.util.daysUntil
 import com.axenvoir.expira.domain.util.expiryStatus
 import com.axenvoir.expira.ui.components.ExpiraEmptyState
-import com.axenvoir.expira.ui.components.StatusDot
-import com.axenvoir.expira.ui.components.expiraChipColors
 import com.axenvoir.expira.ui.components.expiraTopAppBarColors
+import com.axenvoir.expira.ui.components.CategoryAvatar
 import com.axenvoir.expira.ui.main.SettingsIconButton
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -99,7 +89,7 @@ private enum class ProductEmptyReason {
     FILTER_EMPTY,
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductListScreen(
     onAddProduct: () -> Unit,
@@ -116,8 +106,8 @@ fun ProductListScreen(
     val undoText = stringResource(R.string.undo)
     val errorText = stringResource(R.string.error_generic)
     var productPendingDelete by remember { mutableStateOf<Product?>(null) }
+    var restoreSwipedProduct by remember { mutableStateOf<(() -> Unit)?>(null) }
     var productDetail by remember { mutableStateOf<Product?>(null) }
-    var fabVisible by remember { mutableStateOf(true) }
 
     LaunchedEffect(error) {
         if (error) {
@@ -155,15 +145,8 @@ fun ProductListScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            AnimatedVisibility(
-                visible = fabVisible && uiState.allProducts.isNotEmpty(),
-                enter = fadeIn() + scaleIn(initialScale = 0.85f),
-                exit = fadeOut() + scaleOut(targetScale = 0.85f),
-            ) {
-                FloatingActionButton(
-                    onClick = onAddProduct,
-                    modifier = Modifier.padding(16.dp),
-                ) {
+            if (!uiState.isLoading && uiState.allProducts.isNotEmpty()) {
+                FloatingActionButton(onClick = onAddProduct) {
                     Icon(
                         imageVector = Icons.Filled.Add,
                         contentDescription = stringResource(R.string.add_product),
@@ -213,32 +196,6 @@ fun ProductListScreen(
                     shape = MaterialTheme.shapes.extraLarge,
                 )
 
-                if (!uiState.isLoading && uiState.allProducts.isNotEmpty()) {
-                    if (uiState.products.isNotEmpty()) {
-                        SummaryCard(
-                            freshCount = uiState.freshCount,
-                            expiringCount = uiState.expiringCount,
-                            expiredCount = uiState.expiredCount,
-                            totalCount = uiState.products.size,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            onStatusClick = { status ->
-                                viewModel.onFilterChange(
-                                    when (status) {
-                                        ExpiryStatus.FRESH -> ProductFilter.FRESH
-                                        ExpiryStatus.EXPIRING_SOON -> ProductFilter.EXPIRING_SOON
-                                        ExpiryStatus.EXPIRED -> ProductFilter.EXPIRED
-                                    },
-                                )
-                            },
-                        )
-                    }
-                    // Counts live in SummaryCard; repeating them in filter chips adds noise.
-                    FilterRow(
-                        selected = uiState.filter,
-                        onFilterChange = viewModel::onFilterChange,
-                    )
-                }
-
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -282,10 +239,6 @@ fun ProductListScreen(
                             )
                         }
                     } else {
-                        LaunchedEffect(listState) {
-                            androidx.compose.runtime.snapshotFlow { listState.firstVisibleItemIndex }
-                                .collect { index -> fabVisible = index == 0 }
-                        }
                         LazyColumn(
                             state = listState,
                             modifier = Modifier.fillMaxSize(),
@@ -297,19 +250,31 @@ fun ProductListScreen(
                             ),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
+                            item(key = "expiry-overview", contentType = "overview") {
+                                ExpiryOverviewCard(
+                                    freshCount = uiState.freshCount,
+                                    expiringCount = uiState.expiringCount,
+                                    expiredCount = uiState.expiredCount,
+                                    totalCount = uiState.products.size,
+                                    selected = uiState.filter,
+                                    modifier = Modifier.padding(bottom = 8.dp),
+                                    onFilterChange = viewModel::onFilterChange,
+                                )
+                            }
                             items(
                                 items = visibleProducts,
                                 key = { it.id },
                                 contentType = { "product" },
                             ) { product ->
-                                val dismissState = rememberSwipeToDismissBoxState(
-                                    confirmValueChange = { value ->
-                                        if (value == SwipeToDismissBoxValue.EndToStart) {
-                                            productPendingDelete = product
+                                val dismissState = rememberSwipeToDismissBoxState()
+                                LaunchedEffect(dismissState.currentValue) {
+                                    if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+                                        restoreSwipedProduct = {
+                                            scope.launch { dismissState.reset() }
                                         }
-                                        false
-                                    },
-                                )
+                                        productPendingDelete = product
+                                    }
+                                }
                                 Box(modifier = Modifier.animateItem()) {
                                     SwipeToDismissBox(
                                         state = dismissState,
@@ -355,23 +320,25 @@ fun ProductListScreen(
                     .padding(horizontal = 24.dp)
                     .padding(bottom = 24.dp),
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 80.dp)
-                        .background(statusColor(status), MaterialTheme.shapes.large),
-                    contentAlignment = Alignment.Center,
+                Surface(
+                    color = statusColor(status).copy(alpha = 0.12f),
+                    shape = MaterialTheme.shapes.large,
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(
-                        text = statusLabel(status),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                    )
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = statusLabel(status),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = statusColor(status),
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = remainingDaysText(product.expiryDate, referenceDate),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
@@ -436,7 +403,11 @@ fun ProductListScreen(
 
     productPendingDelete?.let { product ->
         AlertDialog(
-            onDismissRequest = { productPendingDelete = null },
+            onDismissRequest = {
+                restoreSwipedProduct?.invoke()
+                restoreSwipedProduct = null
+                productPendingDelete = null
+            },
             title = { Text(stringResource(R.string.delete_confirm)) },
             text = {
                 Text(
@@ -461,6 +432,8 @@ fun ProductListScreen(
                                 }
                             }
                         }
+                        restoreSwipedProduct?.invoke()
+                        restoreSwipedProduct = null
                         productPendingDelete = null
                     },
                 ) {
@@ -468,7 +441,13 @@ fun ProductListScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { productPendingDelete = null }) {
+                TextButton(
+                    onClick = {
+                        restoreSwipedProduct?.invoke()
+                        restoreSwipedProduct = null
+                        productPendingDelete = null
+                    },
+                ) {
                     Text(stringResource(R.string.cancel_action))
                 }
             },
@@ -477,22 +456,22 @@ fun ProductListScreen(
 }
 
 @Composable
-private fun SummaryCard(
+private fun ExpiryOverviewCard(
     freshCount: Int,
     expiringCount: Int,
     expiredCount: Int,
     totalCount: Int,
+    selected: ProductFilter,
     modifier: Modifier = Modifier,
-    onStatusClick: (ExpiryStatus) -> Unit = {},
+    onFilterChange: (ProductFilter) -> Unit,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -505,39 +484,65 @@ private fun SummaryCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(
-                    text = stringResource(R.string.product_summary_total, totalCount),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Surface(
+                    modifier = Modifier.selectable(
+                        selected = selected == ProductFilter.ALL,
+                        onClick = { onFilterChange(ProductFilter.ALL) },
+                        role = Role.RadioButton,
+                    ),
+                    shape = MaterialTheme.shapes.small,
+                    color = if (selected == ProductFilter.ALL) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
+                    contentColor = if (selected == ProductFilter.ALL) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                ) {
+                    Text(
+                        text = pluralStringResource(
+                            R.plurals.product_summary_total,
+                            totalCount,
+                            totalCount,
+                        ),
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
-            Spacer(modifier = Modifier.height(10.dp))
-            Row(modifier = Modifier.fillMaxWidth()) {
-                SummaryItem(
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                ExpiryOverviewMetric(
                     count = freshCount,
                     label = stringResource(R.string.status_fresh),
-                    color = FreshGreenDot,
-                    fraction = if (totalCount > 0) freshCount.toFloat() / totalCount else 0f,
+                    color = statusColor(ExpiryStatus.FRESH),
+                    selected = selected == ProductFilter.FRESH,
                     modifier = Modifier.weight(1f),
-                    onClick = { onStatusClick(ExpiryStatus.FRESH) },
+                    onClick = { onFilterChange(ProductFilter.FRESH) },
                 )
-                SummaryItem(
+                ExpiryOverviewMetric(
                     count = expiringCount,
                     label = stringResource(R.string.status_expiring_soon),
-                    color = WarningOrangeDot,
-                    fraction = if (totalCount > 0) expiringCount.toFloat() / totalCount else 0f,
+                    color = statusColor(ExpiryStatus.EXPIRING_SOON),
+                    selected = selected == ProductFilter.EXPIRING_SOON,
                     modifier = Modifier.weight(1f),
-                    onClick = { onStatusClick(ExpiryStatus.EXPIRING_SOON) },
+                    onClick = { onFilterChange(ProductFilter.EXPIRING_SOON) },
                 )
-                SummaryItem(
+                ExpiryOverviewMetric(
                     count = expiredCount,
                     label = stringResource(R.string.status_expired),
-                    color = ExpiredRedDot,
-                    fraction = if (totalCount > 0) expiredCount.toFloat() / totalCount else 0f,
+                    color = statusColor(ExpiryStatus.EXPIRED),
+                    selected = selected == ProductFilter.EXPIRED,
                     modifier = Modifier.weight(1f),
-                    onClick = { onStatusClick(ExpiryStatus.EXPIRED) },
+                    onClick = { onFilterChange(ProductFilter.EXPIRED) },
                 )
             }
         }
@@ -545,106 +550,53 @@ private fun SummaryCard(
 }
 
 @Composable
-private fun SummaryItem(
+private fun ExpiryOverviewMetric(
     count: Int,
     label: String,
     color: Color,
-    fraction: Float,
+    selected: Boolean,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {},
+    onClick: () -> Unit,
 ) {
-    Column(
+    Surface(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
-            .heightIn(min = 48.dp)
-            .padding(vertical = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+            .heightIn(min = 72.dp)
+            .selectable(
+                selected = selected,
+                onClick = onClick,
+                role = Role.RadioButton,
+            ),
+        shape = MaterialTheme.shapes.medium,
+        color = if (selected) color.copy(alpha = 0.14f) else Color.Transparent,
+        contentColor = if (selected) color else MaterialTheme.colorScheme.onSurfaceVariant,
     ) {
-        Text(
-            text = count.toString(),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = color,
-            maxLines = 1,
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        androidx.compose.material3.LinearProgressIndicator(
-            progress = { fraction },
-            trackColor = MaterialTheme.colorScheme.surface,
-            color = color,
-            modifier = Modifier
-                .width(48.dp)
-                .height(6.dp),
-        )
+        Column(
+            modifier = Modifier.padding(horizontal = 2.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = count.toString(),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FilterRow(
-    selected: ProductFilter,
-    onFilterChange: (ProductFilter) -> Unit,
-) {
-    FlowRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        FilterChip(
-            selected = selected == ProductFilter.ALL,
-            onClick = { onFilterChange(ProductFilter.ALL) },
-            label = { Text(stringResource(R.string.all)) },
-            shape = RoundedCornerShape(50),
-            colors = expiraChipColors(),
-        )
-        FilterChip(
-            selected = selected == ProductFilter.FRESH,
-            onClick = { onFilterChange(ProductFilter.FRESH) },
-            label = { Text(stringResource(R.string.status_fresh)) },
-            leadingIcon = { StatusDot(FreshGreenDot) },
-            shape = RoundedCornerShape(50),
-            colors = expiraChipColors(),
-        )
-        FilterChip(
-            selected = selected == ProductFilter.EXPIRING_SOON,
-            onClick = { onFilterChange(ProductFilter.EXPIRING_SOON) },
-            label = { Text(stringResource(R.string.status_expiring_soon)) },
-            leadingIcon = { StatusDot(WarningOrangeDot) },
-            shape = RoundedCornerShape(50),
-            colors = expiraChipColors(),
-        )
-        FilterChip(
-            selected = selected == ProductFilter.EXPIRED,
-            onClick = { onFilterChange(ProductFilter.EXPIRED) },
-            label = { Text(stringResource(R.string.status_expired)) },
-            leadingIcon = { StatusDot(ExpiredRedDot) },
-            shape = RoundedCornerShape(50),
-            colors = expiraChipColors(),
-        )
-    }
-}
-
-private val FreshGreenDot = com.axenvoir.expira.ui.theme.FreshGreen
-private val WarningOrangeDot = com.axenvoir.expira.ui.theme.WarningOrange
-private val ExpiredRedDot = com.axenvoir.expira.ui.theme.ExpiredRed
-
-@Composable
-fun statusColor(status: ExpiryStatus) = when (status) {
-    ExpiryStatus.FRESH -> FreshGreenDot
-    ExpiryStatus.EXPIRING_SOON -> WarningOrangeDot
-    ExpiryStatus.EXPIRED -> ExpiredRedDot
+fun statusColor(status: ExpiryStatus): Color = when (status) {
+    ExpiryStatus.FRESH -> MaterialTheme.colorScheme.primary
+    ExpiryStatus.EXPIRING_SOON -> MaterialTheme.colorScheme.tertiary
+    ExpiryStatus.EXPIRED -> MaterialTheme.colorScheme.error
 }
 
 @Composable
@@ -662,8 +614,19 @@ fun remainingDaysText(
     val days = daysUntil(expiryDate, referenceDate)
     return when {
         days == 0L -> stringResource(R.string.expires_today)
-        days < 0 -> stringResource(R.string.expired_days, -days)
-        else -> stringResource(R.string.days_left, days)
+        days < 0 -> {
+            val elapsed = -days
+            androidx.compose.ui.res.pluralStringResource(
+                R.plurals.days_past,
+                elapsed.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
+                elapsed,
+            )
+        }
+        else -> androidx.compose.ui.res.pluralStringResource(
+            R.plurals.days_remaining,
+            days.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
+            days,
+        )
     }
 }
 
@@ -674,120 +637,108 @@ private fun ProductCard(
     onClick: () -> Unit,
 ) {
     val status = expiryStatus(product.expiryDate, referenceDate)
-    val days = daysUntil(product.expiryDate, referenceDate)
+    val quantityLabel = androidx.compose.ui.res.pluralStringResource(
+        R.plurals.product_quantity,
+        product.quantity.coerceAtLeast(0),
+        product.quantity.coerceAtLeast(0),
+    )
+    val storageLocation = storageLocationLabel(product.storageLocation)
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp, pressedElevation = 3.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp, pressedElevation = 2.dp),
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 0.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(16.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .height(48.dp)
-                    .background(statusColor(status), RoundedCornerShape(topStart = 2.dp, bottomStart = 2.dp)),
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = product.name,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    com.axenvoir.expira.ui.components.CategoryAvatar(name = product.categoryName)
-                    Spacer(modifier = Modifier.width(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                CategoryAvatar(name = product.categoryName)
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = product.categoryName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.weight(1f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = product.quantity.toString(),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.small)
-                            .padding(horizontal = 8.dp, vertical = 2.dp),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = product.expiryDate.format(
-                            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM),
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.weight(1f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = statusLabel(status),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = statusColor(status),
-                        modifier = Modifier
-                            .widthIn(max = 112.dp)
-                            .background(
-                                color = statusColor(status).copy(alpha = 0.12f),
-                                shape = MaterialTheme.shapes.small,
-                            )
-                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                        text = product.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    if (product.categoryName.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = product.categoryName,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Surface(
+                    color = statusColor(status).copy(alpha = 0.13f),
+                    contentColor = statusColor(status),
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.widthIn(max = 116.dp),
+                ) {
+                    Text(
+                        text = remainingDaysText(product.expiryDate, referenceDate),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp),
+                    )
                 }
             }
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .widthIn(min = 48.dp, max = 72.dp),
+            Spacer(modifier = Modifier.height(14.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
+                Icon(
+                    imageVector = Icons.Filled.DateRange,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp),
+                )
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = kotlin.math.abs(days).toString(),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = statusColor(status),
+                    text = product.expiryDate.format(
+                        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (days < 0) stringResource(R.string.days_passed_short)
-                    else stringResource(R.string.days_short),
+                    text = buildString {
+                        append(quantityLabel)
+                        if (storageLocation.isNotBlank()) append(" · $storageLocation")
+                    },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.End,
                 )
             }
         }
     }
+}
+
+@Composable
+private fun storageLocationLabel(storageLocation: String): String = when (storageLocation) {
+    "fridge" -> stringResource(R.string.location_fridge)
+    "pantry" -> stringResource(R.string.location_pantry)
+    "freezer" -> stringResource(R.string.location_freezer)
+    "other" -> stringResource(R.string.location_other)
+    else -> storageLocation
 }

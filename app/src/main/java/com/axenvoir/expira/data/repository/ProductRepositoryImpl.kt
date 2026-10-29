@@ -103,11 +103,11 @@ class ProductRepositoryImpl @Inject constructor(
     private fun displayCategoryName(name: String, isDefault: Boolean): String {
         if (!isDefault) return name
         val resourceId = when (name) {
-            "Gıda" -> R.string.category_food
-            "İlaç" -> R.string.category_medicine
-            "Kozmetik" -> R.string.category_cosmetics
-            "Temizlik" -> R.string.category_cleaning
-            "Diğer" -> R.string.category_other
+            "Gıda", "Food" -> R.string.category_food
+            "İlaç", "Medicine", "Medication" -> R.string.category_medicine
+            "Kozmetik", "Cosmetics" -> R.string.category_cosmetics
+            "Temizlik", "Cleaning" -> R.string.category_cleaning
+            "Diğer", "Other" -> R.string.category_other
             else -> return name
         }
         return context.getString(resourceId)

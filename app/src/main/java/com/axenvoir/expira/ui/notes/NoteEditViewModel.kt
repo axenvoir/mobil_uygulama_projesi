@@ -47,6 +47,9 @@ class NoteEditViewModel @Inject constructor(
     private val _editRecordMissing = MutableStateFlow(false)
     val editRecordMissing: StateFlow<Boolean> = _editRecordMissing.asStateFlow()
 
+    private val _loadFailed = MutableStateFlow(false)
+    val loadFailed: StateFlow<Boolean> = _loadFailed.asStateFlow()
+
     private val _saved = MutableStateFlow(false)
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
 
@@ -85,28 +88,40 @@ class NoteEditViewModel @Inject constructor(
 
     init {
         if (isEditMode) {
-            viewModelScope.launch {
-                try {
-                    val note = noteRepository.observeById(noteId).first()
-                    if (note != null) {
-                        originalTitle = note.title
-                        originalContent = note.content
-                        originalIsPinned = note.isPinned
-                        _title.value = note.title
-                        _content.value = note.content
-                        _isPinned.value = note.isPinned
-                    } else {
-                        _editRecordMissing.value = true
-                    }
-                } catch (e: Exception) {
-                    if (e is kotlinx.coroutines.CancellationException) throw e
-                    _error.value = NoteEditError.Generic
-                } finally {
-                    loaded.value = true
-                }
-            }
+            loadExistingNote()
         } else {
             loaded.value = true
+        }
+    }
+
+    fun retryLoad() {
+        if (isEditMode && _loadFailed.value) loadExistingNote()
+    }
+
+    private fun loadExistingNote() {
+        viewModelScope.launch {
+            loaded.value = false
+            _editRecordMissing.value = false
+            _loadFailed.value = false
+            _error.value = null
+            try {
+                val note = noteRepository.observeById(noteId).first()
+                if (note != null) {
+                    originalTitle = note.title
+                    originalContent = note.content
+                    originalIsPinned = note.isPinned
+                    _title.value = note.title
+                    _content.value = note.content
+                    _isPinned.value = note.isPinned
+                } else {
+                    _editRecordMissing.value = true
+                }
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                _loadFailed.value = true
+            } finally {
+                loaded.value = true
+            }
         }
     }
 
@@ -141,6 +156,7 @@ class NoteEditViewModel @Inject constructor(
         if (_title.value.isBlank() && _suggestedTitle.value.isNotBlank() && !_userEditedTitle.value) {
             _title.value = _suggestedTitle.value
             _suggestedTitle.value = ""
+            if (_error.value is NoteEditError.EmptyTitle) _error.value = null
         }
     }
 
@@ -149,7 +165,10 @@ class NoteEditViewModel @Inject constructor(
     }
 
     fun save() {
-        if (_isSaving.value || _saved.value || (isEditMode && _editRecordMissing.value)) return
+        if (
+            _isSaving.value || _saved.value || !loaded.value || _loadFailed.value ||
+            (isEditMode && _editRecordMissing.value)
+        ) return
 
         val titleForValidation = _title.value.trim()
         when {
@@ -202,9 +221,6 @@ class NoteEditViewModel @Inject constructor(
         _error.value = null
     }
 
-    fun consumeEditRecordMissing() {
-        _editRecordMissing.value = false
-    }
 }
 
 sealed interface NoteEditError {

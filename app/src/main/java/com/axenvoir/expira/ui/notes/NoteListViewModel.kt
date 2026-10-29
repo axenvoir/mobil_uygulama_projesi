@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.axenvoir.expira.domain.model.Note
 import com.axenvoir.expira.domain.repository.NoteRepository
+import com.axenvoir.expira.domain.util.normalizeSearchText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -62,17 +63,22 @@ class NoteListViewModel @Inject constructor(
         searchQuery,
         selectedFilter,
     ) { sourceNotes, query, filter ->
+        val normalizedQuery = normalizeSearchText(query)
         val filteredByType = when (filter) {
             NoteFilter.ALL -> sourceNotes
             NoteFilter.PINNED -> sourceNotes.filter { it.isPinned }
             NoteFilter.RECENT -> sourceNotes.sortedByDescending { it.updatedAt }.take(20)
         }
-        val filtered = if (query.isBlank()) filteredByType
+        val filtered = if (normalizedQuery.isBlank()) filteredByType
         else filteredByType.filter { note ->
-            note.title.contains(query, ignoreCase = true) ||
-                note.content.contains(query, ignoreCase = true)
+            normalizeSearchText(note.title).contains(normalizedQuery) ||
+                normalizeSearchText(note.content).contains(normalizedQuery)
         }
-        filtered.sortedWith(compareByDescending<Note> { it.isPinned }.thenByDescending { it.updatedAt })
+        if (filter == NoteFilter.RECENT) {
+            filtered.sortedByDescending { it.updatedAt }
+        } else {
+            filtered.sortedWith(compareByDescending<Note> { it.isPinned }.thenByDescending { it.updatedAt })
+        }
     }.distinctUntilChanged().stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),

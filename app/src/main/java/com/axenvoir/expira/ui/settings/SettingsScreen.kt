@@ -7,23 +7,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
@@ -37,9 +43,11 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -50,7 +58,9 @@ import com.axenvoir.expira.ads.RewardedAdState
 import com.axenvoir.expira.billing.BillingViewModel
 import com.axenvoir.expira.billing.UserTier
 import com.axenvoir.expira.ui.components.expiraTopAppBarColors
+import com.axenvoir.expira.ui.components.ExpiraSectionCard
 import com.axenvoir.expira.ui.theme.ThemeMode
+import com.axenvoir.expira.ui.util.findActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,6 +80,7 @@ fun SettingsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val context = androidx.compose.ui.platform.LocalContext.current
     val resources = androidx.compose.ui.platform.LocalResources.current
+    val adActivityUnavailableMessage = stringResource(R.string.support_ad_activity_unavailable)
     val exportDoneMessage = stringResource(R.string.export_done)
     val exportFailedMessage = stringResource(R.string.export_failed)
     val testNotificationSentMessage = stringResource(R.string.test_notification_sent)
@@ -79,6 +90,14 @@ fun SettingsScreen(
     val restoreUnavailableMessage = stringResource(R.string.restore_unavailable)
     val manageSubscriptionUnavailableMessage = stringResource(R.string.play_store_unavailable)
     val scope = androidx.compose.runtime.rememberCoroutineScope()
+    fun withForegroundActivity(action: (android.app.Activity) -> Unit) {
+        val activity = context.findActivity()
+        if (activity == null) {
+            scope.launch { snackbarHostState.showSnackbar(adActivityUnavailableMessage) }
+        } else {
+            action(activity)
+        }
+    }
     androidx.compose.runtime.LaunchedEffect(Unit) {
         billingViewModel.refreshEntitlements()
     }
@@ -133,6 +152,7 @@ fun SettingsScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 colors = expiraTopAppBarColors(),
@@ -162,7 +182,7 @@ fun SettingsScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
             ) {
-                SettingsCard(title = stringResource(R.string.language_section)) {
+                ExpiraSectionCard(title = stringResource(R.string.language_section)) {
                     LanguageOption(
                         label = stringResource(R.string.language_system),
                         isSelected = selected == AppLanguage.SYSTEM,
@@ -180,7 +200,7 @@ fun SettingsScreen(
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                SettingsCard(title = stringResource(R.string.notifications_section)) {
+                ExpiraSectionCard(title = stringResource(R.string.notifications_section)) {
                     Text(
                         text = stringResource(R.string.notifications_description),
                         style = MaterialTheme.typography.bodySmall,
@@ -207,7 +227,7 @@ fun SettingsScreen(
                     ) { Text(stringResource(R.string.test_notification)) }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                SettingsCard(title = stringResource(R.string.data_section)) {
+                ExpiraSectionCard(title = stringResource(R.string.data_section)) {
                     Text(
                         text = stringResource(R.string.data_export_description),
                         style = MaterialTheme.typography.bodySmall,
@@ -221,23 +241,21 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                SettingsCard(title = stringResource(R.string.support_section)) {
+                ExpiraSectionCard(title = stringResource(R.string.support_section)) {
                     RewardedSupportSection(
                         userTier = userTier,
                         entitlementsChecked = entitlementsChecked,
                         rewardedAdState = rewardedAdState,
                         supportPoints = supportPoints,
                         privacyOptionsRequired = privacyOptionsRequired,
-                        onPrepareAd = { adSupportViewModel.prepareRewardedAd(isEligible = true) },
-                        onRetryAd = { adSupportViewModel.retryRewardedAd(isEligible = true) },
-                        onShowAd = {
-                            (context as? android.app.Activity)?.let(adSupportViewModel::showRewardedAd)
-                        },
+                        onPrepareAd = { adSupportViewModel.prepareRewardedAd() },
+                        onRetryAd = { adSupportViewModel.retryRewardedAd() },
+                        onShowAd = { withForegroundActivity(adSupportViewModel::showRewardedAd) },
                         onShowPrivacyOptions = {
-                            (context as? android.app.Activity)?.let(adSupportViewModel::showPrivacyOptions)
+                            withForegroundActivity(adSupportViewModel::showPrivacyOptions)
                         },
                         onRetryConsent = {
-                            (context as? android.app.Activity)?.let(adSupportViewModel::retryConsentUpdate)
+                            withForegroundActivity(adSupportViewModel::retryConsentUpdate)
                         },
                         onRestorePurchases = billingViewModel::restorePurchases,
                         onRefreshPurchases = billingViewModel::refreshEntitlements,
@@ -253,7 +271,7 @@ fun SettingsScreen(
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                SettingsCard(title = stringResource(R.string.theme_section)) {
+                ExpiraSectionCard(title = stringResource(R.string.theme_section)) {
                     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
                     LanguageOption(
                         label = stringResource(R.string.theme_system),
@@ -272,10 +290,17 @@ fun SettingsScreen(
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                SettingsCard(title = stringResource(R.string.appearance_section)) {
+                ExpiraSectionCard(title = stringResource(R.string.appearance_section)) {
                     val dynamicColor by viewModel.dynamicColor.collectAsStateWithLifecycle()
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .toggleable(
+                                value = dynamicColor,
+                                onValueChange = viewModel::setDynamicColor,
+                                role = Role.Switch,
+                            )
+                            .semantics(mergeDescendants = true) {},
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
@@ -291,12 +316,12 @@ fun SettingsScreen(
                         }
                         Switch(
                             checked = dynamicColor,
-                            onCheckedChange = viewModel::setDynamicColor,
+                            onCheckedChange = null,
                         )
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                SettingsCard(title = stringResource(R.string.about_section)) {
+                ExpiraSectionCard(title = stringResource(R.string.about_section)) {
                     Text(
                         text = "${stringResource(R.string.version_label)}: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
                         style = MaterialTheme.typography.bodyMedium,
@@ -323,22 +348,78 @@ private fun RewardedSupportSection(
     onRefreshPurchases: () -> Unit,
     onManageSubscription: () -> Unit,
 ) {
-    Text(
-        text = stringResource(R.string.support_description),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
     if (supportPoints > 0) {
         Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = androidx.compose.ui.res.pluralStringResource(
-                R.plurals.support_points_total,
-                supportPoints,
-                supportPoints,
-            ),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-        )
+        Surface(
+            color = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            shape = MaterialTheme.shapes.large,
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Filled.Star, contentDescription = null)
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = androidx.compose.ui.res.pluralStringResource(
+                        R.plurals.support_points_total,
+                        supportPoints,
+                        supportPoints,
+                    ),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+        }
+    }
+    if (supportPoints >= SUPPORTER_BADGE_POINTS) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Surface(
+            color = MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            shape = MaterialTheme.shapes.large,
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Filled.Star, contentDescription = null)
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = stringResource(R.string.support_badge_unlocked),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    } else {
+        Spacer(modifier = Modifier.height(8.dp))
+        Column {
+            Text(
+                text = stringResource(
+                    R.string.support_badge_progress,
+                    supportPoints.coerceAtLeast(0),
+                ),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            LinearProgressIndicator(
+                progress = {
+                    supportPoints.coerceIn(0, SUPPORTER_BADGE_POINTS).toFloat() /
+                        SUPPORTER_BADGE_POINTS
+                },
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.primaryContainer,
+            )
+        }
     }
     Spacer(modifier = Modifier.height(12.dp))
 
@@ -374,6 +455,12 @@ private fun RewardedSupportSection(
         }
         else -> {
             Text(
+                text = stringResource(R.string.support_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
                 text = stringResource(R.string.support_ad_disclosure),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -384,20 +471,12 @@ private fun RewardedSupportSection(
                     onClick = onPrepareAd,
                     modifier = Modifier.fillMaxWidth(),
                 ) { Text(stringResource(R.string.support_ad_prepare)) }
-                RewardedAdState.LOADING -> Text(
-                    text = stringResource(R.string.support_ad_loading),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                RewardedAdState.READY -> FilledTonalButton(
+                RewardedAdState.LOADING -> AdProgressRow(R.string.support_ad_loading)
+                RewardedAdState.READY -> Button(
                     onClick = onShowAd,
                     modifier = Modifier.fillMaxWidth(),
                 ) { Text(stringResource(R.string.support_ad_watch)) }
-                RewardedAdState.SHOWING -> Text(
-                    text = stringResource(R.string.support_ad_showing),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                RewardedAdState.SHOWING -> AdProgressRow(R.string.support_ad_showing)
                 RewardedAdState.CONSENT_REQUIRED -> {
                     Text(
                         text = stringResource(R.string.support_ad_consent_required),
@@ -447,30 +526,26 @@ private fun RewardedSupportSection(
     ) { Text(stringResource(R.string.support_restore)) }
 }
 
+private const val SUPPORTER_BADGE_POINTS = 5
+
 @Composable
-private fun SettingsCard(title: String, content: @Composable () -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 4.dp),
+private fun AdProgressRow(messageRes: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.padding(end = 12.dp).size(20.dp),
+            strokeWidth = 2.dp,
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-            ),
-            shape = MaterialTheme.shapes.large,
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                content()
-            }
-        }
+        Text(
+            text = stringResource(messageRes),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
@@ -481,14 +556,24 @@ private fun LanguageOption(label: String, isSelected: Boolean, onClick: () -> Un
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.medium)
             .background(
-                if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)
+                if (isSelected) MaterialTheme.colorScheme.primaryContainer
                 else MaterialTheme.colorScheme.surface,
             )
-            .clickable(onClick = onClick)
+            .selectable(
+                selected = isSelected,
+                onClick = onClick,
+                role = Role.RadioButton,
+            )
             .padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButton(selected = isSelected, onClick = null)
-        Text(text = label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 4.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+            else MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(start = 4.dp),
+        )
     }
 }

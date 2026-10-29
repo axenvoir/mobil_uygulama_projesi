@@ -8,8 +8,7 @@ import com.axenvoir.expira.domain.repository.ProductRepository
 import com.axenvoir.expira.domain.util.expiryStatus
 import com.axenvoir.expira.domain.util.todayFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.text.Normalizer
-import java.util.Locale
+import com.axenvoir.expira.domain.util.normalizeSearchText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -152,14 +151,4 @@ class ProductListViewModel @Inject constructor(
         _error.value = false
     }
 
-    companion object {
-        private val combiningMarks = Regex("\\p{M}+")
-
-        /** Case- and accent-insensitive matching without changing the visible query. */
-        fun normalizeSearchText(value: String): String =
-            Normalizer.normalize(value.trim(), Normalizer.Form.NFD)
-                .replace(combiningMarks, "")
-                .lowercase(Locale.ROOT)
-                .replace('ı', 'i')
-    }
 }

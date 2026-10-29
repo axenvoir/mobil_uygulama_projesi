@@ -4,7 +4,7 @@
 
 - Reklam yalnızca kullanıcı **Reklamı hazırla** ve ardından **Reklamı izle** eylemlerini seçerse istenir/gösterilir; uygulama açılışında reklam yüklenmez.
 - Reklam izlemek isteğe bağlıdır. Reklamı kapatmak veya izlememek ürün, not, bildirim ya da başka temel özellikleri engellemez.
-- Reklamın tamamlandığı Google Mobile Ads ödül callback’iyle doğrulanır; callback gelmeden puan verilmez. Puanlar cihazda saklanan uygulama içi sayaçtır; nakit değeri, devredilebilirliği veya uygulama dışı karşılığı yoktur.
+- Reklamın tamamlandığı Google Mobile Ads ödül callback’iyle doğrulanır; callback gelmeden puan verilmez. Her tamamlanan reklam 1 puan verir; 5 puan uygulama içinde görünen kozmetik Destekçi rozetini açar. Puanlar cihazda saklanır; nakit değeri, devredilebilirliği veya uygulama dışı karşılığı yoktur.
 - AdMob’da ödül miktarı **1**, ödül adı **Expira point** olarak ayarlanmalıdır; uygulama metinleri bu yapılandırmayı varsayar.
 - Önceden Google Play üzerinden alınmış reklamsız kullanım hakları kontrol edilir. Hakkı olan kullanıcıya reklam gösterilmez. Uygulama içindeki yeni abonelik/ürün satış ekranı kaldırılmıştır; eski satın alımların kontrolü ve geri yüklenmesi korunur.
 - Google UMP izin akışı reklam talebinden önce çalışır. İzin alınamayan, reklam yüklenemeyen veya kimlikleri bulunmayan durumda uygulama reklamsız çalışmaya devam eder.
@@ -28,8 +28,14 @@ Depo ayarlarında **Settings → Secrets and variables → Actions → New repos
 |---|---|
 | `EXPIRA_ADMOB_APP_ID` | AdMob Android App ID (`~` içeren) |
 | `EXPIRA_REWARDED_AD_UNIT_ID` | Rewarded reklam birimi ID’si (`/` içeren) |
+| `KEYSTORE_BASE64` | Play App Signing’e yükleme için kullanılan release JKS keystore dosyasının Base64 içeriği |
+| `KEYSTORE_PASSWORD` | JKS keystore parolası |
+| `KEY_ALIAS` | Keystore içindeki imza anahtarının alias adı |
+| `KEY_PASSWORD` | İmza anahtarının parolası |
 
-Release workflow’u bu secret’ları Gradle’a aktarır, biçimlerini doğrular ve Google test kimlikleriyle imzalı release AAB üretimini durdurur. Bu değerler eklenmemişse **verify** işi (unit test, lint, debug build ve instrumentation) çalışabilir; ancak release artifact işi bilerek hata verir. Böylece yanlışlıkla reklamların kapalı olduğu veya test kimliği kullanan bir AAB’nin yayınlanması önlenir.
+`KEYSTORE_BASE64` değerini JKS dosyasının Base64 kodlamasından oluşturun (Linux: `base64 -w0 expira-release.jks`; macOS: `base64 < expira-release.jks | tr -d '\n'`). Ham keystore’u veya parolaları repoya eklemeyin; GitHub secret alanlarına girin.
+
+Release workflow’u AdMob ID biçimlerini doğrular, Google test kimlikleriyle release üretimini durdurur ve listelenen imzalama secret’ları olmadan imzalı APK/AAB üretmez. Bu değerler eklenmemişse **verify** işi (unit test, lint, debug build ve instrumentation) çalışabilir; release artifact işi bilerek hata verir.
 
 ## 3. Yerel release derlemesi
 

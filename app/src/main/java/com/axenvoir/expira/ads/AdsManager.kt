@@ -4,50 +4,66 @@ import android.app.Activity
 import android.content.Context
 import android.util.Log
 import androidx.core.content.edit
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import com.axenvoir.expira.BuildConfig
+import com.axenvoir.expira.billing.BillingRepository
+import com.axenvoir.expira.billing.UserTier
 import com.google.android.libraries.ads.mobile.sdk.MobileAds
-import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig
-import com.google.android.libraries.ads.mobile.sdk.common.AdRequest
-import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError
 import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback
+import com.google.android.libraries.ads.mobile.sdk.common.AdRequest
 import com.google.android.libraries.ads.mobile.sdk.common.FullScreenContentError
+import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError
+import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig
 import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAd
 import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAdEventCallback
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
-import com.axenvoir.expira.BuildConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.lang.ref.WeakReference
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.coroutines.resume
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject.Inject
-import javax.inject.Singleton
-import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 /** AdMob consent and the one explicitly requested rewarded-ad placement. */
 @Singleton
 class AdsManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
+    private val billingRepository: BillingRepository,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val initializationMutex = Mutex()
     private var initialized = false
     private var loadedAd: RewardedAd? = null
-    private var lastEligible = false
+    private var adRequestGeneration = 0L
+    private var observedEligible = false
     private var userRequestedAd = false
+
+    private var consentRequestInFlight = false
+    private var consentFormInFlight = false
+    private var consentRequestGeneration = 0L
+    private var consentActivity: WeakReference<Activity>? = null
+    private var consentOperationActivity: WeakReference<Activity>? = null
+    private var privacyFormInFlight = false
+    private var privacyActivity: WeakReference<Activity>? = null
 
     private val consentInformation = UserMessagingPlatform.getConsentInformation(context)
     private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
@@ -67,100 +83,145 @@ class AdsManager @Inject constructor(
     private val _rewardEvents = MutableSharedFlow<Int>(extraBufferCapacity = 1)
     val rewardEvents: SharedFlow<Int> = _rewardEvents.asSharedFlow()
 
-    /** Refreshes UMP consent on each cold app launch, before any ad request is allowed. */
-    fun requestConsentAtLaunch(activity: Activity) {
-        if (!BuildConfig.ADS_ENABLED || activity.isFinishing || activity.isDestroyed) return
+    init {
+        scope.launch {
+            billingRepository.entitlementState
+                .collect { entitlement -> onEligibilityChanged(entitlement.canShowAds) }
+        }
+    }
 
-        val parameters = ConsentRequestParameters.Builder().build()
-        consentInformation.requestConsentInfoUpdate(
-            activity,
-            parameters,
-            {
-                UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { formError ->
-                    if (formError != null) {
-                        Log.i(TAG, "Consent form not shown: ${formError.message}")
-                    }
-                    updateConsentState()
-                }
-            },
-            { error ->
-                Log.w(TAG, "Consent update failed: ${error.message}")
-                // UMP may still permit ads based on a valid decision from the previous session.
-                updateConsentState()
-            },
-        )
+    /** Refreshes UMP consent on app launch without retaining or using a stale Activity. */
+    fun requestConsentAtLaunch(activity: Activity) {
+        if (!BuildConfig.ADS_ENABLED || !isActivityAlive(activity)) return
+
+        abandonStaleConsentOperationIfNeeded()
+        consentActivity = WeakReference(activity)
+
+        // A call from a recreated Activity may arrive while the old request/form is still
+        // completing. Keep only the newest Activity and let the existing operation finish; this
+        // prevents two consent forms from being presented at once.
+        if (consentRequestInFlight || consentFormInFlight) return
+
+        consentRequestInFlight = true
+        val requestGeneration = ++consentRequestGeneration
+        consentOperationActivity = WeakReference(activity)
+        requestConsentWhenResumed(activity, requestGeneration)
     }
 
     fun showPrivacyOptions(activity: Activity) {
         if (!BuildConfig.ADS_ENABLED || !privacyOptionsRequired.value) return
-        UserMessagingPlatform.showPrivacyOptionsForm(activity) { formError ->
-            if (formError != null) {
-                Log.w(TAG, "Privacy options form failed: ${formError.message}")
+
+        if (privacyFormInFlight && !isActivityAlive(privacyActivity?.get())) {
+            privacyFormInFlight = false
+            privacyActivity = null
+        }
+        if (privacyFormInFlight || !isActivityUsable(activity)) return
+
+        privacyFormInFlight = true
+        privacyActivity = WeakReference(activity)
+        runCatching {
+            UserMessagingPlatform.showPrivacyOptionsForm(activity) { formError ->
+                if (!privacyFormInFlight) return@showPrivacyOptionsForm
+                privacyFormInFlight = false
+                privacyActivity = null
+                if (formError != null) {
+                    Log.w(TAG, "Privacy options form failed: ${formError.message}")
+                }
+                updateConsentState()
             }
-            updateConsentState()
+        }.onFailure { error ->
+            privacyFormInFlight = false
+            privacyActivity = null
+            Log.w(TAG, "Privacy options form could not be opened", error)
         }
     }
 
-    /** Loads an ad only for a verified free user, after UMP has allowed ad requests. */
-    fun prepareRewardedAd(isEligible: Boolean) {
-        lastEligible = isEligible
-        userRequestedAd = true
+    /** Requests an ad only after Play purchase state and consent permit it. */
+    fun prepareRewardedAd() {
+        val eligible = currentEligibility()
+        applyEligibilitySnapshot(eligible)
+
         if (!BuildConfig.ADS_ENABLED) {
-            loadedAd = null
+            clearLoadedAd()
+            userRequestedAd = false
             _state.value = RewardedAdState.CONFIGURATION_MISSING
             return
         }
-        if (!isEligible) {
-            loadedAd = null
-            _state.value = RewardedAdState.LEGACY_PURCHASE
+        if (!eligible) {
+            clearLoadedAd()
+            userRequestedAd = false
+            _state.value = stateForCurrentEligibility()
             return
         }
+        if (_state.value == RewardedAdState.SHOWING) return
         if (!_canRequestAds.value) {
-            loadedAd = null
+            clearLoadedAd()
+            userRequestedAd = true
             _state.value = RewardedAdState.CONSENT_REQUIRED
             return
         }
-        if (_state.value == RewardedAdState.LOADING ||
-            _state.value == RewardedAdState.READY ||
-            _state.value == RewardedAdState.SHOWING
-        ) return
+        if (_state.value == RewardedAdState.LOADING || _state.value == RewardedAdState.READY) return
 
-        _state.value = RewardedAdState.LOADING
-        scope.launch {
-            if (!initializeSdk()) {
-                _state.value = RewardedAdState.UNAVAILABLE
-                return@launch
-            }
-            loadRewardedAd()
-        }
+        userRequestedAd = true
+        startRewardedAdLoad()
     }
 
-    fun retryRewardedAd(isEligible: Boolean) {
-        loadedAd = null
-        _state.value = RewardedAdState.NOT_REQUESTED
-        prepareRewardedAd(isEligible)
+    /** Explicit retry entry point; Play purchase state remains the source of truth. */
+    fun retryRewardedAd() {
+        if (_state.value == RewardedAdState.SHOWING) return
+        clearLoadedAd()
+        userRequestedAd = false
+        _state.value = if (BuildConfig.ADS_ENABLED) {
+            RewardedAdState.NOT_REQUESTED
+        } else {
+            RewardedAdState.CONFIGURATION_MISSING
+        }
+        prepareRewardedAd()
     }
 
     fun showRewardedAd(activity: Activity) {
+        val eligible = currentEligibility()
+        applyEligibilitySnapshot(eligible)
         val ad = loadedAd
-        if (ad == null || !lastEligible || !_canRequestAds.value || activity.isFinishing || activity.isDestroyed) {
-            _state.value = RewardedAdState.UNAVAILABLE
+        if (
+            ad == null ||
+            !eligible ||
+            !_canRequestAds.value ||
+            !isActivityUsable(activity)
+        ) {
+            if (!eligible) {
+                _state.value = stateForCurrentEligibility()
+            } else if (_state.value != RewardedAdState.SHOWING) {
+                _state.value = if (_canRequestAds.value) {
+                    RewardedAdState.UNAVAILABLE
+                } else {
+                    RewardedAdState.CONSENT_REQUIRED
+                }
+            }
             return
         }
 
+        // A loaded ad is single-use. Invalidate any late load callback before handing it to the
+        // SDK, and require a fresh explicit prepare/retry action for another ad.
         loadedAd = null
+        adRequestGeneration += 1
+        userRequestedAd = false
         val rewardDelivered = AtomicBoolean(false)
         _state.value = RewardedAdState.SHOWING
         ad.adEventCallback = object : RewardedAdEventCallback {
             override fun onAdShowedFullScreenContent() = Unit
 
             override fun onAdDismissedFullScreenContent() {
-                _state.value = RewardedAdState.UNAVAILABLE
+                if (_state.value == RewardedAdState.SHOWING) {
+                    _state.value = RewardedAdState.UNAVAILABLE
+                }
             }
 
             override fun onAdFailedToShowFullScreenContent(fullScreenContentError: FullScreenContentError) {
                 Log.w(TAG, "Rewarded ad failed to show: ${fullScreenContentError.message}")
-                _state.value = RewardedAdState.UNAVAILABLE
+                if (_state.value == RewardedAdState.SHOWING) {
+                    _state.value = RewardedAdState.UNAVAILABLE
+                }
             }
 
             override fun onAdImpression() = Unit
@@ -169,7 +230,14 @@ class AdsManager @Inject constructor(
         }
         runCatching {
             ad.show(activity) { rewardItem ->
-                if (rewardDelivered.compareAndSet(false, true)) {
+                // The SDK callback is the only path that can grant points. Re-check the current
+                // gates as well, so a purchase or consent change during playback cannot award a
+                // stale ad session.
+                if (
+                    rewardDelivered.compareAndSet(false, true) &&
+                    currentEligibility() &&
+                    _canRequestAds.value
+                ) {
                     val amount = rewardItem.amount.coerceAtLeast(0)
                     if (amount > 0) {
                         val newTotal = (_supportPoints.value.toLong() + amount)
@@ -183,7 +251,210 @@ class AdsManager @Inject constructor(
             }
         }.onFailure { error ->
             Log.w(TAG, "Rewarded ad could not be opened", error)
-            _state.value = RewardedAdState.UNAVAILABLE
+            if (_state.value == RewardedAdState.SHOWING) {
+                _state.value = RewardedAdState.UNAVAILABLE
+            }
+        }
+    }
+
+    private fun requestConsentWhenResumed(activity: Activity, requestGeneration: Long) {
+        val lifecycleOwner = activity as? LifecycleOwner
+        if (lifecycleOwner == null) {
+            if (isActivityUsable(activity) && isCurrentConsentRequest(requestGeneration)) {
+                requestConsentInfoUpdate(requestGeneration)
+            } else {
+                finishConsentRequest(requestGeneration, activity)
+            }
+            return
+        }
+
+        val lifecycle = lifecycleOwner.lifecycle
+        if (lifecycle.currentState == Lifecycle.State.DESTROYED) {
+            finishConsentRequest(requestGeneration, activity)
+            return
+        }
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            requestConsentInfoUpdate(requestGeneration)
+            return
+        }
+
+        val observer = object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                owner.lifecycle.removeObserver(this)
+                if (isCurrentConsentRequest(requestGeneration) && isActivityAlive(activity)) {
+                    requestConsentInfoUpdate(requestGeneration)
+                } else {
+                    finishConsentRequest(requestGeneration, activity)
+                }
+            }
+
+            override fun onDestroy(owner: LifecycleOwner) {
+                owner.lifecycle.removeObserver(this)
+                finishConsentRequest(requestGeneration, activity)
+            }
+        }
+        lifecycle.addObserver(observer)
+    }
+
+    private fun requestConsentInfoUpdate(requestGeneration: Long) {
+        if (!isCurrentConsentRequest(requestGeneration)) return
+        val activity = consentActivity?.get()
+        if (activity == null || !isActivityUsable(activity)) {
+            finishConsentRequest(requestGeneration, consentOperationActivity?.get())
+            return
+        }
+
+        consentOperationActivity = WeakReference(activity)
+        val parameters = ConsentRequestParameters.Builder().build()
+        runCatching {
+            consentInformation.requestConsentInfoUpdate(
+                activity,
+                parameters,
+                {
+                    onConsentInfoUpdateSucceeded(requestGeneration)
+                },
+                { error ->
+                    if (!isCurrentConsentRequest(requestGeneration)) return@requestConsentInfoUpdate
+                    Log.w(TAG, "Consent update failed: ${error.message}")
+                    finishConsentRequest(requestGeneration, activity)
+                    // UMP may still permit ads based on a valid decision from the previous
+                    // session, so use its current gate even after an update failure.
+                    updateConsentState()
+                },
+            )
+        }.onFailure { error ->
+            if (isCurrentConsentRequest(requestGeneration)) {
+                Log.w(TAG, "Consent update could not be requested", error)
+                finishConsentRequest(requestGeneration, activity)
+                updateConsentState()
+            }
+        }
+    }
+
+    private fun onConsentInfoUpdateSucceeded(requestGeneration: Long) {
+        if (!isCurrentConsentRequest(requestGeneration)) return
+        consentRequestInFlight = false
+
+        val activity = consentActivity?.get()
+        if (activity == null || !isActivityUsable(activity)) {
+            finishConsentForm(requestGeneration, consentOperationActivity?.get())
+            updateConsentState()
+            return
+        }
+
+        // The request callback may race a new Activity instance. Always use the latest usable
+        // reference, never the Activity captured by an old callback.
+        consentFormInFlight = true
+        consentOperationActivity = WeakReference(activity)
+        runCatching {
+            UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { formError ->
+                if (
+                    !isCurrentConsentGeneration(requestGeneration) ||
+                    !consentFormInFlight
+                ) return@loadAndShowConsentFormIfRequired
+                finishConsentForm(requestGeneration, activity)
+                if (formError != null) {
+                    Log.i(TAG, "Consent form not shown: ${formError.message}")
+                }
+                updateConsentState()
+            }
+        }.onFailure { error ->
+            if (isCurrentConsentGeneration(requestGeneration)) {
+                finishConsentForm(requestGeneration, activity)
+                Log.w(TAG, "Consent form could not be opened", error)
+                updateConsentState()
+            }
+        }
+    }
+
+    private fun finishConsentRequest(requestGeneration: Long, operationActivity: Activity?) {
+        if (!isCurrentConsentGeneration(requestGeneration)) return
+        consentRequestInFlight = false
+        if (deferConsentUntilResumed()) return
+        retryConsentOnReplacementActivity(requestGeneration, operationActivity)
+    }
+
+    private fun finishConsentForm(requestGeneration: Long, operationActivity: Activity?) {
+        if (!isCurrentConsentGeneration(requestGeneration)) return
+        consentFormInFlight = false
+        consentRequestInFlight = false
+        if (deferConsentUntilResumed()) return
+        retryConsentOnReplacementActivity(requestGeneration, operationActivity)
+    }
+
+    private fun deferConsentUntilResumed(): Boolean {
+        val latestActivity = consentActivity?.get()
+        val operationActivity = consentOperationActivity?.get()
+        val activity = when {
+            isActivityAlive(latestActivity) -> latestActivity
+            isActivityAlive(operationActivity) -> operationActivity
+            else -> null
+        } ?: return false
+        val lifecycle = (activity as? LifecycleOwner)?.lifecycle ?: return false
+        if (lifecycle.currentState == Lifecycle.State.DESTROYED ||
+            lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+        ) return false
+
+        val nextGeneration = ++consentRequestGeneration
+        consentActivity = WeakReference(activity)
+        consentOperationActivity = WeakReference(activity)
+        consentRequestInFlight = true
+        requestConsentWhenResumed(activity, nextGeneration)
+        return true
+    }
+
+    private fun retryConsentOnReplacementActivity(requestGeneration: Long, operationActivity: Activity?) {
+        if (requestGeneration != consentRequestGeneration) return
+        val replacement = consentActivity?.get()
+        if (
+            replacement != null &&
+            replacement !== operationActivity &&
+            isActivityAlive(replacement)
+        ) {
+            // The replacement Activity called requestConsentAtLaunch while the previous
+            // operation was in flight. It is therefore an explicit launch request, not an
+            // unsolicited ad/consent retry.
+            requestConsentAtLaunch(replacement)
+        }
+    }
+
+    private fun abandonStaleConsentOperationIfNeeded() {
+        val operationActivity = consentOperationActivity?.get()
+        if (
+            (consentRequestInFlight || consentFormInFlight) &&
+            !isActivityAlive(operationActivity)
+        ) {
+            consentRequestInFlight = false
+            consentFormInFlight = false
+            consentRequestGeneration += 1
+        }
+    }
+
+    private fun startRewardedAdLoad() {
+        if (
+            !BuildConfig.ADS_ENABLED ||
+            !currentEligibility() ||
+            !_canRequestAds.value ||
+            !userRequestedAd
+        ) {
+            _state.value = stateForCurrentEligibilityOrConsent()
+            return
+        }
+        if (_state.value == RewardedAdState.LOADING ||
+            _state.value == RewardedAdState.READY ||
+            _state.value == RewardedAdState.SHOWING
+        ) return
+
+        val requestGeneration = ++adRequestGeneration
+        _state.value = RewardedAdState.LOADING
+        scope.launch {
+            if (!initializeSdk()) {
+                if (isCurrentLoadRequest(requestGeneration)) {
+                    _state.value = RewardedAdState.UNAVAILABLE
+                }
+                return@launch
+            }
+            loadRewardedAd(requestGeneration)
         }
     }
 
@@ -209,46 +480,129 @@ class AdsManager @Inject constructor(
         success
     }
 
-    private fun loadRewardedAd() {
-        if (!lastEligible || !_canRequestAds.value || !BuildConfig.REWARDED_AD_UNIT_ID.isNotBlank()) {
-            _state.value = RewardedAdState.UNAVAILABLE
+    private fun loadRewardedAd(requestGeneration: Long) {
+        if (!isCurrentLoadRequest(requestGeneration) || !BuildConfig.REWARDED_AD_UNIT_ID.isNotBlank()) {
+            if (isCurrentLoadRequest(requestGeneration)) {
+                _state.value = RewardedAdState.UNAVAILABLE
+            }
             return
         }
 
-        RewardedAd.load(
-            AdRequest.Builder(BuildConfig.REWARDED_AD_UNIT_ID).build(),
-            object : AdLoadCallback<RewardedAd> {
-                override fun onAdLoaded(ad: RewardedAd) {
-                    if (lastEligible && _canRequestAds.value) {
-                        loadedAd = ad
-                        _state.value = RewardedAdState.READY
-                    } else {
-                        loadedAd = null
-                        _state.value = RewardedAdState.CONSENT_REQUIRED
+        runCatching {
+            RewardedAd.load(
+                AdRequest.Builder(BuildConfig.REWARDED_AD_UNIT_ID).build(),
+                object : AdLoadCallback<RewardedAd> {
+                    override fun onAdLoaded(ad: RewardedAd) {
+                        if (isCurrentLoadRequest(requestGeneration)) {
+                            loadedAd = ad
+                            _state.value = RewardedAdState.READY
+                        }
                     }
-                }
 
-                override fun onAdFailedToLoad(adError: LoadAdError) {
-                    Log.i(TAG, "Rewarded ad unavailable: ${adError.message}")
-                    loadedAd = null
-                    _state.value = RewardedAdState.UNAVAILABLE
-                }
-            },
-        )
+                    override fun onAdFailedToLoad(adError: LoadAdError) {
+                        if (requestGeneration != adRequestGeneration) return
+                        Log.i(TAG, "Rewarded ad unavailable: ${adError.message}")
+                        loadedAd = null
+                        _state.value = if (currentEligibility() && _canRequestAds.value) {
+                            RewardedAdState.UNAVAILABLE
+                        } else {
+                            stateForCurrentEligibilityOrConsent()
+                        }
+                    }
+                },
+            )
+        }.onFailure { error ->
+            if (requestGeneration == adRequestGeneration) {
+                loadedAd = null
+                _state.value = RewardedAdState.UNAVAILABLE
+                Log.w(TAG, "Rewarded ad could not be requested", error)
+            }
+        }
     }
 
     private fun updateConsentState() {
-        _canRequestAds.value = consentInformation.canRequestAds()
+        val canRequestAds = consentInformation.canRequestAds()
+        _canRequestAds.value = canRequestAds
         _privacyOptionsRequired.value = consentInformation.privacyOptionsRequirementStatus ==
             ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
-        if (!_canRequestAds.value && _state.value != RewardedAdState.SHOWING) {
-            loadedAd = null
-            _state.value = RewardedAdState.CONSENT_REQUIRED
-        } else if (_canRequestAds.value && userRequestedAd && lastEligible &&
+
+        val eligible = currentEligibility()
+        applyEligibilitySnapshot(eligible)
+        if (!canRequestAds) {
+            clearLoadedAd()
+            if (_state.value != RewardedAdState.SHOWING) {
+                _state.value = if (eligible) {
+                    RewardedAdState.CONSENT_REQUIRED
+                } else {
+                    stateForCurrentEligibility()
+                }
+            }
+        } else if (
+            eligible &&
+            userRequestedAd &&
             _state.value == RewardedAdState.CONSENT_REQUIRED
         ) {
-            prepareRewardedAd(isEligible = true)
+            // This path is reachable only after an earlier explicit prepare/retry action.
+            startRewardedAdLoad()
         }
+    }
+
+    private fun onEligibilityChanged(eligible: Boolean) {
+        applyEligibilitySnapshot(eligible)
+    }
+
+    private fun applyEligibilitySnapshot(eligible: Boolean) {
+        if (eligible == observedEligible) return
+        observedEligible = eligible
+        clearLoadedAd()
+        if (!eligible) userRequestedAd = false
+        if (!BuildConfig.ADS_ENABLED) return
+        _state.value = stateForCurrentEligibility()
+    }
+
+    private fun currentEligibility(): Boolean =
+        billingRepository.entitlementState.value.canShowAds
+
+    private fun stateForCurrentEligibilityOrConsent(): RewardedAdState = when {
+        !currentEligibility() -> stateForCurrentEligibility()
+        !_canRequestAds.value -> RewardedAdState.CONSENT_REQUIRED
+        else -> RewardedAdState.UNAVAILABLE
+    }
+
+    private fun stateForCurrentEligibility(): RewardedAdState = when {
+        !billingRepository.entitlementState.value.entitlementsChecked -> RewardedAdState.NOT_REQUESTED
+        billingRepository.entitlementState.value.userTier != UserTier.FREE -> RewardedAdState.LEGACY_PURCHASE
+        else -> RewardedAdState.NOT_REQUESTED
+    }
+
+    private fun clearLoadedAd() {
+        loadedAd = null
+        adRequestGeneration += 1
+    }
+
+    private fun isCurrentLoadRequest(requestGeneration: Long): Boolean =
+        requestGeneration == adRequestGeneration &&
+            _state.value == RewardedAdState.LOADING &&
+            userRequestedAd &&
+            currentEligibility() &&
+            _canRequestAds.value
+
+    private fun isCurrentConsentRequest(requestGeneration: Long): Boolean =
+        requestGeneration == consentRequestGeneration && consentRequestInFlight
+
+    private fun isCurrentConsentGeneration(requestGeneration: Long): Boolean =
+        requestGeneration == consentRequestGeneration
+
+    private fun isActivityAlive(activity: Activity?): Boolean {
+        if (activity == null || activity.isFinishing || activity.isDestroyed) return false
+        val lifecycle = (activity as? LifecycleOwner)?.lifecycle
+        return lifecycle?.currentState != Lifecycle.State.DESTROYED
+    }
+
+    private fun isActivityUsable(activity: Activity?): Boolean {
+        if (!isActivityAlive(activity)) return false
+        val lifecycle = (activity as? LifecycleOwner)?.lifecycle
+        return lifecycle == null || lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
     }
 
     private fun initialState(): RewardedAdState =

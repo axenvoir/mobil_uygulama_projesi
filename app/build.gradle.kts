@@ -37,8 +37,8 @@ android {
         applicationId = "com.expira.app.tr"
         minSdk = 26
         targetSdk = 37
-        versionCode = 100
-        versionName = "2.0.2"
+        versionCode = 101
+        versionName = "2.1.0"
         manifestPlaceholders["admobAppId"] = ""
         buildConfigField("String", "ADMOB_APP_ID", "\"\"")
         buildConfigField("String", "REWARDED_AD_UNIT_ID", "\"\"")
@@ -119,6 +119,16 @@ android {
     testOptions {
         animationsDisabled = true
     }
+
+    sourceSets {
+        getByName("androidTest") {
+            assets.directories.add(projectDir.resolve("schemas").absolutePath)
+        }
+    }
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 kotlin {
@@ -172,6 +182,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.truth)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

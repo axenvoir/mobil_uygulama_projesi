@@ -174,38 +174,49 @@ class ProductEditViewModel @Inject constructor(
 
     init {
         if (isEditMode) {
-            viewModelScope.launch {
-                try {
-                    val product = productRepository.observeById(productId).first()
-                    if (product != null) {
-                        originalName = product.name
-                        originalQuantityText = product.quantity.toString()
-                        originalCategoryId = product.categoryId
-                        originalExpiryDate = product.expiryDate
-                        originalNewCategoryName = ""
-                        originalStorageLocation = product.storageLocation
-
-                        name.value = product.name
-                        quantityText.value = product.quantity.toString()
-                        selectedCategoryId.value = product.categoryId
-                        newCategoryName.value = ""
-                        expiryDate.value = product.expiryDate
-                        storageLocation.value = product.storageLocation
-                    } else {
-                        _editRecordMissing.value = true
-                    }
-                } catch (exception: Exception) {
-                    if (exception is kotlinx.coroutines.CancellationException) {
-                        throw exception
-                    }
-                    _loadFailed.value = true
-                    error.value = ProductEditError.Generic
-                }
-                loaded.value = true
-            }
+            loadExistingProduct()
         } else {
             originalQuantityText = "1"
             loaded.value = true
+        }
+    }
+
+    fun retryLoad() {
+        if (isEditMode && _loadFailed.value) loadExistingProduct()
+    }
+
+    private fun loadExistingProduct() {
+        viewModelScope.launch {
+            loaded.value = false
+            _editRecordMissing.value = false
+            _loadFailed.value = false
+            error.value = null
+            try {
+                val product = productRepository.observeById(productId).first()
+                if (product != null) {
+                    originalName = product.name
+                    originalQuantityText = product.quantity.toString()
+                    originalCategoryId = product.categoryId
+                    originalExpiryDate = product.expiryDate
+                    originalNewCategoryName = ""
+                    originalStorageLocation = product.storageLocation
+
+                    name.value = product.name
+                    quantityText.value = product.quantity.toString()
+                    selectedCategoryId.value = product.categoryId
+                    newCategoryName.value = ""
+                    expiryDate.value = product.expiryDate
+                    storageLocation.value = product.storageLocation
+                } else {
+                    _editRecordMissing.value = true
+                }
+            } catch (exception: Exception) {
+                if (exception is kotlinx.coroutines.CancellationException) throw exception
+                _loadFailed.value = true
+                error.value = ProductEditError.Generic
+            } finally {
+                loaded.value = true
+            }
         }
     }
 
@@ -319,9 +330,6 @@ class ProductEditViewModel @Inject constructor(
     fun consumeError() {
         error.value = null
     }
-
-    /** The missing-record state is persistent so it can never reopen a blank edit form. */
-    fun consumeEditRecordMissing() = Unit
 
     private fun clearError() {
         error.value = null

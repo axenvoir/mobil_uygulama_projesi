@@ -104,7 +104,6 @@ class ReminderWorker @AssistedInject constructor(
         internal const val CONTINUATION_SLOT = "continuation"
         internal const val INPUT_HOUR = "reminder_hour"
         internal const val INPUT_MINUTE = "reminder_minute"
-        internal const val INPUT_ZONE_ID = "reminder_zone_id"
         internal const val INPUT_WORK_SLOT = "reminder_work_slot"
         private const val MAX_RETRIES = 3
     }

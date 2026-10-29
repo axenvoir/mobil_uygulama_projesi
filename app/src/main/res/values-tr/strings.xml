@@ -4,8 +4,11 @@
     <string name="tab_expiry">Ürünler</string>
     <string name="tab_notes">Notlarım</string>
     <string name="expiry_list_title">Son Kullanma Tarihleri</string>
-    <string name="product_summary_title">Ürün durumu</string>
-    <string name="product_summary_total">%1$d ürün</string>
+    <string name="product_summary_title">Son kullanma özeti</string>
+    <plurals name="product_summary_total">
+        <item quantity="one">%1$d ürün</item>
+        <item quantity="other">%1$d ürün</item>
+    </plurals>
     <string name="notes_list_title">Notlarım</string>
     <plurals name="notes_count">
         <item quantity="one">%1$d not</item>
@@ -14,8 +17,11 @@
     <string name="notes_filter_all">Tümü</string>
     <string name="notes_filter_pinned">Sabitlenenler</string>
     <string name="notes_filter_recent">Son güncellenenler</string>
+    <string name="note_pinned">Sabitlendi</string>
     <string name="empty_pinned_notes_title">Sabitlenmiş not yok</string>
     <string name="empty_pinned_notes">Önemli notlarınızı daha sonra kolayca bulmak için sabitleyin.</string>
+    <string name="empty_recent_notes_title">Yeni not yok</string>
+    <string name="empty_recent_notes">Yeni oluşturduğunuz veya düzenlediğiniz notlar burada görünür.</string>
     <string name="add_product">Ürün Ekle</string>
     <string name="edit_product">Ürünü Düzenle</string>
     <string name="add_note">Not Ekle</string>
@@ -25,8 +31,10 @@
     <string name="category">Kategori</string>
     <string name="category_hint">Ürünü daha sonra kolayca bulmak için bir kategori seçin.</string>
     <string name="expiry_date">Son kullanma tarihi</string>
+    <string name="expiry_date_hint">Hazır bir tarih seçin veya günü kendiniz belirleyin.</string>
     <string name="quantity">Adet</string>
     <string name="save">Kaydet</string>
+    <string name="use_date">Tarihi kullan</string>
     <string name="delete">Sil</string>
     <string name="cancel">Vazgeç</string>
     <string name="note_title">Başlık</string>
@@ -38,12 +46,11 @@
     <string name="note_title_counter">%1$d/%2$d karakter</string>
     <string name="note_content_counter">%1$d/%2$d karakter</string>
     <string name="search_notes">Notlarda ara…</string>
+    <string name="note_more_actions">Diğer not işlemleri</string>
     <string name="status_fresh">Taze</string>
     <string name="status_expiring_soon">Yaklaşıyor</string>
     <string name="status_expired">Geçmiş</string>
-    <string name="days_left">%1$d gün kaldı</string>
     <string name="expires_today">Bugün sona eriyor</string>
-    <string name="expired_days">%1$d gün önce geçti</string>
     <string name="empty_products">Henüz ürün yok. İlk ürününüzü ekleyin.</string>
     <string name="empty_notes">Henüz not yok. İlk notunuzu oluşturun.</string>
     <string name="error_missing_expiry_date">Son kullanma tarihini seçin</string>
@@ -66,10 +73,13 @@
     </plurals>
     <string name="notification_test_title">Expira test bildirimi</string>
     <string name="notification_test_text">Bildirimler cihazınızda çalışıyor.</string>
-    <string name="all">Tümü</string>
     <string name="pin">Sabitle</string>
     <string name="unpin">Sabitlemeyi kaldır</string>
     <string name="pick_date">Tarih seç</string>
+    <string name="quick_date_tomorrow">Yarın</string>
+    <string name="quick_date_three_days">3 gün sonra</string>
+    <string name="quick_date_week">1 hafta sonra</string>
+    <string name="quick_date_month">1 ay sonra</string>
     <string name="empty_products_title">Ürün yok</string>
     <string name="empty_notes_title">Not yok</string>
     <string name="settings_title">Ayarlar</string>
@@ -78,7 +88,7 @@
     <string name="language_turkish">Türkçe</string>
     <string name="language_english">English</string>
     <string name="past_date_title">Geçmiş tarih</string>
-    <string name="past_date_message">Seçilen tarih geçmişte. Yine de bu tarihi kaydetmek istiyor musunuz?</string>
+    <string name="past_date_message">Seçilen tarih geçmişte. Yine de bu tarihi kullanmak istiyor musunuz?</string>
     <string name="notifications_blocked">Hatırlatmaları almak için bildirim izni gerekli</string>
     <string name="open_settings">Ayarları aç</string>
     <string name="unsaved_title">Kaydedilmemiş değişiklikler</string>
@@ -94,7 +104,6 @@
     <string name="clear_search">Aramayı temizle</string>
     <string name="empty_search">Aramanıza uyan ürün yok</string>
     <string name="empty_search_subtitle">Aramanızı değiştirin veya temizleyin.</string>
-    <string name="days_short">gün</string>
     <string name="notifications_section">Bildirimler</string>
     <string name="notifications_description">Son kullanma tarihi yaklaşan ürünleri kaçırmamak için test bildirimi gönderebilirsiniz.</string>
     <string name="about_section">Hakkında</string>
@@ -128,7 +137,6 @@
     <string name="onboarding_done">Başla</string>
     <string name="onboarding_back">Geri</string>
     <string name="onboarding_next">İleri</string>
-    <string name="days_passed_short">gün geçti</string>
     <string name="export_csv">Verileri CSV olarak dışa aktar</string>
     <string name="export_done">Dışa aktarıldı</string>
     <string name="export_failed">Dışa aktarma başarısız</string>
@@ -156,7 +164,9 @@
     <string name="support_manage_subscription">Google Play aboneliğini yönet</string>
     <string name="support_entitlement_checking">Önceki reklamsız satın alımların korunması için reklamdan önce Google Play geçmişi doğrulanır. Kontrol tamamlanmazsa internet bağlantınızı ve Google Play’i kontrol edip yeniden deneyin.</string>
     <string name="support_check_purchases">Satın alımları yeniden kontrol et</string>
-    <string name="support_ad_disclosure">Tamamlanan her reklam 1 Expira puanı kazandırır. Puanlar yalnızca bu uygulamada görünen kişisel bir rozet/sayaçtır; nakit değeri yoktur, devredilemez ve temel özellikleri açmaz. Reklamı kapatsanız da uygulamayı normal şekilde kullanabilirsiniz.</string>
+    <string name="support_ad_disclosure">Tamamlanan her reklam 1 Expira puanı kazandırır. 5 puan toplayarak görsel bir Destekçi rozeti açabilirsiniz. Puanların nakit değeri yoktur, devredilemez ve temel özellikleri açmaz. Reklamlar isteğe bağlıdır; reklamı kapatmak uygulamanın normal kullanımını etkilemez.</string>
+    <string name="support_badge_progress">Destekçi rozeti için 5 puandan %1$d puan</string>
+    <string name="support_badge_unlocked">Destekçi rozeti açıldı — Expira’ya verdiğiniz destek için teşekkürler.</string>
     <string name="support_ad_prepare">Reklamı hazırla</string>
     <string name="support_ad_watch">Reklamı izle ve 1 Expira puanı kazan</string>
     <string name="support_ad_loading">Ödüllü reklam hazırlanıyor…</string>
@@ -164,6 +174,7 @@
     <string name="support_ad_consent_required">Reklam gösterilmeden önce gizlilik tercihlerinin tamamlanması gerekiyor. Uygulamayı reklamsız kullanmaya devam edebilirsiniz.</string>
     <string name="support_ad_configuration_missing">Ödüllü reklamlar bu sürümde henüz yapılandırılmadı.</string>
     <string name="support_ad_unavailable">Şu anda ödüllü reklam yüklenemedi. Bu özellik isteğe bağlıdır; daha sonra tekrar deneyin.</string>
+    <string name="support_ad_activity_unavailable">Expira uygulamasına dönüp uygulama öndeyken yeniden deneyin.</string>
     <string name="support_ad_retry">Yeniden dene</string>
     <string name="support_privacy_options">Gizlilik tercihleri</string>
     <string name="play_store_unavailable">Google Play abonelik sayfası açılamadı. Google Play’i güncelledikten sonra tekrar deneyin.</string>
@@ -173,6 +184,11 @@
     <string name="products_loading">Ürünler yükleniyor…</string>
     <string name="notes_loading">Notlar yükleniyor…</string>
     <string name="note_loading">Not yükleniyor…</string>
+    <string name="product_load_failed_title">Ürün açılamadı</string>
+    <string name="product_load_failed_message">Ürün bilgisi açılamadı. Kaydedilmiş verileriniz değiştirilmedi. Yeniden deneyin.</string>
+    <string name="note_load_failed_title">Not açılamadı</string>
+    <string name="note_load_failed_message">Notunuz açılamadı. Kaydedilmiş verileriniz değiştirilmedi. Yeniden deneyin.</string>
+    <string name="try_again">Yeniden dene</string>
     <string name="error_title_too_long">Başlık 80 karakteri geçemez.</string>
     <string name="error_content_too_long">İçerik 10.000 karakteri geçemez.</string>
     <string name="crash_recovery_title">Uygulama beklenmedik şekilde kapandı</string>
@@ -188,4 +204,16 @@
         <item quantity="other">%1$d Expira puanı eklendi.</item>
     </plurals>
     <string name="support_ad_retry_consent">Gizlilik kontrolünü yeniden dene</string>
+    <plurals name="days_remaining">
+        <item quantity="one">%1$d gün kaldı</item>
+        <item quantity="other">%1$d gün kaldı</item>
+    </plurals>
+    <plurals name="days_past">
+        <item quantity="one">%1$d gün önce süresi doldu</item>
+        <item quantity="other">%1$d gün önce süresi doldu</item>
+    </plurals>
+    <plurals name="product_quantity">
+        <item quantity="one">%1$d adet</item>
+        <item quantity="other">%1$d adet</item>
+    </plurals>
 </resources>

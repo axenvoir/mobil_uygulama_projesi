@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-    <include domain="database" path="." />
-    <include domain="sharedpref" path="." />
+    <!-- Keep the user database explicit; do not include any other database files. -->
+    <include domain="database" path="skt_plus.db" />
+    <!-- Language/onboarding state is safe to restore; ad/consent preferences are not. -->
+    <include domain="sharedpref" path="app_settings.xml" />
     <include domain="file" path="datastore/theme_prefs.preferences_pb" />
 </full-backup-content>

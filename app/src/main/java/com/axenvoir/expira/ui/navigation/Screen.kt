@@ -1,7 +1,6 @@
 package com.axenvoir.expira.ui.navigation
 
 sealed class Screen(val route: String) {
-    data object Main : Screen("main")
     data object ProductList : Screen("products")
     data object AddProduct : Screen("product/add")
     data object EditProduct : Screen("product/edit/{productId}") {

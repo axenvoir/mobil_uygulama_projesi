@@ -36,6 +36,7 @@ import com.axenvoir.expira.R
 import com.axenvoir.expira.ui.components.OnboardingOverlay
 import com.axenvoir.expira.ui.navigation.AppNavHost
 import com.axenvoir.expira.ui.navigation.Screen
+import com.axenvoir.expira.ui.util.findActivity
 
 private data class BottomTab(
     val screen: Screen,
@@ -53,7 +54,7 @@ private val tabs = listOf(
 fun MainScreen() {
     val navController = rememberNavController()
     val context = LocalContext.current
-    val activity = context as? android.app.Activity
+    val activity = remember(context) { context.findActivity() }
     val widthSizeClass = if (activity != null) {
         calculateWindowSizeClass(activity).widthSizeClass
     } else {

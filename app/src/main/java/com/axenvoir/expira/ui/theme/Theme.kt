@@ -1,6 +1,5 @@
 package com.axenvoir.expira.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -11,10 +10,10 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.axenvoir.expira.ui.util.findActivity
 
 private val LightColors = lightColorScheme(
     primary = PrimaryLight,
@@ -30,16 +29,29 @@ private val LightColors = lightColorScheme(
     tertiaryContainer = TertiaryContainerLight,
     onTertiaryContainer = OnTertiaryContainerLight,
     background = BackgroundLight,
-    onBackground = OnSurfaceLight,
+    onBackground = OnBackgroundLight,
     surface = SurfaceLight,
     onSurface = OnSurfaceLight,
     surfaceVariant = SurfaceVariantLight,
     onSurfaceVariant = OnSurfaceVariantLight,
-    outline = OutlineLight,
+    surfaceTint = PrimaryLight,
+    inverseSurface = InverseSurfaceLight,
+    inverseOnSurface = InverseOnSurfaceLight,
+    inversePrimary = InversePrimaryLight,
     error = ErrorLight,
     onError = OnErrorLight,
     errorContainer = ErrorContainerLight,
     onErrorContainer = OnErrorContainerLight,
+    outline = OutlineLight,
+    outlineVariant = OutlineVariantLight,
+    scrim = ScrimLight,
+    surfaceDim = SurfaceDimLight,
+    surfaceBright = SurfaceBrightLight,
+    surfaceContainerLowest = SurfaceContainerLowestLight,
+    surfaceContainerLow = SurfaceContainerLowLight,
+    surfaceContainer = SurfaceContainerLight,
+    surfaceContainerHigh = SurfaceContainerHighLight,
+    surfaceContainerHighest = SurfaceContainerHighestLight,
 )
 
 private val DarkColors = darkColorScheme(
@@ -56,16 +68,29 @@ private val DarkColors = darkColorScheme(
     tertiaryContainer = TertiaryContainerDark,
     onTertiaryContainer = OnTertiaryContainerDark,
     background = BackgroundDark,
-    onBackground = OnSurfaceDark,
+    onBackground = OnBackgroundDark,
     surface = SurfaceDark,
     onSurface = OnSurfaceDark,
     surfaceVariant = SurfaceVariantDark,
     onSurfaceVariant = OnSurfaceVariantDark,
-    outline = OutlineDark,
+    surfaceTint = PrimaryDark,
+    inverseSurface = InverseSurfaceDark,
+    inverseOnSurface = InverseOnSurfaceDark,
+    inversePrimary = InversePrimaryDark,
     error = ErrorDark,
     onError = OnErrorDark,
     errorContainer = ErrorContainerDark,
     onErrorContainer = OnErrorContainerDark,
+    outline = OutlineDark,
+    outlineVariant = OutlineVariantDark,
+    scrim = ScrimDark,
+    surfaceDim = SurfaceDimDark,
+    surfaceBright = SurfaceBrightDark,
+    surfaceContainerLowest = SurfaceContainerLowestDark,
+    surfaceContainerLow = SurfaceContainerLowDark,
+    surfaceContainer = SurfaceContainerDark,
+    surfaceContainerHigh = SurfaceContainerHighDark,
+    surfaceContainerHighest = SurfaceContainerHighestDark,
 )
 
 @Composable
@@ -88,15 +113,10 @@ fun ExpiraTheme(
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
-            val activity = view.context as? Activity ?: return@SideEffect
-            val window = activity.window
-            val backgroundColor = colorScheme.background.toArgb()
-            // Paint the system bars with the resolved scheme immediately after the first
-            // composition so a restored theme does not leave a contrasting startup strip.
-            window.statusBarColor = backgroundColor
-            window.navigationBarColor = backgroundColor
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
-            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
+            val activity = view.context.findActivity() ?: return@SideEffect
+            val insetsController = WindowCompat.getInsetsController(activity.window, view)
+            insetsController.isAppearanceLightStatusBars = !darkTheme
+            insetsController.isAppearanceLightNavigationBars = !darkTheme
         }
     }
 

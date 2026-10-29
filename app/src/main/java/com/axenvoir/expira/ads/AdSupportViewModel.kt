@@ -14,12 +14,12 @@ class AdSupportViewModel @Inject constructor(
     val supportPoints = adsManager.supportPoints
     val rewardEvents = adsManager.rewardEvents
 
-    fun prepareRewardedAd(isEligible: Boolean) {
-        adsManager.prepareRewardedAd(isEligible)
+    fun prepareRewardedAd() {
+        adsManager.prepareRewardedAd()
     }
 
-    fun retryRewardedAd(isEligible: Boolean) {
-        adsManager.retryRewardedAd(isEligible)
+    fun retryRewardedAd() {
+        adsManager.retryRewardedAd()
     }
 
     fun showRewardedAd(activity: Activity) {

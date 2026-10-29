@@ -4,8 +4,11 @@
     <string name="tab_expiry">Products</string>
     <string name="tab_notes">My Notes</string>
     <string name="expiry_list_title">Expiry Dates</string>
-    <string name="product_summary_title">Product status</string>
-    <string name="product_summary_total">%1$d products</string>
+    <string name="product_summary_title">Expiry overview</string>
+    <plurals name="product_summary_total">
+        <item quantity="one">%1$d product</item>
+        <item quantity="other">%1$d products</item>
+    </plurals>
     <string name="notes_list_title">Notes</string>
     <plurals name="notes_count">
         <item quantity="one">%1$d note</item>
@@ -14,8 +17,11 @@
     <string name="notes_filter_all">All</string>
     <string name="notes_filter_pinned">Pinned</string>
     <string name="notes_filter_recent">Recently updated</string>
+    <string name="note_pinned">Pinned</string>
     <string name="empty_pinned_notes_title">No pinned notes</string>
     <string name="empty_pinned_notes">Pin important notes to find them easily later.</string>
+    <string name="empty_recent_notes_title">No recent notes</string>
+    <string name="empty_recent_notes">Newly created or edited notes will appear here.</string>
     <string name="add_product">Add Product</string>
     <string name="edit_product">Edit Product</string>
     <string name="add_note">Add Note</string>
@@ -25,8 +31,10 @@
     <string name="category">Category</string>
     <string name="category_hint">Choose a category to find this product easily later.</string>
     <string name="expiry_date">Expiry date</string>
+    <string name="expiry_date_hint">Choose a common date or select an exact day.</string>
     <string name="quantity">Quantity</string>
     <string name="save">Save</string>
+    <string name="use_date">Use date</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
     <string name="note_title">Title</string>
@@ -38,12 +46,11 @@
     <string name="note_title_counter">%1$d/%2$d characters</string>
     <string name="note_content_counter">%1$d/%2$d characters</string>
     <string name="search_notes">Search notes…</string>
+    <string name="note_more_actions">More note actions</string>
     <string name="status_fresh">Fresh</string>
     <string name="status_expiring_soon">Expiring soon</string>
     <string name="status_expired">Expired</string>
-    <string name="days_left">%1$d days left</string>
     <string name="expires_today">Expires today</string>
-    <string name="expired_days">Expired %1$d days ago</string>
     <string name="empty_products">No products yet. Add your first one.</string>
     <string name="empty_notes">No notes yet. Create your first note.</string>
     <string name="error_missing_expiry_date">Choose an expiry date</string>
@@ -66,10 +73,13 @@
     </plurals>
     <string name="notification_test_title">Expira test notification</string>
     <string name="notification_test_text">Notifications are working on your device.</string>
-    <string name="all">All</string>
     <string name="pin">Pin</string>
     <string name="unpin">Unpin</string>
     <string name="pick_date">Pick date</string>
+    <string name="quick_date_tomorrow">Tomorrow</string>
+    <string name="quick_date_three_days">In 3 days</string>
+    <string name="quick_date_week">In 1 week</string>
+    <string name="quick_date_month">In 1 month</string>
     <string name="empty_products_title">No products</string>
     <string name="empty_notes_title">No notes</string>
     <string name="settings_title">Settings</string>
@@ -78,7 +88,7 @@
     <string name="language_turkish">Türkçe</string>
     <string name="language_english">English</string>
     <string name="past_date_title">Past date</string>
-    <string name="past_date_message">The selected date is in the past. Save it anyway?</string>
+    <string name="past_date_message">The selected date is in the past. Use this date anyway?</string>
     <string name="notifications_blocked">Notification permission is required for reminders</string>
     <string name="open_settings">Open settings</string>
     <string name="unsaved_title">Unsaved changes</string>
@@ -94,7 +104,6 @@
     <string name="clear_search">Clear search</string>
     <string name="empty_search">No products match your search</string>
     <string name="empty_search_subtitle">Change or clear your search.</string>
-    <string name="days_short">days</string>
     <string name="notifications_section">Notifications</string>
     <string name="notifications_description">Send a test notification to make sure you do not miss products nearing expiry.</string>
     <string name="about_section">About</string>
@@ -119,7 +128,6 @@
     <string name="onboarding_done">Start</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_next">Next</string>
-    <string name="days_passed_short">days past</string>
     <string name="export_csv">Export data as CSV</string>
     <string name="export_done">Exported</string>
     <string name="export_failed">Export failed</string>
@@ -156,7 +164,9 @@
     <string name="support_manage_subscription">Manage Google Play subscription</string>
     <string name="support_entitlement_checking">We check Google Play purchases before showing ads so existing ad-free plans remain honored. If the check does not finish, check your connection and Google Play, then retry.</string>
     <string name="support_check_purchases">Check purchases again</string>
-    <string name="support_ad_disclosure">Each completed ad earns 1 Expira point, shown as a personal in-app badge/counter. Points have no cash value, cannot be transferred, and do not unlock core features. Closing an ad never blocks normal app use.</string>
+    <string name="support_ad_disclosure">Each completed ad earns 1 Expira point. Collect 5 points to unlock a cosmetic Supporter badge. Points have no cash value, cannot be transferred, and do not unlock core features. Ads are optional; closing one never blocks normal app use.</string>
+    <string name="support_badge_progress">%1$d of 5 points toward the Supporter badge</string>
+    <string name="support_badge_unlocked">Supporter badge unlocked — thank you for supporting Expira.</string>
     <string name="support_ad_prepare">Load rewarded ad</string>
     <string name="support_ad_watch">Watch ad and earn 1 Expira point</string>
     <string name="support_ad_loading">Preparing rewarded ad…</string>
@@ -164,6 +174,7 @@
     <string name="support_ad_consent_required">Privacy choices must be completed before an ad can be shown. You can keep using the app without ads.</string>
     <string name="support_ad_configuration_missing">Rewarded ads are not configured for this build.</string>
     <string name="support_ad_unavailable">No rewarded ad is available right now. This feature is optional; try again later.</string>
+    <string name="support_ad_activity_unavailable">Return to Expira and try again when the app is in the foreground.</string>
     <string name="support_ad_retry">Try again</string>
     <string name="support_privacy_options">Privacy options</string>
     <string name="play_store_unavailable">Could not open Google Play subscriptions. Update Google Play and try again.</string>
@@ -173,6 +184,11 @@
     <string name="products_loading">Loading products…</string>
     <string name="notes_loading">Loading notes…</string>
     <string name="note_loading">Loading note…</string>
+    <string name="product_load_failed_title">Couldn’t load product</string>
+    <string name="product_load_failed_message">The product couldn’t be opened. Your saved data hasn’t been changed. Try again.</string>
+    <string name="note_load_failed_title">Couldn’t load note</string>
+    <string name="note_load_failed_message">The note couldn’t be opened. Your saved data hasn’t been changed. Try again.</string>
+    <string name="try_again">Try again</string>
     <string name="error_title_too_long">Title must be 80 characters or fewer.</string>
     <string name="error_content_too_long">Content must be 10,000 characters or fewer.</string>
     <string name="crash_recovery_title">The app closed unexpectedly</string>
@@ -188,4 +204,16 @@
         <item quantity="other">%1$d Expira points added.</item>
     </plurals>
     <string name="support_ad_retry_consent">Retry privacy check</string>
+    <plurals name="days_remaining">
+        <item quantity="one">%1$d day left</item>
+        <item quantity="other">%1$d days left</item>
+    </plurals>
+    <plurals name="days_past">
+        <item quantity="one">Expired %1$d day ago</item>
+        <item quantity="other">Expired %1$d days ago</item>
+    </plurals>
+    <plurals name="product_quantity">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
 </resources>

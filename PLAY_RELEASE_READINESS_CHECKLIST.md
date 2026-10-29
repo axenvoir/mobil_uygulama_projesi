@@ -18,11 +18,13 @@ Kurulum adımları ve ID biçimleri [`ADS_SETUP.md`](ADS_SETUP.md) içinde yer a
 
 - AdMob App ID ve Rewarded Ad Unit ID, GitHub Actions repository secrets’a `EXPIRA_ADMOB_APP_ID` ve `EXPIRA_REWARDED_AD_UNIT_ID` adlarıyla eklenmiş.
 - AdMob ödül türü `Expira point`, miktarı `1` olarak yapılandırılmış.
+- Tamamlanan her reklamda bir puan, beş puanda uygulama içi kozmetik Destekçi rozeti görünür; ödül metni, uygulama içi davranış ve AdMob yapılandırması birbiriyle eşleşiyor.
 - Release workflow’u gerçek kimlikleri kullanıyor; Google test ID’leri release için kabul edilmiyor.
 - UMP consent mesajı, gerekli ülkeler/bölgeler ve gizlilik seçenekleri AdMob hesabında yapılandırılmış.
 - Ücretsiz kullanıcı reklamı yalnızca kendisi isterse hazırlar ve başlatır. Reklamı izlememek/kapamak uygulamanın temel işlevlerini kısıtlamaz.
 - Önceden reklamsız hak kazanmış kullanıcıya reklam gösterilmiyor.
 - Tamamlanmayan reklama puan verilmiyor; tamamlanan reklama bir kez puan ekleniyor ve uygulama yeniden açıldığında sayaç korunuyor.
+- Beşinci puan verildiğinde Destekçi rozeti görünür; reklama puan vermek zorunlu olmadığı gibi temel özellikleri de etkilemiyor.
 - Consent, internet veya reklam envanteri sorunlarında kullanıcıya uygun mesaj gösteriliyor; yeniden deneme işlevi çalışıyor.
 - Debug testinde Google test reklamları dışında gerçek üretim reklamı kullanılmıyor; geliştirici kendi canlı reklamına tıklamıyor.
 
@@ -56,6 +58,7 @@ Android 13 veya üzeri gerçek cihazda:
 - İki eşzamanlı kategori oluşturma, CSV dışa aktarma ve paylaşma senaryolarını test edin.
 - CSV içinde formül gibi yorumlanabilecek kullanıcı girişlerinin güvenli biçimde dışa aktarıldığını kontrol edin.
 - Bulut yedekleme ve cihaz aktarımı testinde Room verisi ve kullanıcı tercihleri beklenen şekilde taşınır; crash marker ve geçici dosyalar yedeklenmez.
+- Android cloud backup, cihaz istemci tarafı şifreleme özelliği sağlayamıyorsa bilerek atlanır; bu kullanıcılar için bulut kurtarma garantisi verilmez. Aynı allowlist ile cihazdan cihaza aktarım ayrıca test edilmelidir.
 - Beklenmedik kapanma sonrasında kullanıcıya ham stack trace gösterilmez ve uygulamaya devam edilebilir.
 
 ## 6. Erişilebilirlik ve cihaz matrisi
@@ -84,8 +87,8 @@ Aşağıdaki değerler geliştirici/uygulama sahibinden alınmadan uydurulmamal�
 
 ## 8. Release son kontrolü
 
-- [ ] `versionCode` Play Console’da kullanılmamış, artan bir değer; mevcut kod `100`.
-- [ ] `versionName` yayın notlarıyla uyumlu; mevcut değer `2.0.2`.
+- [ ] `versionCode` Play Console’da kullanılmamış, artan bir değer; bu kaynak ağacındaki aday kod `101`.
+- [ ] `versionName` yayın notlarıyla uyumlu; bu kaynak ağacındaki aday sürüm `2.1.0`.
 - [ ] Release secrets: imzalama anahtarı/değerleri ve iki production AdMob ID’si tanımlı.
 - [ ] GitHub Actions’ta unit test, lint, debug build, migration/Compose instrumentation ve imzalı AAB işleri başarılı.
 - [ ] İmzalı AAB kapalı test kanalına yüklendi; Play App Signing/sertifika ve cihaz uyumluluğu kontrol edildi.

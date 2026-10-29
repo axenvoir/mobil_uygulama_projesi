@@ -82,7 +82,6 @@ class ReminderScheduler @Inject constructor(
                 workDataOf(
                     ReminderWorker.INPUT_HOUR to hour,
                     ReminderWorker.INPUT_MINUTE to minute,
-                    ReminderWorker.INPUT_ZONE_ID to zoneId.id,
                     ReminderWorker.INPUT_WORK_SLOT to workSlot,
                 ),
             )

@@ -76,6 +76,10 @@ if [[ "$CONNECTED" == true ]]; then
 fi
 
 if [[ "$RELEASE" == true ]]; then
+  if [[ ! -s "$ROOT/keystore.properties" ]]; then
+    echo "HATA: --release için keystore.properties ve geçerli release imza yapılandırması gerekli. Ayrıntı: ADS_SETUP.md" >&2
+    exit 1
+  fi
   if [[ -z "${EXPIRA_ADMOB_APP_ID:-}" || -z "${EXPIRA_REWARDED_AD_UNIT_ID:-}" ]]; then
     echo "HATA: Release için EXPIRA_ADMOB_APP_ID ve EXPIRA_REWARDED_AD_UNIT_ID ortam değişkenleri gerekli. Ayrıntı: ADS_SETUP.md" >&2
     exit 1
@@ -91,6 +95,34 @@ if [[ "$RELEASE" == true ]]; then
     exit 1
   fi
   run_gradle :app:lintRelease :app:assembleRelease :app:bundleRelease
+
+  AAB="$ROOT/app/build/outputs/bundle/release/app-release.aab"
+  APK="$ROOT/app/build/outputs/apk/release/app-release.apk"
+  if [[ ! -s "$AAB" || ! -s "$APK" ]]; then
+    echo "HATA: Release APK veya AAB çıktısı bulunamadı." >&2
+    exit 1
+  fi
+  command -v jarsigner >/dev/null 2>&1 || {
+    echo "HATA: AAB imzasını doğrulamak için JDK jarsigner gerekli." >&2
+    exit 1
+  }
+  AAB_SIGNATURE="$(jarsigner -verify "$AAB" 2>&1)" || {
+    echo "HATA: Release AAB imzası doğrulanamadı." >&2
+    exit 1
+  }
+  if ! grep -qi '^jar verified\.' <<<"$AAB_SIGNATURE"; then
+    echo "HATA: Release AAB imzalı görünmüyor." >&2
+    exit 1
+  fi
+
+  APKSIGNER="$(command -v apksigner || true)"
+  if [[ -z "$APKSIGNER" && -n "${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}" ]]; then
+    APKSIGNER="$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/build-tools" -type f -name apksigner -perm -u+x 2>/dev/null | sort -V | tail -n1 || true)"
+  fi
+  if [[ -z "$APKSIGNER" ]] || ! "$APKSIGNER" verify "$APK" >/dev/null; then
+    echo "HATA: Release APK imzası doğrulanamadı; Android SDK apksigner aracını kontrol edin." >&2
+    exit 1
+  fi
 fi
 
 echo "Tüm istenen otomatik test görevleri başarıyla tamamlandı."

@@ -3,39 +3,36 @@ package com.axenvoir.expira.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-
-private val categoryColors = listOf(
-    Color(0xFF2D6CDF),
-    Color(0xFF2E7D32),
-    Color(0xFF8E24AA),
-    Color(0xFFEF6C00),
-    Color(0xFF00838F),
-    Color(0xFFC62828),
-)
 
 @Composable
 fun CategoryAvatar(name: String, modifier: Modifier = Modifier) {
-    val color = categoryColors[Math.floorMod(name.hashCode(), categoryColors.size)]
+    val scheme = MaterialTheme.colorScheme
+    val categoryColors = listOf(
+        scheme.primaryContainer to scheme.onPrimaryContainer,
+        scheme.secondaryContainer to scheme.onSecondaryContainer,
+        scheme.tertiaryContainer to scheme.onTertiaryContainer,
+        scheme.errorContainer to scheme.onErrorContainer,
+        scheme.surfaceVariant to scheme.onSurfaceVariant,
+    )
+    val (container, content) = categoryColors[Math.floorMod(name.hashCode(), categoryColors.size)]
     Box(
         modifier = modifier
-            .size(28.dp)
-            .background(color, CircleShape),
+            .size(40.dp)
+            .background(container, RoundedCornerShape(14.dp)),
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = name.trim().take(1).uppercase(),
-            color = Color.White,
-            fontSize = 13.sp,
+            text = name.trim().take(1).uppercase().ifBlank { "•" },
+            color = content,
+            style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
         )
     }

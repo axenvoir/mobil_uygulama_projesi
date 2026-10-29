@@ -52,29 +52,33 @@ class BillingManager @Inject constructor(
     private val _connectionState = MutableStateFlow(false)
     val connectionState: StateFlow<Boolean> = _connectionState.asStateFlow()
 
-    private val _purchases = MutableStateFlow<List<Purchase>>(emptyList())
-    val purchases: StateFlow<List<Purchase>> = _purchases.asStateFlow()
-
-    private val _entitlementsChecked = MutableStateFlow(false)
-    val entitlementsChecked: StateFlow<Boolean> = _entitlementsChecked.asStateFlow()
+    private val _purchaseQueryState = MutableStateFlow(PurchaseQueryState())
+    val purchaseQueryState: StateFlow<PurchaseQueryState> = _purchaseQueryState.asStateFlow()
 
     fun connect() {
         synchronized(connectionLock) {
             if (billingClient.isReady || connecting) return
             connecting = true
         }
+        _connectionState.value = false
+        markEntitlementsUnchecked()
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(billingResult: BillingResult) {
                 synchronized(connectionLock) { connecting = false }
                 val ready = billingResult.responseCode == BillingClient.BillingResponseCode.OK
                 _connectionState.value = ready
                 if (ready) queryPurchases()
-                else Log.w(TAG, "Billing setup failed: ${billingResult.debugMessage}")
+                else {
+                    markEntitlementsUnchecked()
+                    Log.w(TAG, "Billing setup failed: ${billingResult.debugMessage}")
+                }
             }
 
             override fun onBillingServiceDisconnected() {
                 synchronized(connectionLock) { connecting = false }
                 _connectionState.value = false
+                queryGeneration.incrementAndGet()
+                markEntitlementsUnchecked()
             }
         })
     }
@@ -103,13 +107,13 @@ class BillingManager @Inject constructor(
     private fun queryPurchases(onComplete: (Boolean) -> Unit = {}) {
         if (!billingClient.isReady) {
             _connectionState.value = false
-            _entitlementsChecked.value = false
+            markEntitlementsUnchecked()
             onComplete(false)
             connect()
             return
         }
 
-        _entitlementsChecked.value = false
+        markEntitlementsUnchecked()
         val generation = queryGeneration.incrementAndGet()
         val productTypes = listOf(BillingClient.ProductType.SUBS, BillingClient.ProductType.INAPP)
         val responses = mutableListOf<Purchase>()
@@ -134,17 +138,20 @@ class BillingManager @Inject constructor(
                 }
 
                 completed?.let { outcome ->
-                    if (generation == queryGeneration.get()) {
+                    val isCurrentQuery = generation == queryGeneration.get() && billingClient.isReady
+                    if (isCurrentQuery) {
                         if (outcome.success) {
                             val currentPurchases = choosePurchaseState(outcome.purchases)
-                            _purchases.value = currentPurchases
-                            _entitlementsChecked.value = true
+                            _purchaseQueryState.value = PurchaseQueryState(
+                                purchases = currentPurchases,
+                                entitlementsChecked = true,
+                            )
                             acknowledgePurchases(currentPurchases)
                         } else {
-                            _entitlementsChecked.value = false
+                            markEntitlementsUnchecked()
                         }
                     }
-                    onComplete(outcome.success)
+                    onComplete(outcome.success && isCurrentQuery)
                 }
             }
         }
@@ -199,6 +206,13 @@ class BillingManager @Inject constructor(
             }
         }
 
+    private fun markEntitlementsUnchecked() {
+        val current = _purchaseQueryState.value
+        if (current.entitlementsChecked) {
+            _purchaseQueryState.value = current.copy(entitlementsChecked = false)
+        }
+    }
+
     private data class QueryOutcome(
         val success: Boolean,
         val purchases: List<Purchase>,
@@ -211,3 +225,8 @@ class BillingManager @Inject constructor(
         private const val ACK_RETRY_BASE_MS = 750L
     }
 }
+
+data class PurchaseQueryState(
+    val purchases: List<Purchase> = emptyList(),
+    val entitlementsChecked: Boolean = false,
+)

@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
     <cloud-backup disableIfNoEncryptionCapabilities="true">
-        <include domain="database" path="." requireFlags="clientSideEncryption" />
-        <include domain="sharedpref" path="." requireFlags="clientSideEncryption" />
-        <include
-            domain="file"
-            path="datastore/theme_prefs.preferences_pb"
-            requireFlags="clientSideEncryption" />
+        <!-- Products, notes, and custom categories; no other database files. -->
+        <include domain="database" path="skt_plus.db" />
+        <!-- Restore only non-secret app settings, not ad/consent preferences. -->
+        <include domain="sharedpref" path="app_settings.xml" />
+        <include domain="file" path="datastore/theme_prefs.preferences_pb" />
     </cloud-backup>
     <device-transfer>
-        <include domain="database" path="." />
-        <include domain="sharedpref" path="." />
+        <!-- Device transfer is explicit for the same user-data set. -->
+        <include domain="database" path="skt_plus.db" />
+        <include domain="sharedpref" path="app_settings.xml" />
         <include domain="file" path="datastore/theme_prefs.preferences_pb" />
     </device-transfer>
 </data-extraction-rules>

@@ -54,6 +54,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.expira.R
+import com.axenvoir.expira.ui.components.ExpiraEmptyState
+import com.axenvoir.expira.ui.components.ExpiraSectionCard
 import com.axenvoir.expira.ui.components.ExpiraSelectChip
 import com.axenvoir.expira.ui.components.expiraTopAppBarColors
 import java.time.Instant
@@ -79,7 +81,6 @@ fun ProductEditScreen(
     var showPastDateWarning by remember { mutableStateOf(false) }
     var pendingPastDate by remember { mutableStateOf<LocalDate?>(null) }
     var showUnsavedDialog by remember { mutableStateOf(false) }
-    var showEditRecordMissingDialog by remember { mutableStateOf(false) }
 
     val genericErrorText = stringResource(R.string.error_generic)
     val emptyNameText = stringResource(R.string.error_empty_name)
@@ -90,11 +91,8 @@ fun ProductEditScreen(
     LaunchedEffect(saved) {
         if (saved) onBack()
     }
-    LaunchedEffect(uiState.editRecordMissing) {
-        if (uiState.editRecordMissing) showEditRecordMissingDialog = true
-    }
-    LaunchedEffect(uiState.error) {
-        if (uiState.error == ProductEditError.Generic) {
+    LaunchedEffect(uiState.error, uiState.loadFailed) {
+        if (uiState.error == ProductEditError.Generic && !uiState.loadFailed) {
             snackbarHostState.showSnackbar(genericErrorText)
             viewModel.consumeError()
         }
@@ -111,6 +109,7 @@ fun ProductEditScreen(
 
     val canEdit = uiState.isHydrated && !uiState.editRecordMissing && !uiState.loadFailed
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 colors = expiraTopAppBarColors(),
@@ -160,7 +159,7 @@ fun ProductEditScreen(
         },
     ) { innerPadding ->
         when {
-            !uiState.isHydrated -> {
+            !uiState.isHydrated && !uiState.loadFailed -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -170,13 +169,37 @@ fun ProductEditScreen(
                     CircularProgressIndicator()
                 }
             }
-            uiState.editRecordMissing || uiState.loadFailed -> {
-                // Keep an unresolved edit route from becoming an accidental new product form.
+            uiState.editRecordMissing -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
-                )
+                    contentAlignment = Alignment.Center,
+                ) {
+                    ExpiraEmptyState(
+                        icon = Icons.Filled.DateRange,
+                        title = stringResource(R.string.edit_record_missing_title),
+                        subtitle = stringResource(R.string.product_edit_record_missing_message),
+                        actionLabel = stringResource(R.string.create_new_product),
+                        onAction = onNavigateToAdd,
+                    )
+                }
+            }
+            uiState.loadFailed -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    ExpiraEmptyState(
+                        icon = Icons.Filled.DateRange,
+                        title = stringResource(R.string.product_load_failed_title),
+                        subtitle = stringResource(R.string.product_load_failed_message),
+                        actionLabel = stringResource(R.string.try_again),
+                        onAction = viewModel::retryLoad,
+                    )
+                }
             }
             else -> {
                 Column(
@@ -188,59 +211,53 @@ fun ProductEditScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Text(
-                        text = stringResource(R.string.product_basic_info),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OutlinedTextField(
-                            value = uiState.name,
-                            onValueChange = viewModel::onNameChange,
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(stringResource(R.string.product_name)) },
-                            placeholder = { Text(stringResource(R.string.name_placeholder)) },
-                            isError = uiState.error is ProductEditError.EmptyName,
-                            supportingText = if (uiState.error is ProductEditError.EmptyName) {
-                                { Text(emptyNameText) }
-                            } else {
-                                null
-                            },
-                            singleLine = true,
-                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                                imeAction = ImeAction.Next,
-                            ),
-                        )
-                        OutlinedTextField(
-                            value = uiState.quantityText,
-                            onValueChange = viewModel::onQuantityChange,
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(stringResource(R.string.quantity)) },
-                            isError = uiState.error is ProductEditError.InvalidQuantity,
-                            supportingText = if (uiState.error is ProductEditError.InvalidQuantity) {
-                                { Text(invalidQuantityText) }
-                            } else {
-                                null
-                            },
-                            singleLine = true,
-                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                                keyboardType = KeyboardType.Number,
-                                imeAction = ImeAction.Next,
-                            ),
-                        )
+                    ExpiraSectionCard(title = stringResource(R.string.product_basic_info)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            OutlinedTextField(
+                                value = uiState.name,
+                                onValueChange = viewModel::onNameChange,
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(stringResource(R.string.product_name)) },
+                                placeholder = { Text(stringResource(R.string.name_placeholder)) },
+                                isError = uiState.error is ProductEditError.EmptyName,
+                                supportingText = if (uiState.error is ProductEditError.EmptyName) {
+                                    { Text(emptyNameText) }
+                                } else {
+                                    null
+                                },
+                                singleLine = true,
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                    imeAction = ImeAction.Next,
+                                ),
+                            )
+                            OutlinedTextField(
+                                value = uiState.quantityText,
+                                onValueChange = viewModel::onQuantityChange,
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(stringResource(R.string.quantity)) },
+                                isError = uiState.error is ProductEditError.InvalidQuantity,
+                                supportingText = if (uiState.error is ProductEditError.InvalidQuantity) {
+                                    { Text(invalidQuantityText) }
+                                } else {
+                                    null
+                                },
+                                singleLine = true,
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Next,
+                                ),
+                            )
+                        }
                     }
 
-                    Text(
-                        text = stringResource(R.string.category),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = stringResource(R.string.category_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ExpiraSectionCard(title = stringResource(R.string.category)) {
+                        Text(
+                            text = stringResource(R.string.category_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -266,67 +283,87 @@ fun ProductEditScreen(
                             },
                             singleLine = true,
                         )
-                    }
-
-                    Text(
-                        text = stringResource(R.string.storage_location),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = stringResource(R.string.storage_location_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        listOf(
-                            "fridge" to R.string.location_fridge,
-                            "pantry" to R.string.location_pantry,
-                            "freezer" to R.string.location_freezer,
-                            "" to R.string.location_other,
-                        ).forEach { (key, labelRes) ->
-                            ExpiraSelectChip(
-                                selected = uiState.storageLocation == key,
-                                onClick = { viewModel.onStorageLocationChange(key) },
-                                label = stringResource(labelRes),
-                            )
                         }
                     }
 
-                    Text(
-                        text = stringResource(R.string.expiry_date),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    OutlinedButton(
-                        onClick = { showDatePicker = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.large,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.DateRange,
-                            contentDescription = stringResource(R.string.pick_date),
-                            modifier = Modifier.size(20.dp),
+                    ExpiraSectionCard(title = stringResource(R.string.storage_location)) {
+                        Text(
+                            text = stringResource(R.string.storage_location_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Spacer(modifier = Modifier.size(8.dp))
-                        Text(
-                            text = uiState.expiryDate?.format(
-                                DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM),
-                            ) ?: stringResource(R.string.pick_date),
-                            modifier = Modifier.weight(1f),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            listOf(
+                                "fridge" to R.string.location_fridge,
+                                "pantry" to R.string.location_pantry,
+                                "freezer" to R.string.location_freezer,
+                                "" to R.string.location_other,
+                            ).forEach { (key, labelRes) ->
+                                ExpiraSelectChip(
+                                    selected = uiState.storageLocation == key,
+                                    onClick = { viewModel.onStorageLocationChange(key) },
+                                    label = stringResource(labelRes),
+                                )
+                            }
+                        }
                     }
-                    if (uiState.error is ProductEditError.MissingExpiryDate) {
+
+                    ExpiraSectionCard(title = stringResource(R.string.expiry_date)) {
                         Text(
-                            text = missingDateText,
-                            color = MaterialTheme.colorScheme.error,
+                            text = stringResource(R.string.expiry_date_hint),
                             style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            listOf(
+                                referenceDate.plusDays(1) to R.string.quick_date_tomorrow,
+                                referenceDate.plusDays(3) to R.string.quick_date_three_days,
+                                referenceDate.plusWeeks(1) to R.string.quick_date_week,
+                                referenceDate.plusMonths(1) to R.string.quick_date_month,
+                            ).forEach { (date, labelRes) ->
+                                ExpiraSelectChip(
+                                    selected = uiState.expiryDate == date,
+                                    onClick = { viewModel.onExpiryDateChange(date) },
+                                    label = stringResource(labelRes),
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.size(4.dp))
+                        OutlinedButton(
+                            onClick = { showDatePicker = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.large,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.DateRange,
+                                contentDescription = stringResource(R.string.pick_date),
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Spacer(modifier = Modifier.size(8.dp))
+                            Text(
+                                text = uiState.expiryDate?.format(
+                                    DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM),
+                                ) ?: stringResource(R.string.pick_date),
+                                modifier = Modifier.weight(1f),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        if (uiState.error is ProductEditError.MissingExpiryDate) {
+                            Text(
+                                text = missingDateText,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
                     }
                 }
             }
@@ -368,7 +405,7 @@ fun ProductEditScreen(
                         pendingPastDate = null
                     },
                 ) {
-                    Text(stringResource(R.string.save))
+                    Text(stringResource(R.string.use_date))
                 }
             },
             dismissButton = {
@@ -378,29 +415,6 @@ fun ProductEditScreen(
                         pendingPastDate = null
                     },
                 ) {
-                    Text(stringResource(R.string.cancel_action))
-                }
-            },
-        )
-    }
-
-    if (showEditRecordMissingDialog) {
-        AlertDialog(
-            onDismissRequest = { showEditRecordMissingDialog = false },
-            title = { Text(stringResource(R.string.edit_record_missing_title)) },
-            text = { Text(stringResource(R.string.product_edit_record_missing_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showEditRecordMissingDialog = false
-                        onNavigateToAdd()
-                    },
-                ) {
-                    Text(stringResource(R.string.create_new_product))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showEditRecordMissingDialog = false }) {
                     Text(stringResource(R.string.cancel_action))
                 }
             },
@@ -433,7 +447,7 @@ fun ProductEditScreen(
                         showDatePicker = false
                     },
                 ) {
-                    Text(stringResource(R.string.save))
+                    Text(stringResource(R.string.use_date))
                 }
             },
             dismissButton = {
