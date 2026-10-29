@@ -35,11 +35,11 @@ fun ExpiraEmptyState(
     icon: ImageVector,
     title: String,
     subtitle: String,
+    modifier: Modifier = Modifier,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
     iconContentDescription: String? = null,
     reduceMotion: Boolean = false,
-    modifier: Modifier = Modifier,
 ) {
     var visible by remember { mutableStateOf(false) }
     androidx.compose.runtime.LaunchedEffect(Unit) { visible = true }
