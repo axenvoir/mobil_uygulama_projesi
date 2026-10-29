@@ -9,7 +9,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
@@ -34,6 +35,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -173,13 +176,20 @@ fun NoteEditScreen(
                 onValueChange = viewModel::onTitleChange,
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(stringResource(R.string.note_title)) },
+                placeholder = { Text(stringResource(R.string.note_title_placeholder)) },
                 isError = error is NoteEditError.EmptyTitle,
                 supportingText = {
                     if (error is NoteEditError.EmptyTitle) {
                         Text(stringResource(R.string.error_empty_title))
+                    } else {
+                        Text(stringResource(R.string.note_title_counter, title.length, NoteEditViewModel.MAX_TITLE_LENGTH))
                     }
                 },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Next,
+                ),
             )
             if (suggestedTitle.isNotBlank() && title.isBlank()) {
                 androidx.compose.material3.AssistChip(
@@ -196,6 +206,14 @@ fun NoteEditScreen(
                     .fillMaxWidth()
                     .heightIn(min = 160.dp, max = 480.dp),
                 label = { Text(stringResource(R.string.note_content)) },
+                placeholder = { Text(stringResource(R.string.note_content_placeholder)) },
+                supportingText = {
+                    Text(stringResource(R.string.note_content_counter, content.length, NoteEditViewModel.MAX_CONTENT_LENGTH))
+                },
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Default,
+                ),
             )
             if (error is NoteEditError.Generic) {
                 Spacer(modifier = Modifier.height(8.dp))

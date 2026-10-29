@@ -23,6 +23,11 @@ class NoteEditViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
+    companion object {
+        const val MAX_TITLE_LENGTH = 80
+        const val MAX_CONTENT_LENGTH = 10_000
+    }
+
     private val noteId: Long = savedStateHandle.get<Long>(Screen.EditNote.ARG_NOTE_ID) ?: 0L
     val isEditMode: Boolean = noteId != 0L
 
@@ -92,11 +97,11 @@ class NoteEditViewModel @Inject constructor(
 
     fun onTitleChange(value: String) {
         _userEditedTitle.value = true
-        _title.value = value
+        _title.value = value.take(MAX_TITLE_LENGTH)
     }
 
     fun onContentChange(value: String) {
-        _content.value = value
+        _content.value = value.take(MAX_CONTENT_LENGTH)
         if (_title.value.isBlank() && !_userEditedTitle.value) {
             _suggestedTitle.value = value.lineSequence().firstOrNull { it.isNotBlank() }?.trim().orEmpty()
         } else {
@@ -106,7 +111,7 @@ class NoteEditViewModel @Inject constructor(
 
     fun applySuggestedTitle() {
         if (_title.value.isBlank() && _suggestedTitle.value.isNotBlank() && !_userEditedTitle.value) {
-            _title.value = _suggestedTitle.value.take(60)
+            _title.value = _suggestedTitle.value.take(MAX_TITLE_LENGTH)
             _suggestedTitle.value = ""
         }
     }

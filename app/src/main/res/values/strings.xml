@@ -5,6 +5,11 @@
     <string name="tab_notes">Notlarım</string>
     <string name="expiry_list_title">Son Kullanma Tarihleri</string>
     <string name="notes_list_title">Notlarım</string>
+    <string name="notes_filter_all">Tümü</string>
+    <string name="notes_filter_pinned">Sabitlenenler</string>
+    <string name="notes_filter_recent">Son güncellenenler</string>
+    <string name="empty_pinned_notes_title">Sabitlenmiş not yok</string>
+    <string name="empty_pinned_notes">Önemli notlarınızı daha sonra kolayca bulmak için sabitleyin.</string>
     <string name="add_product">Ürün Ekle</string>
     <string name="edit_product">Ürünü Düzenle</string>
     <string name="add_note">Not Ekle</string>
@@ -18,6 +23,10 @@
     <string name="cancel">Vazgeç</string>
     <string name="note_title">Başlık</string>
     <string name="note_content">İçerik</string>
+    <string name="note_title_placeholder">Örn. Alışveriş listesi</string>
+    <string name="note_content_placeholder">Notunuzu buraya yazın…</string>
+    <string name="note_title_counter">%1$d/%2$d karakter</string>
+    <string name="note_content_counter">%1$d/%2$d karakter</string>
     <string name="search_notes">Notlarda ara…</string>
     <string name="status_fresh">Taze</string>
     <string name="status_expiring_soon">Yaklaşıyor</string>

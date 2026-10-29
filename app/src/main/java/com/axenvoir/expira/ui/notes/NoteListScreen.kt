@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -24,6 +26,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -65,6 +68,7 @@ fun NoteListScreen(
 ) {
     val notes by viewModel.notes.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
+    val filter by viewModel.filter.collectAsStateWithLifecycle()
     val event by viewModel.events.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var notePendingDelete by remember { mutableStateOf<Note?>(null) }
@@ -140,6 +144,30 @@ fun NoteListScreen(
                         singleLine = true,
                         shape = MaterialTheme.shapes.extraLarge,
                     )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        FilterChip(
+                            selected = filter == NoteFilter.ALL,
+                            onClick = { viewModel.setFilter(NoteFilter.ALL) },
+                            label = { Text(stringResource(R.string.notes_filter_all)) },
+                        )
+                        FilterChip(
+                            selected = filter == NoteFilter.PINNED,
+                            onClick = { viewModel.setFilter(NoteFilter.PINNED) },
+                            label = { Text(stringResource(R.string.notes_filter_pinned)) },
+                        )
+                        FilterChip(
+                            selected = filter == NoteFilter.RECENT,
+                            onClick = { viewModel.setFilter(NoteFilter.RECENT) },
+                            label = { Text(stringResource(R.string.notes_filter_recent)) },
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
                     if (notes.isEmpty()) {
                         androidx.compose.foundation.layout.Box(
                             modifier = Modifier
@@ -153,6 +181,13 @@ fun NoteListScreen(
                                     iconContentDescription = stringResource(R.string.search_notes),
                                     title = stringResource(R.string.empty_notes_search),
                                     subtitle = stringResource(R.string.empty_notes_search_subtitle),
+                                )
+                            } else if (filter == NoteFilter.PINNED) {
+                                ExpiraEmptyState(
+                                    icon = Icons.Filled.Star,
+                                    iconContentDescription = stringResource(R.string.notes_filter_pinned),
+                                    title = stringResource(R.string.empty_pinned_notes_title),
+                                    subtitle = stringResource(R.string.empty_pinned_notes),
                                 )
                             } else {
                                 ExpiraEmptyState(

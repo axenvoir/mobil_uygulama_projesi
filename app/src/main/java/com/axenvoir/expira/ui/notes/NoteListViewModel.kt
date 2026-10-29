@@ -26,12 +26,21 @@ class NoteListViewModel @Inject constructor(
     private val searchQuery = MutableStateFlow("")
     val query: StateFlow<String> = searchQuery.asStateFlow()
 
+    private val selectedFilter = MutableStateFlow(NoteFilter.ALL)
+    val filter: StateFlow<NoteFilter> = selectedFilter.asStateFlow()
+
     val notes: StateFlow<List<Note>> = combine(
         noteRepository.observeAll(),
         searchQuery,
-    ) { allNotes, query ->
-        val filtered = if (query.isBlank()) allNotes
-        else allNotes.filter { note ->
+        selectedFilter,
+    ) { allNotes, query, filter ->
+        val filteredByType = when (filter) {
+            NoteFilter.ALL -> allNotes
+            NoteFilter.PINNED -> allNotes.filter { it.isPinned }
+            NoteFilter.RECENT -> allNotes.sortedByDescending { it.updatedAt }.take(20)
+        }
+        val filtered = if (query.isBlank()) filteredByType
+        else filteredByType.filter { note ->
             note.title.contains(query, ignoreCase = true) ||
                 note.content.contains(query, ignoreCase = true)
         }
@@ -44,6 +53,10 @@ class NoteListViewModel @Inject constructor(
 
     fun onQueryChange(query: String) {
         searchQuery.value = query
+    }
+
+    fun setFilter(filter: NoteFilter) {
+        selectedFilter.value = filter
     }
 
     fun togglePinned(note: Note) {
@@ -81,4 +94,10 @@ class NoteListViewModel @Inject constructor(
 
 sealed interface NoteListEvent {
     data object Error : NoteListEvent
+}
+
+enum class NoteFilter {
+    ALL,
+    PINNED,
+    RECENT,
 }
