@@ -1,13 +1,15 @@
 package com.axenvoir.expira.notification
 
+import android.annotation.SuppressLint
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -19,7 +21,7 @@ import javax.inject.Singleton
 
 @Singleton
 class NotificationHelper @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) {
 
     fun createChannel() {
@@ -35,26 +37,26 @@ class NotificationHelper @Inject constructor(
     }
 
     fun canPostNotifications(): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+        (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.POST_NOTIFICATIONS,
-            ) == PackageManager.PERMISSION_GRANTED
+            ) == PackageManager.PERMISSION_GRANTED) &&
+            NotificationManagerCompat.from(context).areNotificationsEnabled()
 
     fun showExpiryReminder(count: Int, topNames: List<String>) {
-        createChannel()
-        if (count <= 0) return
+        if (count <= 0 || !canPostNotifications()) return
         val countText = context.resources.getQuantityString(
             R.plurals.notification_text,
             count,
             count,
         )
-        val details = if (topNames.isEmpty()) {
-            countText
-        } else {
-            listOf(countText, topNames.joinToString(separator = "\n"))
-                .filter(String::isNotBlank)
-                .joinToString(separator = "\n")
+        val details = buildString {
+            append(countText)
+            topNames.filter(String::isNotBlank).forEach { name ->
+                append('\n')
+                append(name)
+            }
         }
         showNotification(
             title = context.getString(R.string.notification_title),
@@ -70,8 +72,10 @@ class NotificationHelper @Inject constructor(
         )
     }
 
+    @SuppressLint("MissingPermission")
     private fun showNotification(title: String, text: String, details: String = text) {
         if (!canPostNotifications()) return
+        createChannel()
         val openAppIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
@@ -89,17 +93,15 @@ class NotificationHelper @Inject constructor(
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .build()
-        val hasPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS,
-            ) == PackageManager.PERMISSION_GRANTED
-        if (hasPermission) {
+        try {
             NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+        } catch (exception: SecurityException) {
+            Log.w(TAG, "Notification permission was revoked before delivery", exception)
         }
     }
 
     companion object {
+        private const val TAG = "NotificationHelper"
         const val CHANNEL_ID = "expiry_reminders"
         const val NOTIFICATION_ID = 1001
     }

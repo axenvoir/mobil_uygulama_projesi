@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,15 +32,40 @@ class NoteListViewModel @Inject constructor(
     private val selectedFilter = MutableStateFlow(NoteFilter.ALL)
     val filter: StateFlow<NoteFilter> = selectedFilter.asStateFlow()
 
+    private val loaded = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = loaded
+        .map { !it }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = true,
+        )
+
+    private val allNotes = noteRepository.observeAll()
+        .onEach { loaded.value = true }
+        .shareIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            replay = 1,
+        )
+
+    val hasAnyNotes: StateFlow<Boolean> = allNotes
+        .map { it.isNotEmpty() }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = false,
+        )
+
     val notes: StateFlow<List<Note>> = combine(
-        noteRepository.observeAll(),
+        allNotes,
         searchQuery,
         selectedFilter,
-    ) { allNotes, query, filter ->
+    ) { sourceNotes, query, filter ->
         val filteredByType = when (filter) {
-            NoteFilter.ALL -> allNotes
-            NoteFilter.PINNED -> allNotes.filter { it.isPinned }
-            NoteFilter.RECENT -> allNotes.sortedByDescending { it.updatedAt }.take(20)
+            NoteFilter.ALL -> sourceNotes
+            NoteFilter.PINNED -> sourceNotes.filter { it.isPinned }
+            NoteFilter.RECENT -> sourceNotes.sortedByDescending { it.updatedAt }.take(20)
         }
         val filtered = if (query.isBlank()) filteredByType
         else filteredByType.filter { note ->

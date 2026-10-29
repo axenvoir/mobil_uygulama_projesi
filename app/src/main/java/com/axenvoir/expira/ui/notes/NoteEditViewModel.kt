@@ -8,11 +8,12 @@ import com.axenvoir.expira.domain.repository.NoteRepository
 import com.axenvoir.expira.ui.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -52,10 +53,18 @@ class NoteEditViewModel @Inject constructor(
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
+    private val loaded = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = loaded
+        .map { !it }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = isEditMode,
+        )
+
     private var originalTitle: String = ""
     private var originalContent: String = ""
     private var originalIsPinned: Boolean = false
-    private var loaded = MutableStateFlow(false)
     private val _userEditedTitle = MutableStateFlow(false)
 
     val isDirty: StateFlow<Boolean> = combine(
@@ -71,20 +80,29 @@ class NoteEditViewModel @Inject constructor(
         initialValue = false,
     )
 
+    private val _suggestedTitle = MutableStateFlow("")
+    val suggestedTitle: StateFlow<String> = _suggestedTitle.asStateFlow()
+
     init {
         if (isEditMode) {
             viewModelScope.launch {
-                val note = noteRepository.observeById(noteId).first()
-                loaded.value = true
-                if (note != null) {
-                    originalTitle = note.title
-                    originalContent = note.content
-                    originalIsPinned = note.isPinned
-                    _title.value = note.title
-                    _content.value = note.content
-                    _isPinned.value = note.isPinned
-                } else {
-                    _editRecordMissing.value = true
+                try {
+                    val note = noteRepository.observeById(noteId).first()
+                    if (note != null) {
+                        originalTitle = note.title
+                        originalContent = note.content
+                        originalIsPinned = note.isPinned
+                        _title.value = note.title
+                        _content.value = note.content
+                        _isPinned.value = note.isPinned
+                    } else {
+                        _editRecordMissing.value = true
+                    }
+                } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
+                    _error.value = NoteEditError.Generic
+                } finally {
+                    loaded.value = true
                 }
             }
         } else {
@@ -92,26 +110,36 @@ class NoteEditViewModel @Inject constructor(
         }
     }
 
-    private val _suggestedTitle = MutableStateFlow("")
-    val suggestedTitle: StateFlow<String> = _suggestedTitle.asStateFlow()
-
     fun onTitleChange(value: String) {
         _userEditedTitle.value = true
-        _title.value = value.take(MAX_TITLE_LENGTH)
+        _title.value = value
+        if (_error.value is NoteEditError.EmptyTitle ||
+            _error.value is NoteEditError.TitleTooLong ||
+            _error.value is NoteEditError.Generic
+        ) {
+            _error.value = null
+        }
     }
 
     fun onContentChange(value: String) {
-        _content.value = value.take(MAX_CONTENT_LENGTH)
+        _content.value = value
         if (_title.value.isBlank() && !_userEditedTitle.value) {
-            _suggestedTitle.value = value.lineSequence().firstOrNull { it.isNotBlank() }?.trim().orEmpty()
+            val candidate = value.lineSequence()
+                .firstOrNull { it.isNotBlank() }
+                ?.trim()
+                .orEmpty()
+            _suggestedTitle.value = candidate.takeIf { it.length <= MAX_TITLE_LENGTH }.orEmpty()
         } else {
             _suggestedTitle.value = ""
+        }
+        if (_error.value is NoteEditError.ContentTooLong || _error.value is NoteEditError.Generic) {
+            _error.value = null
         }
     }
 
     fun applySuggestedTitle() {
         if (_title.value.isBlank() && _suggestedTitle.value.isNotBlank() && !_userEditedTitle.value) {
-            _title.value = _suggestedTitle.value.take(MAX_TITLE_LENGTH)
+            _title.value = _suggestedTitle.value
             _suggestedTitle.value = ""
         }
     }
@@ -121,12 +149,27 @@ class NoteEditViewModel @Inject constructor(
     }
 
     fun save() {
-        if (_isSaving.value || _saved.value) return
-        val trimmedTitle = _title.value.trim()
-        if (trimmedTitle.isEmpty()) {
-            _error.value = NoteEditError.EmptyTitle
-            return
+        if (_isSaving.value || _saved.value || (isEditMode && _editRecordMissing.value)) return
+
+        val titleForValidation = _title.value.trim()
+        when {
+            titleForValidation.isEmpty() -> {
+                _error.value = NoteEditError.EmptyTitle
+                return
+            }
+
+            _title.value.length > MAX_TITLE_LENGTH -> {
+                _error.value = NoteEditError.TitleTooLong
+                return
+            }
+
+            _content.value.length > MAX_CONTENT_LENGTH -> {
+                _error.value = NoteEditError.ContentTooLong
+                return
+            }
         }
+
+        _error.value = null
         viewModelScope.launch {
             _isSaving.value = true
             try {
@@ -138,8 +181,8 @@ class NoteEditViewModel @Inject constructor(
                 }
                 val note = Note(
                     id = existing?.id ?: 0L,
-                    title = trimmedTitle,
-                    content = _content.value.trim(),
+                    title = _title.value,
+                    content = _content.value,
                     isPinned = _isPinned.value,
                     createdAt = existing?.createdAt ?: now,
                     updatedAt = now,
@@ -166,5 +209,7 @@ class NoteEditViewModel @Inject constructor(
 
 sealed interface NoteEditError {
     data object EmptyTitle : NoteEditError
+    data object TitleTooLong : NoteEditError
+    data object ContentTooLong : NoteEditError
     data object Generic : NoteEditError
 }

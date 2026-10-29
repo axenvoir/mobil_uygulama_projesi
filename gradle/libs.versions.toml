@@ -17,6 +17,8 @@ junit = "4.13.2"
 coroutinesTest = "1.11.0"
 datastore = "1.1.1"
 billing = "8.3.0"
+gmaNextGen = "1.6.0"
+ump = "4.0.0"
 archCoreTesting = "2.2.0"
 truth = "1.4.5"
 roomTesting = "2.8.5"
@@ -42,6 +44,8 @@ androidx-compose-material3-window-size = { group = "androidx.compose.material3",
 androidx-compose-material-icons = { group = "androidx.compose.material", name = "material-icons-core" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-billing = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
+google-mobile-ads = { group = "com.google.android.libraries.ads.mobile.sdk", name = "ads-mobile-sdk", version.ref = "gmaNextGen" }
+google-ump = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "ump" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }

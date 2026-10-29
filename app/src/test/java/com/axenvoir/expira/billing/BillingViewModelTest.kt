@@ -1,6 +1,5 @@
 package com.axenvoir.expira.billing
 
-import android.app.Activity
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
@@ -22,9 +21,8 @@ class BillingViewModelTest {
     @Test
     fun restore_result_is_exposed_when_billing_is_connected() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-        val repository = FakeBillingRepository(restoreResult = true)
         try {
-            val viewModel = BillingViewModel(repository)
+            val viewModel = BillingViewModel(FakeBillingRepository(restoreResult = true))
 
             viewModel.restorePurchases()
             advanceUntilIdle()
@@ -40,9 +38,8 @@ class BillingViewModelTest {
     @Test
     fun restore_result_is_false_when_billing_is_unavailable() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-        val repository = FakeBillingRepository(restoreResult = false)
         try {
-            val viewModel = BillingViewModel(repository)
+            val viewModel = BillingViewModel(FakeBillingRepository(restoreResult = false))
 
             viewModel.restorePurchases()
             advanceUntilIdle()
@@ -54,20 +51,12 @@ class BillingViewModelTest {
     }
 
     private class FakeBillingRepository(
-        restoreResult: Boolean,
+        private val restoreResult: Boolean,
     ) : BillingRepository {
         override val userTier = MutableStateFlow(UserTier.FREE)
-        override val isPremium = MutableStateFlow(false)
-        override val billingState = MutableStateFlow(BillingState())
-        override val offers = MutableStateFlow(emptyList<BillingOffer>())
-        private val result = restoreResult
+        override val entitlementsChecked = MutableStateFlow(false)
 
         override fun refreshEntitlements() = Unit
-        override suspend fun purchaseSupporter(activity: Activity) = false
-        override suspend fun purchaseSupporterYearly(activity: Activity) = false
-        override suspend fun purchasePremium(activity: Activity) = false
-        override suspend fun purchasePremiumYearly(activity: Activity) = false
-        override suspend fun purchaseLifetime(activity: Activity) = false
-        override suspend fun restorePurchases() = result
+        override suspend fun restorePurchases() = restoreResult
     }
 }

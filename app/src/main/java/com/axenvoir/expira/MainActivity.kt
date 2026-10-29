@@ -1,14 +1,17 @@
 package com.axenvoir.expira
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.axenvoir.expira.ads.AdsManager
 import com.axenvoir.expira.notification.NotificationHelper
 import com.axenvoir.expira.ui.settings.LanguageManager
 import com.axenvoir.expira.notification.ReminderScheduler
@@ -33,6 +36,15 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var themePreferences: ThemePreferences
+
+    @Inject
+    lateinit var adsManager: AdsManager
+
+    private val crashRecoveryLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) {
+        adsManager.requestConsentAtLaunch(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
@@ -71,5 +83,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
         reminderScheduler.scheduleDailyReminder()
+        if (savedInstanceState == null) {
+            if (CrashReporter.consumeCrashMarker(this)) {
+                crashRecoveryLauncher.launch(Intent(this, CrashDisplayActivity::class.java))
+            } else {
+                adsManager.requestConsentAtLaunch(this)
+            }
+        }
     }
 }

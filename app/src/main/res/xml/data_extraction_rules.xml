@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
     <cloud-backup disableIfNoEncryptionCapabilities="true">
-        <exclude domain="database" path="." />
+        <include domain="database" path="." requireFlags="clientSideEncryption" />
+        <include domain="sharedpref" path="." requireFlags="clientSideEncryption" />
+        <include
+            domain="file"
+            path="datastore/theme_prefs.preferences_pb"
+            requireFlags="clientSideEncryption" />
     </cloud-backup>
     <device-transfer>
-        <exclude domain="database" path="." />
+        <include domain="database" path="." />
+        <include domain="sharedpref" path="." />
+        <include domain="file" path="datastore/theme_prefs.preferences_pb" />
     </device-transfer>
 </data-extraction-rules>

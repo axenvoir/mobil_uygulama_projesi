@@ -1,21 +1,24 @@
 package com.axenvoir.expira.ui.notes
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,18 +29,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.size
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.expira.R
@@ -56,12 +63,18 @@ fun NoteEditScreen(
     val error by viewModel.error.collectAsStateWithLifecycle()
     val saved by viewModel.saved.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val editRecordMissing by viewModel.editRecordMissing.collectAsStateWithLifecycle()
 
     val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
     val suggestedTitle by viewModel.suggestedTitle.collectAsStateWithLifecycle()
     var showUnsavedDialog by remember { mutableStateOf(false) }
     var showEditRecordMissingDialog by remember { mutableStateOf(false) }
+    val titleFocusRequester = remember { FocusRequester() }
+
+    val titleOverLimit = title.length > NoteEditViewModel.MAX_TITLE_LENGTH
+    val contentOverLimit = content.length > NoteEditViewModel.MAX_CONTENT_LENGTH
+    val fieldsEnabled = !isLoading && !editRecordMissing && !isSaving
 
     LaunchedEffect(saved) {
         if (saved) onBack()
@@ -71,10 +84,18 @@ fun NoteEditScreen(
         if (editRecordMissing) showEditRecordMissingDialog = true
     }
 
-    val confirmBack = {
-        if (isDirty) showUnsavedDialog = true else onBack()
+    LaunchedEffect(isLoading, editRecordMissing) {
+        if (!isLoading && !viewModel.isEditMode && !editRecordMissing) {
+            titleFocusRequester.requestFocus()
+        }
     }
-    BackHandler { confirmBack() }
+
+    val confirmBack = {
+        if (!isSaving) {
+            if (isDirty) showUnsavedDialog = true else onBack()
+        }
+    }
+    BackHandler(enabled = !isSaving) { confirmBack() }
 
     if (showUnsavedDialog) {
         AlertDialog(
@@ -127,14 +148,17 @@ fun NoteEditScreen(
                 title = {
                     Text(
                         text = stringResource(
-                            if (viewModel.isEditMode) R.string.edit_note else R.string.add_note
+                            if (viewModel.isEditMode) R.string.edit_note else R.string.add_note,
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { confirmBack() }) {
+                    IconButton(
+                        onClick = { confirmBack() },
+                        enabled = !isSaving,
+                    ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.cancel),
@@ -142,11 +166,14 @@ fun NoteEditScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.onPinnedChange(!isPinned) }) {
+                    IconButton(
+                        onClick = { viewModel.onPinnedChange(!isPinned) },
+                        enabled = fieldsEnabled,
+                    ) {
                         Icon(
                             imageVector = if (isPinned) Icons.Filled.Star else Icons.Outlined.Star,
                             contentDescription = stringResource(
-                                if (isPinned) R.string.unpin else R.string.pin
+                                if (isPinned) R.string.unpin else R.string.pin,
                             ),
                             tint = if (isPinned) {
                                 MaterialTheme.colorScheme.primary
@@ -157,83 +184,162 @@ fun NoteEditScreen(
                     }
                     TextButton(
                         onClick = viewModel::save,
-                        enabled = title.isNotBlank() && !isSaving,
-                    ) { Text(stringResource(R.string.save)) }
+                        enabled = !isLoading && !editRecordMissing && !isSaving,
+                    ) {
+                        if (isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                            )
+                        } else {
+                            Text(stringResource(R.string.save))
+                        }
+                    }
                 },
             )
         },
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .imePadding()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.note_basic_info),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            OutlinedTextField(
-                value = title,
-                onValueChange = viewModel::onTitleChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.note_title)) },
-                placeholder = { Text(stringResource(R.string.note_title_placeholder)) },
-                isError = error is NoteEditError.EmptyTitle,
-                supportingText = {
-                    if (error is NoteEditError.EmptyTitle) {
-                        Text(stringResource(R.string.error_empty_title))
-                    } else {
-                        Text(stringResource(R.string.note_title_counter, title.length, NoteEditViewModel.MAX_TITLE_LENGTH))
-                    }
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Sentences,
-                    imeAction = ImeAction.Next,
-                ),
-            )
-            if (suggestedTitle.isNotBlank() && title.isBlank()) {
-                androidx.compose.material3.AssistChip(
-                    onClick = viewModel::applySuggestedTitle,
-                    label = { Text(suggestedTitle) },
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = stringResource(R.string.note_loading),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        } else if (editRecordMissing) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(R.string.note_edit_record_missing_message),
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .imePadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.note_basic_info),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = stringResource(R.string.note_content_section),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            OutlinedTextField(
-                value = content,
-                onValueChange = viewModel::onContentChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 160.dp, max = 480.dp),
-                label = { Text(stringResource(R.string.note_content)) },
-                placeholder = { Text(stringResource(R.string.note_content_placeholder)) },
-                supportingText = {
-                    Text(stringResource(R.string.note_content_counter, content.length, NoteEditViewModel.MAX_CONTENT_LENGTH))
-                },
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Sentences,
-                    imeAction = ImeAction.Default,
-                ),
-            )
-            if (error is NoteEditError.Generic) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.error_generic),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = viewModel::onTitleChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(titleFocusRequester),
+                    label = { Text(stringResource(R.string.note_title)) },
+                    placeholder = { Text(stringResource(R.string.note_title_placeholder)) },
+                    isError = error is NoteEditError.EmptyTitle || titleOverLimit ||
+                        error is NoteEditError.TitleTooLong,
+                    supportingText = {
+                        Column {
+                            if (error is NoteEditError.EmptyTitle) {
+                                Text(stringResource(R.string.error_empty_title))
+                            }
+                            Text(
+                                text = stringResource(
+                                    R.string.note_title_counter,
+                                    title.length,
+                                    NoteEditViewModel.MAX_TITLE_LENGTH,
+                                ),
+                                color = if (titleOverLimit) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (titleOverLimit || error is NoteEditError.TitleTooLong) {
+                                Text(
+                                    text = stringResource(R.string.error_title_too_long),
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            }
+                        }
+                    },
+                    enabled = fieldsEnabled,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Sentences,
+                        imeAction = ImeAction.Next,
+                    ),
                 )
+                if (suggestedTitle.isNotBlank() && title.isBlank() && fieldsEnabled) {
+                    androidx.compose.material3.AssistChip(
+                        onClick = viewModel::applySuggestedTitle,
+                        label = { Text(suggestedTitle) },
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = stringResource(R.string.note_content_section),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                OutlinedTextField(
+                    value = content,
+                    onValueChange = viewModel::onContentChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 160.dp, max = 480.dp),
+                    label = { Text(stringResource(R.string.note_content)) },
+                    placeholder = { Text(stringResource(R.string.note_content_placeholder)) },
+                    isError = contentOverLimit || error is NoteEditError.ContentTooLong,
+                    supportingText = {
+                        Column {
+                            Text(
+                                text = stringResource(
+                                    R.string.note_content_counter,
+                                    content.length,
+                                    NoteEditViewModel.MAX_CONTENT_LENGTH,
+                                ),
+                                color = if (contentOverLimit) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (contentOverLimit || error is NoteEditError.ContentTooLong) {
+                                Text(
+                                    text = stringResource(R.string.error_content_too_long),
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            }
+                        }
+                    },
+                    enabled = fieldsEnabled,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Sentences,
+                        imeAction = ImeAction.Default,
+                    ),
+                )
+                if (error is NoteEditError.Generic) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.error_generic),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
         }
     }

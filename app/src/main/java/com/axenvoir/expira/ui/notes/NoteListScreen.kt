@@ -1,30 +1,32 @@
 package com.axenvoir.expira.ui.notes
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
@@ -42,7 +44,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,6 +61,7 @@ import com.axenvoir.expira.domain.model.Note
 import com.axenvoir.expira.ui.components.ExpiraEmptyState
 import com.axenvoir.expira.ui.components.expiraChipColors
 import com.axenvoir.expira.ui.main.SettingsIconButton
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,6 +74,8 @@ fun NoteListScreen(
     val notes by viewModel.notes.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val hasAnyNotes by viewModel.hasAnyNotes.collectAsStateWithLifecycle()
     val event by viewModel.events.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var notePendingDelete by remember { mutableStateOf<Note?>(null) }
@@ -78,7 +83,7 @@ fun NoteListScreen(
     val listState = rememberLazyListState()
 
     val hapticFeedback = androidx.compose.ui.platform.LocalHapticFeedback.current
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
     val undoText = stringResource(R.string.undo)
 
     LaunchedEffect(event) {
@@ -107,7 +112,7 @@ fun NoteListScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            if (notes.isNotEmpty()) {
+            if (!isLoading) {
                 FloatingActionButton(
                     onClick = onAddNote,
                     modifier = Modifier.padding(16.dp),
@@ -117,12 +122,12 @@ fun NoteListScreen(
             }
         },
     ) { innerPadding ->
-        androidx.compose.foundation.layout.Box(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            androidx.compose.foundation.layout.Box(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .widthIn(max = 800.dp),
@@ -135,18 +140,26 @@ fun NoteListScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         placeholder = { Text(stringResource(R.string.search_notes)) },
-                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.search_notes)) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Filled.Search,
+                                contentDescription = stringResource(R.string.search_notes),
+                            )
+                        },
                         trailingIcon = if (query.isNotBlank()) {
                             {
                                 IconButton(onClick = { viewModel.onQueryChange("") }) {
-                                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.clear_notes_search))
+                                    Icon(
+                                        Icons.Filled.Close,
+                                        contentDescription = stringResource(R.string.clear_notes_search),
+                                    )
                                 }
                             }
                         } else null,
                         singleLine = true,
                         shape = MaterialTheme.shapes.extraLarge,
                     )
-                    if (notes.isNotEmpty()) {
+                    if (!isLoading && notes.isNotEmpty()) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -187,35 +200,59 @@ fun NoteListScreen(
                         )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
-                    if (notes.isEmpty()) {
-                        androidx.compose.foundation.layout.Box(
+                    if (isLoading) {
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f),
                             contentAlignment = Alignment.Center,
                         ) {
-                            if (query.isNotBlank()) {
-                                ExpiraEmptyState(
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator()
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = stringResource(R.string.notes_loading),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    } else if (notes.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            when {
+                                query.isNotBlank() -> ExpiraEmptyState(
                                     icon = Icons.Filled.Search,
                                     iconContentDescription = stringResource(R.string.search_notes),
                                     title = stringResource(R.string.empty_notes_search),
                                     subtitle = stringResource(R.string.empty_notes_search_subtitle),
+                                    actionLabel = stringResource(R.string.clear_notes_search),
+                                    onAction = { viewModel.onQueryChange("") },
                                 )
-                            } else if (filter == NoteFilter.PINNED) {
-                                ExpiraEmptyState(
+
+                                !hasAnyNotes -> ExpiraEmptyState(
+                                    icon = Icons.Filled.Edit,
+                                    iconContentDescription = stringResource(R.string.add_note),
+                                    title = stringResource(R.string.empty_notes_title),
+                                    subtitle = stringResource(R.string.empty_notes),
+                                )
+
+                                filter == NoteFilter.PINNED -> ExpiraEmptyState(
                                     icon = Icons.Filled.Star,
                                     iconContentDescription = stringResource(R.string.notes_filter_pinned),
                                     title = stringResource(R.string.empty_pinned_notes_title),
                                     subtitle = stringResource(R.string.empty_pinned_notes),
                                 )
-                            } else {
-                                ExpiraEmptyState(
+
+                                else -> ExpiraEmptyState(
                                     icon = Icons.Filled.Edit,
                                     iconContentDescription = stringResource(R.string.add_note),
                                     title = stringResource(R.string.empty_notes_title),
                                     subtitle = stringResource(R.string.empty_notes),
-                                    actionLabel = stringResource(R.string.add_note),
-                                    onAction = onAddNote,
                                 )
                             }
                         }
@@ -225,48 +262,21 @@ fun NoteListScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(MaterialTheme.colorScheme.background),
-                            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = 8.dp,
+                                bottom = 96.dp,
+                            ),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             items(notes, key = { it.id }, contentType = { "note" }) { note ->
-                                val dismissState = androidx.compose.material3.rememberSwipeToDismissBoxState(
-                                    confirmValueChange = { value ->
-                                        if (value == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart) {
-                                            notePendingDelete = note
-                                        }
-                                        false
-                                    },
+                                NoteCard(
+                                    note = note,
+                                    onClick = { onEditNote(note.id) },
+                                    onTogglePin = { viewModel.togglePinned(note) },
+                                    onDelete = { notePendingDelete = note },
                                 )
-                                androidx.compose.foundation.layout.Box(
-                                    modifier = Modifier.animateItem(),
-                                ) {
-                                    androidx.compose.material3.SwipeToDismissBox(
-                                        state = dismissState,
-                                        enableDismissFromStartToEnd = false,
-                                        backgroundContent = {
-                                            androidx.compose.foundation.layout.Box(
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .background(MaterialTheme.colorScheme.errorContainer),
-                                                contentAlignment = Alignment.CenterEnd,
-                                            ) {
-                                                Icon(
-                                                    Icons.Filled.Delete,
-                                                    contentDescription = stringResource(R.string.delete),
-                                                    tint = MaterialTheme.colorScheme.onErrorContainer,
-                                                )
-                                            }
-                                        },
-                                    ) {
-                                        NoteCard(
-                                            note = note,
-                                            onClick = { onEditNote(note.id) },
-                                            onTogglePin = { viewModel.togglePinned(note) },
-                                            onDelete = { notePendingDelete = note },
-                                        )
-                                    }
-                                }
-
                             }
                         }
                     }
@@ -346,38 +356,13 @@ private fun NoteCard(
         ),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = note.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                IconButton(onClick = onTogglePin) {
-                    if (note.isPinned) {
-                        Icon(
-                            Icons.Filled.Star,
-                            contentDescription = stringResource(R.string.unpin),
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    } else {
-                        Icon(
-                            Icons.Filled.Star,
-                            contentDescription = stringResource(R.string.pin),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        Icons.Filled.Delete,
-                        contentDescription = stringResource(R.string.delete),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            Text(
+                text = note.title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
             if (note.content.isNotBlank()) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -389,11 +374,37 @@ private fun NoteCard(
                 )
             }
             Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = relativeUpdatedAt(note.updatedAt),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = relativeUpdatedAt(note.updatedAt),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(onClick = onTogglePin) {
+                    Icon(
+                        Icons.Filled.Star,
+                        contentDescription = stringResource(
+                            if (note.isPinned) R.string.unpin else R.string.pin,
+                        ),
+                        tint = if (note.isPinned) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                    )
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        Icons.Filled.Delete,
+                        contentDescription = stringResource(R.string.delete),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
     }
 }

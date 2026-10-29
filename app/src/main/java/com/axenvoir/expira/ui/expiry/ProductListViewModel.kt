@@ -2,30 +2,39 @@ package com.axenvoir.expira.ui.expiry
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.axenvoir.expira.domain.model.Product
 import com.axenvoir.expira.domain.model.ExpiryStatus
+import com.axenvoir.expira.domain.model.Product
 import com.axenvoir.expira.domain.repository.ProductRepository
 import com.axenvoir.expira.domain.util.expiryStatus
+import com.axenvoir.expira.domain.util.todayFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.text.Normalizer
+import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 enum class ProductFilter {
-    ALL, FRESH, EXPIRING_SOON, EXPIRED
+    ALL,
+    FRESH,
+    EXPIRING_SOON,
+    EXPIRED,
 }
 
 data class ProductListUiState(
+    /** Products after search, used for the summary and the selected filter. */
     val products: List<Product> = emptyList(),
+    /** The complete repository result, needed to distinguish a real empty state. */
+    val allProducts: List<Product> = emptyList(),
     val visibleProducts: List<Product> = emptyList(),
     val filter: ProductFilter = ProductFilter.ALL,
     val query: String = "",
+    val hasActiveSearch: Boolean = false,
     val currentDate: java.time.LocalDate = java.time.LocalDate.now(),
     val freshCount: Int = 0,
     val expiringCount: Int = 0,
@@ -37,46 +46,67 @@ data class ProductListUiState(
 class ProductListViewModel @Inject constructor(
     private val productRepository: ProductRepository,
 ) : ViewModel() {
-
     private val filter = MutableStateFlow(ProductFilter.ALL)
     private val searchQuery = MutableStateFlow("")
-    private val loaded = MutableStateFlow(false)
-
     val query: StateFlow<String> = searchQuery.asStateFlow()
 
     private val _error = MutableStateFlow(false)
     val error: StateFlow<Boolean> = _error.asStateFlow()
 
+    /**
+     * combine cannot emit until observeAll has produced its first list. This makes
+     * the initial loading state reliable without mutating another flow from onEach.
+     */
     val uiState: StateFlow<ProductListUiState> = combine(
-        productRepository.observeAll().onEach { loaded.value = true },
+        productRepository.observeAll(),
         filter,
         searchQuery,
-        com.axenvoir.expira.domain.util.todayFlow(),
-        loaded,
-    ) { products, selectedFilter, queryText, today, isLoaded ->
-        val searched = if (queryText.isBlank()) products else products.filter {
-            it.name.contains(queryText, ignoreCase = true) ||
-                it.categoryName.contains(queryText, ignoreCase = true)
+        todayFlow(),
+    ) { allProducts, selectedFilter, queryText, today ->
+        val normalizedQuery = normalizeSearchText(queryText)
+        val searched = if (normalizedQuery.isEmpty()) {
+            allProducts
+        } else {
+            allProducts.filter { product ->
+                normalizeSearchText(product.name).contains(normalizedQuery) ||
+                    normalizeSearchText(product.categoryName).contains(normalizedQuery)
+            }
         }
-        val freshCount = searched.count { expiryStatus(it.expiryDate, today) == ExpiryStatus.FRESH }
-        val expiringCount = searched.count { expiryStatus(it.expiryDate, today) == ExpiryStatus.EXPIRING_SOON }
-        val expiredCount = searched.count { expiryStatus(it.expiryDate, today) == ExpiryStatus.EXPIRED }
+
+        val freshCount = searched.count {
+            expiryStatus(it.expiryDate, today) == ExpiryStatus.FRESH
+        }
+        val expiringCount = searched.count {
+            expiryStatus(it.expiryDate, today) == ExpiryStatus.EXPIRING_SOON
+        }
+        val expiredCount = searched.count {
+            expiryStatus(it.expiryDate, today) == ExpiryStatus.EXPIRED
+        }
         val visible = when (selectedFilter) {
             ProductFilter.ALL -> searched
-            ProductFilter.FRESH -> searched.filter { expiryStatus(it.expiryDate, today) == ExpiryStatus.FRESH }
-            ProductFilter.EXPIRING_SOON -> searched.filter { expiryStatus(it.expiryDate, today) == ExpiryStatus.EXPIRING_SOON }
-            ProductFilter.EXPIRED -> searched.filter { expiryStatus(it.expiryDate, today) == ExpiryStatus.EXPIRED }
+            ProductFilter.FRESH -> searched.filter {
+                expiryStatus(it.expiryDate, today) == ExpiryStatus.FRESH
+            }
+            ProductFilter.EXPIRING_SOON -> searched.filter {
+                expiryStatus(it.expiryDate, today) == ExpiryStatus.EXPIRING_SOON
+            }
+            ProductFilter.EXPIRED -> searched.filter {
+                expiryStatus(it.expiryDate, today) == ExpiryStatus.EXPIRED
+            }
         }
+
         ProductListUiState(
             products = searched,
+            allProducts = allProducts,
             visibleProducts = visible,
             filter = selectedFilter,
             query = queryText,
+            hasActiveSearch = normalizedQuery.isNotEmpty(),
             currentDate = today,
             freshCount = freshCount,
             expiringCount = expiringCount,
             expiredCount = expiredCount,
-            isLoading = !isLoaded,
+            isLoading = false,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -89,6 +119,7 @@ class ProductListViewModel @Inject constructor(
     }
 
     fun onQueryChange(query: String) {
+        // Keep exactly what the user entered; only the matching key is normalized.
         searchQuery.value = query
     }
 
@@ -96,18 +127,39 @@ class ProductListViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { productRepository.deleteById(product.id) }
                 .onSuccess { onDeleted() }
-                .onFailure { if (it is kotlinx.coroutines.CancellationException) throw it else _error.value = true }
+                .onFailure {
+                    if (it is kotlinx.coroutines.CancellationException) {
+                        throw it
+                    }
+                    _error.value = true
+                }
         }
     }
 
     fun restoreProduct(product: Product) {
         viewModelScope.launch {
             runCatching { productRepository.upsert(product) }
-                .onFailure { _error.value = true }
+                .onFailure {
+                    if (it is kotlinx.coroutines.CancellationException) {
+                        throw it
+                    }
+                    _error.value = true
+                }
         }
     }
 
     fun consumeError() {
         _error.value = false
+    }
+
+    companion object {
+        private val combiningMarks = Regex("\\p{M}+")
+
+        /** Case- and accent-insensitive matching without changing the visible query. */
+        fun normalizeSearchText(value: String): String =
+            Normalizer.normalize(value.trim(), Normalizer.Form.NFD)
+                .replace(combiningMarks, "")
+                .lowercase(Locale.ROOT)
+                .replace('ı', 'i')
     }
 }

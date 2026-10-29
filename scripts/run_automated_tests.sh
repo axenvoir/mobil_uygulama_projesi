@@ -5,11 +5,13 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 CONNECTED=false
+CONNECTED_ONLY=false
 RELEASE=false
 SKIP_BUILD=false
 for arg in "$@"; do
   case "$arg" in
     --connected) CONNECTED=true ;;
+    --connected-only) CONNECTED=true; CONNECTED_ONLY=true ;;
     --release) RELEASE=true ;;
     --skip-build) SKIP_BUILD=true ;;
     -h|--help)
@@ -17,6 +19,8 @@ for arg in "$@"; do
 Kullanım: scripts/run_automated_tests.sh [seçenekler]
 
   --connected   Bağlı Android cihaz/emülatörde androidTest görevini de çalıştırır.
+  --connected-only
+                 Önceden hazırlanmış bağlı cihaz/emülatörde yalnızca instrumentation testlerini çalıştırır.
   --release     Release lint ve release bundle doğrulamasını ekler.
   --skip-build  Sadece test/lint görevlerini çalıştırır; derleme görevlerini atlar.
 USAGE
@@ -49,10 +53,12 @@ run_gradle() {
   ./gradlew --no-daemon "$@"
 }
 
-if [[ "$SKIP_BUILD" == false ]]; then
-  run_gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
-else
-  run_gradle :app:testDebugUnitTest :app:lintDebug
+if [[ "$CONNECTED_ONLY" == false ]]; then
+  if [[ "$SKIP_BUILD" == false ]]; then
+    run_gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
+  else
+    run_gradle :app:testDebugUnitTest :app:lintDebug
+  fi
 fi
 
 if [[ "$CONNECTED" == true ]]; then
@@ -65,10 +71,25 @@ if [[ "$CONNECTED" == true ]]; then
     echo "HATA: bağlı ve yetkili Android cihaz/emülatör bulunamadı." >&2
     exit 1
   fi
+  echo "Room migration ve Compose smoke instrumentation testleri çalıştırılıyor: :app:connectedDebugAndroidTest"
   run_gradle :app:connectedDebugAndroidTest
 fi
 
 if [[ "$RELEASE" == true ]]; then
+  if [[ -z "${EXPIRA_ADMOB_APP_ID:-}" || -z "${EXPIRA_REWARDED_AD_UNIT_ID:-}" ]]; then
+    echo "HATA: Release için EXPIRA_ADMOB_APP_ID ve EXPIRA_REWARDED_AD_UNIT_ID ortam değişkenleri gerekli. Ayrıntı: ADS_SETUP.md" >&2
+    exit 1
+  fi
+  if [[ ! "$EXPIRA_ADMOB_APP_ID" =~ ^ca-app-pub-[0-9]{16}~[0-9]{10}$ ||
+        ! "$EXPIRA_REWARDED_AD_UNIT_ID" =~ ^ca-app-pub-[0-9]{16}/[0-9]{10}$ ]]; then
+    echo "HATA: Production AdMob kimliklerinin biçimi geçersiz." >&2
+    exit 1
+  fi
+  if [[ "$EXPIRA_ADMOB_APP_ID" == "ca-app-pub-3940256099942544~3347511713" ||
+        "$EXPIRA_REWARDED_AD_UNIT_ID" == "ca-app-pub-3940256099942544/5224354917" ]]; then
+    echo "HATA: Google test reklam kimlikleri release için kullanılamaz." >&2
+    exit 1
+  fi
   run_gradle :app:lintRelease :app:assembleRelease :app:bundleRelease
 fi
 

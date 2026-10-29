@@ -19,7 +19,7 @@ enum class AppLanguage(val tag: String) {
 
 @Singleton
 class LanguageManager @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

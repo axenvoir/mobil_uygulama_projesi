@@ -1,6 +1,6 @@
 # Expira Otomatik Test Planı
 
-Bu proje için unit test, Room migration testi, Compose smoke testi, Billing geri yükleme testi ve cihaz smoke test scriptleri eklendi.
+Bu proje için unit test, Room migration testi, Compose smoke testi, Billing geri yükleme testi ve cihaz smoke test scriptleri eklendi. CI, unit/lint/debug doğrulamasından sonra gerçek bir Android emülatörü boot eder ve instrumentation testlerini bağlı cihaz göreviyle çalıştırır.
 
 ## Hızlı çalıştırma
 
@@ -24,13 +24,32 @@ Bağlı Android cihaz veya emülatör testleri için:
 
 Bu seçenek, unit/lint/build görevlerine ek olarak `:app:connectedDebugAndroidTest` çalıştırır. Room migration ve Compose smoke testleri bu aşamada çalışır.
 
+CI tarafından önceden boot edilmiş emülatörde yalnızca instrumentation testlerini çalıştırmak için:
+
+```bash
+./scripts/run_automated_tests.sh --connected-only
+```
+
+Bu seçenek `adb` ile bağlı ve yetkili cihazı doğrular, ardından yalnızca `:app:connectedDebugAndroidTest` görevini çalıştırır. CI workflow’undaki emulator action bu komutu API 35 `google_apis` x86_64 emülatöründe çalıştırır.
+
+## CI emulator akışı
+
+`.github/workflows/build-aab.yml` içindeki `verify` job’ı şu sırayı korur:
+
+1. Android SDK lisanslarını doğrular; `sdkmanager` yoksa veya lisans kabulü başarısızsa job başarısız olur.
+2. `:app:testDebugUnitTest`, `:app:lintDebug` ve `:app:assembleDebug` görevlerini çalıştırır.
+3. KVM’i etkinleştirir ve doğrulanmış `reactivecircus/android-emulator-runner@v2.38.0` action’ı ile API 35 `google_apis` x86_64 emülatörünü boot eder.
+4. Emülatör hazır olduğunda `./scripts/run_automated_tests.sh --connected-only` komutunu çağırır. Bu komut gerçek `:app:connectedDebugAndroidTest` Gradle görevini çalıştırır; Room migration ve Compose smoke testleri bu instrumentation aşamasında koşar.
+
+Emülatörün boot edilmesi, SDK/lisans kurulumu veya Gradle instrumentation görevi hata verirse workflow başarılı kabul edilmez. Release job’ı `verify` işinin tamamlanmasına bağlıdır; imzalama secret’ları ve production AdMob kimlikleri (`EXPIRA_ADMOB_APP_ID`, `EXPIRA_REWARDED_AD_UNIT_ID`) yoksa release artifact’leri bilerek üretilmez. Ayrıntı: `ADS_SETUP.md`.
+
 Release doğrulaması için:
 
 ```bash
 ./scripts/run_automated_tests.sh --release
 ```
 
-Bu seçenek release lint, release APK ve release AAB üretimini de kontrol eder. Release signing için proje kökünde geçerli `keystore.properties` bulunmalıdır.
+Bu seçenek release lint, release APK ve release AAB üretimini de kontrol eder. Geçerli release imzası ve production AdMob kimlikleri için `ADS_SETUP.md`’deki adımları tamamlayın; script, eksik veya test reklam kimlikleriyle release üretimini reddeder.
 
 Sadece test ve lint:
 
@@ -84,9 +103,9 @@ Mevcut domain testleriyle birlikte ürün tarihleri, filtreler ve model davranı
 - Ürünler ekranının görünür olduğunu doğrular.
 - Ürünler ve Notlar sekmelerinin görünür olduğunu doğrular.
 
-### Worker ve bildirim senaryoları
+### Bildirim ve reklam senaryoları
 
-Worker testi cihaz/instrumentation katmanında `connectedDebugAndroidTest` ile çalıştırılacak şekilde script kapsamına alınmıştır. Android 13+ cihazlarda izin verilmiş ve reddedilmiş durumlar `run_device_smoke_tests.sh` tarafından raporlanır. Gerçek zamanlı günlük hatırlatma davranışı için emülatörün WorkManager işini çalıştırmasına izin verilmelidir.
+Şu anda `ReminderWorker` için ayrı bir deterministik `WorkerTest` yoktur. Cihaz smoke script’i paket/açılış ve izin durumunu kontrol eder; gerçek zamanlı zamanlama, Android 13+ izin reddi, cihaz yeniden başlatma ve bildirim tıklama davranışı gerçek cihazdaki manuel yayın kontrol listesinde doğrulanmalıdır. Ödüllü reklamların gösterim/ödül callback’i AdMob ve UMP test ortamına bağlı olduğundan burada otomatik ağ testi yapılmaz; debug build Google test reklam kimliklerini kullanır, release ise production ID’leri olmadan engellenir.
 
 ## Ön koşullar
 
@@ -94,4 +113,5 @@ Worker testi cihaz/instrumentation katmanında `connectedDebugAndroidTest` ile �
 - Android SDK ve platform/build-tools paketleri
 - `ANDROID_HOME` veya `/usr/local/lib/android/sdk`
 - Cihaz testleri için adb ve yetkili Android cihaz/emülatör
+- CI cihaz testleri için KVM destekli Linux runner ve `reactivecircus/android-emulator-runner@v2.38.0`
 - Release testi için geçerli signing yapılandırması

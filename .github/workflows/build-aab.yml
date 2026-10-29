@@ -31,11 +31,42 @@ jobs:
 
       - name: Verify tests, lint, and debug APK
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          if ! command -v sdkmanager >/dev/null 2>&1; then
+            echo "::error::sdkmanager is not available on the runner"
+            exit 1
+          fi
+          python3 - <<'PY'
+          import subprocess
+          import sys
+
+          process = subprocess.Popen(["sdkmanager", "--licenses"], stdin=subprocess.PIPE)
+          try:
+              process.communicate(input=b"y\n" * 1000)
+          except BrokenPipeError:
+              process.wait()
+          sys.exit(process.returncode)
+          PY
           ./gradlew --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
+      - name: Enable KVM for Android emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Room migration and Compose smoke instrumentation tests
+        uses: reactivecircus/android-emulator-runner@v2.38.0
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7_pro
+          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim
+          disable-animations: true
+          script: ./scripts/run_automated_tests.sh --connected-only
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
@@ -114,8 +145,31 @@ jobs:
           )
           PY
 
+      - name: Verify production AdMob IDs
+        env:
+          EXPIRA_ADMOB_APP_ID: ${{ secrets.EXPIRA_ADMOB_APP_ID }}
+          EXPIRA_REWARDED_AD_UNIT_ID: ${{ secrets.EXPIRA_REWARDED_AD_UNIT_ID }}
+        run: |
+          if [ -z "$EXPIRA_ADMOB_APP_ID" ] || [ -z "$EXPIRA_REWARDED_AD_UNIT_ID" ]; then
+            echo "::error::Add EXPIRA_ADMOB_APP_ID and EXPIRA_REWARDED_AD_UNIT_ID repository secrets before building a release artifact"
+            exit 1
+          fi
+          if ! [[ "$EXPIRA_ADMOB_APP_ID" =~ ^ca-app-pub-[0-9]{16}~[0-9]{10}$ ]] || \
+             ! [[ "$EXPIRA_REWARDED_AD_UNIT_ID" =~ ^ca-app-pub-[0-9]{16}/[0-9]{10}$ ]]; then
+            echo "::error::The production AdMob application or rewarded ad unit ID has an invalid format"
+            exit 1
+          fi
+          if [ "$EXPIRA_ADMOB_APP_ID" = "ca-app-pub-3940256099942544~3347511713" ] || \
+             [ "$EXPIRA_REWARDED_AD_UNIT_ID" = "ca-app-pub-3940256099942544/5224354917" ]; then
+            echo "::error::Google test AdMob IDs must never be used in a release artifact"
+            exit 1
+          fi
+
       - name: Build signed release APK and AAB
         run: ./gradlew --no-daemon :app:assembleRelease :app:bundleRelease
+        env:
+          EXPIRA_ADMOB_APP_ID: ${{ secrets.EXPIRA_ADMOB_APP_ID }}
+          EXPIRA_REWARDED_AD_UNIT_ID: ${{ secrets.EXPIRA_REWARDED_AD_UNIT_ID }}
 
       - name: Upload signed AAB
         uses: actions/upload-artifact@v7

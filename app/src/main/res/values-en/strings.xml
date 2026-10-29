@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">Expira</string>
     <string name="tab_expiry">Products</string>
@@ -120,7 +120,6 @@
     <string name="onboarding_back">Back</string>
     <string name="onboarding_next">Next</string>
     <string name="days_passed_short">days past</string>
-    <string name="eat_first">Use these first</string>
     <string name="export_csv">Export data as CSV</string>
     <string name="export_done">Exported</string>
     <string name="export_failed">Export failed</string>
@@ -141,15 +140,8 @@
     <string name="category_cleaning">Cleaning</string>
     <string name="category_other">Other</string>
     <string name="support_section">Support Expira</string>
-    <string name="support_description">Help us improve Expira. Support the app for premium features and an ad-free experience.</string>
-    <string name="support_tier_supporter">Supporter</string>
-    <string name="support_tier_premium">Premium</string>
-    <string name="support_tier_lifetime">Lifetime</string>
-    <string name="support_plan_monthly">Monthly</string>
-    <string name="support_plan_yearly">Yearly</string>
-    <string name="support_plan_one_time">One-time</string>
-    <string name="support_plan_cta">Choose</string>
-    <string name="support_restore">Restore purchases</string>
+    <string name="support_description">Complete an optional rewarded ad to support Expira and earn one in-app point. Watching is entirely optional.</string>
+    <string name="support_restore">Restore previous purchases</string>
     <string name="restore_success">Purchases checked.</string>
     <string name="restore_unavailable">Purchases cannot be checked right now.</string>
     <string name="support_thanks">Thanks for your support!</string>
@@ -160,12 +152,40 @@
     <string name="onboarding_icon_date_range">Expiry tracking</string>
     <string name="onboarding_icon_settings">Settings</string>
     <string name="onboarding_icon_edit">Edit</string>
-    <string name="billing_loading">Preparing purchase…</string>
-    <string name="billing_success">Purchase completed successfully.</string>
-    <string name="billing_cancelled">Purchase cancelled.</string>
-    <string name="billing_pending">Purchase pending. Your plan will update when Google Play completes the transaction.</string>
-    <string name="billing_unavailable">This product is currently unavailable. Please try again later.</string>
-    <string name="billing_error">Purchase could not be started. Check your Google Play connection and try again.</string>
-    <string name="billing_price_unavailable">Loading price</string>
-    <string name="billing_products_unavailable">Support plans are currently unavailable. Check your internet connection and try again.</string>
+    <string name="support_legacy_ad_free">Your existing ad-free entitlement from Google Play remains active.</string>
+    <string name="support_manage_subscription">Manage Google Play subscription</string>
+    <string name="support_entitlement_checking">We check Google Play purchases before showing ads so existing ad-free plans remain honored. If the check does not finish, check your connection and Google Play, then retry.</string>
+    <string name="support_check_purchases">Check purchases again</string>
+    <string name="support_ad_disclosure">Each completed ad earns 1 Expira point, shown as a personal in-app badge/counter. Points have no cash value, cannot be transferred, and do not unlock core features. Closing an ad never blocks normal app use.</string>
+    <string name="support_ad_prepare">Load rewarded ad</string>
+    <string name="support_ad_watch">Watch ad and earn 1 Expira point</string>
+    <string name="support_ad_loading">Preparing rewarded ad…</string>
+    <string name="support_ad_showing">Rewarded ad is showing…</string>
+    <string name="support_ad_consent_required">Privacy choices must be completed before an ad can be shown. You can keep using the app without ads.</string>
+    <string name="support_ad_configuration_missing">Rewarded ads are not configured for this build.</string>
+    <string name="support_ad_unavailable">No rewarded ad is available right now. This feature is optional; try again later.</string>
+    <string name="support_ad_retry">Try again</string>
+    <string name="support_privacy_options">Privacy options</string>
+    <string name="play_store_unavailable">Could not open Google Play subscriptions. Update Google Play and try again.</string>
+    <string name="empty_filter_title">No products in this filter</string>
+    <string name="empty_filter_subtitle">Choose another filter or view all products.</string>
+    <string name="empty_filter_action">Show all products</string>
+    <string name="products_loading">Loading products…</string>
+    <string name="notes_loading">Loading notes…</string>
+    <string name="note_loading">Loading note…</string>
+    <string name="error_title_too_long">Title must be 80 characters or fewer.</string>
+    <string name="error_content_too_long">Content must be 10,000 characters or fewer.</string>
+    <string name="crash_recovery_title">The app closed unexpectedly</string>
+    <string name="crash_recovery_message">Unsaved changes may have been lost. Continue to reopen Expira.</string>
+    <string name="crash_recovery_continue">Continue</string>
+    <string name="reminder_days_short">%1$d days</string>
+    <plurals name="support_points_total">
+        <item quantity="one">%1$d Expira point</item>
+        <item quantity="other">%1$d Expira points</item>
+    </plurals>
+    <plurals name="support_reward_earned">
+        <item quantity="one">%1$d Expira point added.</item>
+        <item quantity="other">%1$d Expira points added.</item>
+    </plurals>
+    <string name="support_ad_retry_consent">Retry privacy check</string>
 </resources>

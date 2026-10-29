@@ -8,15 +8,16 @@ import com.axenvoir.expira.domain.model.Product
 import com.axenvoir.expira.domain.repository.ProductRepository
 import com.axenvoir.expira.ui.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import javax.inject.Inject
 
 data class ProductEditUiState(
@@ -28,6 +29,9 @@ data class ProductEditUiState(
     val storageLocation: String = "",
     val categories: List<Category> = emptyList(),
     val error: ProductEditError? = null,
+    val isHydrated: Boolean = false,
+    val editRecordMissing: Boolean = false,
+    val loadFailed: Boolean = false,
 )
 
 private data class SelectionState(
@@ -35,6 +39,20 @@ private data class SelectionState(
     val newCategoryName: String,
     val expiryDate: LocalDate?,
     val storageLocation: String,
+)
+
+private data class FormStatus(
+    val isHydrated: Boolean,
+    val editRecordMissing: Boolean,
+    val loadFailed: Boolean,
+)
+
+private data class FormInput(
+    val name: String,
+    val quantityText: String,
+    val selection: SelectionState,
+    val error: ProductEditError?,
+    val status: FormStatus,
 )
 
 sealed interface ProductEditError {
@@ -50,8 +68,8 @@ class ProductEditViewModel @Inject constructor(
     private val productRepository: ProductRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-
-    private val productId: Long = savedStateHandle.get<Long>(Screen.EditProduct.ARG_PRODUCT_ID) ?: 0L
+    private val productId: Long =
+        savedStateHandle.get<Long>(Screen.EditProduct.ARG_PRODUCT_ID) ?: 0L
     val isEditMode: Boolean = productId != 0L
 
     private val name = MutableStateFlow("")
@@ -62,33 +80,69 @@ class ProductEditViewModel @Inject constructor(
     private val storageLocation = MutableStateFlow("")
     private val error = MutableStateFlow<ProductEditError?>(null)
 
+    private val loaded = MutableStateFlow(false)
+    private val categoriesLoaded = MutableStateFlow(false)
     private val _editRecordMissing = MutableStateFlow(false)
-    val editRecordMissing: StateFlow<Boolean> = _editRecordMissing.asStateFlow()
-
+    private val _loadFailed = MutableStateFlow(false)
     private val _saved = MutableStateFlow(false)
-    val saved: StateFlow<Boolean> = _saved.asStateFlow()
-
     private val _isSaving = MutableStateFlow(false)
+
+    val saved: StateFlow<Boolean> = _saved.asStateFlow()
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
-    val uiState: StateFlow<ProductEditUiState> = combine(
-        productRepository.observeCategories(),
+    private val categories = productRepository.observeCategories().onEach {
+        categoriesLoaded.value = true
+    }
+    private val formStatus = combine(
+        loaded,
+        categoriesLoaded,
+        _editRecordMissing,
+        _loadFailed,
+    ) { isLoaded, areCategoriesLoaded, recordMissing, loadFailed ->
+        FormStatus(
+            isHydrated = isLoaded && areCategoriesLoaded && !loadFailed,
+            editRecordMissing = recordMissing,
+            loadFailed = loadFailed,
+        )
+    }
+    private val formInput = combine(
         name,
         quantityText,
-        combine(selectedCategoryId, newCategoryName, expiryDate, storageLocation) { cat, newCat, date, loc ->
-            SelectionState(categoryId = cat, newCategoryName = newCat, expiryDate = date, storageLocation = loc)
+        combine(selectedCategoryId, newCategoryName, expiryDate, storageLocation) {
+                categoryId, newCategory, date, location ->
+            SelectionState(
+                categoryId = categoryId,
+                newCategoryName = newCategory,
+                expiryDate = date,
+                storageLocation = location,
+            )
         },
         error,
-    ) { categories, nameValue, quantityValue, selection, errorValue ->
-        ProductEditUiState(
+        formStatus,
+    ) { nameValue, quantityValue, selection, errorValue, status ->
+        FormInput(
             name = nameValue,
             quantityText = quantityValue,
-            selectedCategoryId = selection.categoryId,
-            newCategoryName = selection.newCategoryName,
-            expiryDate = selection.expiryDate,
-            storageLocation = selection.storageLocation,
-            categories = categories,
+            selection = selection,
             error = errorValue,
+            status = status,
+        )
+    }
+
+    val uiState: StateFlow<ProductEditUiState> = combine(categories, formInput) {
+        categoriesValue, input ->
+        ProductEditUiState(
+            name = input.name,
+            quantityText = input.quantityText,
+            selectedCategoryId = input.selection.categoryId,
+            newCategoryName = input.selection.newCategoryName,
+            expiryDate = input.selection.expiryDate,
+            storageLocation = input.selection.storageLocation,
+            categories = categoriesValue,
+            error = input.error,
+            isHydrated = input.status.isHydrated,
+            editRecordMissing = input.status.editRecordMissing,
+            loadFailed = input.status.loadFailed,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -102,13 +156,9 @@ class ProductEditViewModel @Inject constructor(
     private var originalExpiryDate: LocalDate? = null
     private var originalNewCategoryName: String = ""
     private var originalStorageLocation: String = ""
-    private val loaded = MutableStateFlow(false)
 
-    val isDirty: StateFlow<Boolean> = combine(
-        uiState,
-        loaded,
-    ) { state, isLoaded ->
-        isLoaded && (
+    val isDirty: StateFlow<Boolean> = combine(uiState, loaded) { state, isLoaded ->
+        isLoaded && state.isHydrated && !state.editRecordMissing && (
             state.name != originalName ||
                 state.quantityText != originalQuantityText ||
                 state.selectedCategoryId != originalCategoryId ||
@@ -125,64 +175,91 @@ class ProductEditViewModel @Inject constructor(
     init {
         if (isEditMode) {
             viewModelScope.launch {
-                val product = productRepository.observeById(productId).first()
-                if (product != null) {
-                    originalName = product.name
-                    originalQuantityText = product.quantity.toString()
-                    originalCategoryId = product.categoryId
-                    originalExpiryDate = product.expiryDate
-                    originalNewCategoryName = ""
-                    originalStorageLocation = product.storageLocation
-                    name.value = product.name
-                    quantityText.value = product.quantity.toString()
-                    selectedCategoryId.value = product.categoryId
-                    newCategoryName.value = ""
-                    expiryDate.value = product.expiryDate
-                    storageLocation.value = product.storageLocation
-                } else {
-                    _editRecordMissing.value = true
+                try {
+                    val product = productRepository.observeById(productId).first()
+                    if (product != null) {
+                        originalName = product.name
+                        originalQuantityText = product.quantity.toString()
+                        originalCategoryId = product.categoryId
+                        originalExpiryDate = product.expiryDate
+                        originalNewCategoryName = ""
+                        originalStorageLocation = product.storageLocation
+
+                        name.value = product.name
+                        quantityText.value = product.quantity.toString()
+                        selectedCategoryId.value = product.categoryId
+                        newCategoryName.value = ""
+                        expiryDate.value = product.expiryDate
+                        storageLocation.value = product.storageLocation
+                    } else {
+                        _editRecordMissing.value = true
+                    }
+                } catch (exception: Exception) {
+                    if (exception is kotlinx.coroutines.CancellationException) {
+                        throw exception
+                    }
+                    _loadFailed.value = true
+                    error.value = ProductEditError.Generic
                 }
                 loaded.value = true
             }
         } else {
+            originalQuantityText = "1"
             loaded.value = true
         }
     }
 
     fun onNameChange(value: String) {
         name.value = value
+        clearError()
     }
 
     fun onQuantityChange(value: String) {
-        quantityText.value = value.filter { it.isDigit() }.take(4)
+        // Do not filter or take a prefix: invalid pasted input remains visible and is validated on save.
+        quantityText.value = value
+        clearError()
     }
 
     fun onCategorySelect(categoryId: Long) {
         selectedCategoryId.value = categoryId
         newCategoryName.value = ""
+        clearError()
     }
 
     fun onNewCategoryNameChange(value: String) {
         newCategoryName.value = value
         selectedCategoryId.value = null
+        clearError()
     }
 
     fun onExpiryDateChange(date: LocalDate) {
         expiryDate.value = date
+        clearError()
     }
 
     fun onStorageLocationChange(location: String) {
         storageLocation.value = location
+        clearError()
     }
 
     fun save() {
-        if (_isSaving.value || _saved.value) return
+        if (
+            _isSaving.value ||
+            _saved.value ||
+            !loaded.value ||
+            !categoriesLoaded.value ||
+            _loadFailed.value ||
+            _editRecordMissing.value
+        ) {
+            return
+        }
+
         error.value = null
         val trimmedName = name.value.trim()
-        val quantity = quantityText.value.toIntOrNull() ?: 0
+        val quantity = quantityText.value.toIntOrNull()
         val date = expiryDate.value
         val categoryId = selectedCategoryId.value
-
+        val customCategoryName = newCategoryName.value.trim()
         when {
             trimmedName.isEmpty() -> {
                 error.value = ProductEditError.EmptyName
@@ -192,8 +269,12 @@ class ProductEditViewModel @Inject constructor(
                 error.value = ProductEditError.MissingExpiryDate
                 return
             }
-            quantity < 1 -> {
+            quantity == null || quantity < 1 -> {
                 error.value = ProductEditError.InvalidQuantity
+                return
+            }
+            categoryId == null && customCategoryName.isEmpty() -> {
+                error.value = ProductEditError.MissingCategory
                 return
             }
         }
@@ -201,21 +282,22 @@ class ProductEditViewModel @Inject constructor(
         viewModelScope.launch {
             _isSaving.value = true
             try {
-                val resolvedCategoryId = categoryId ?: run {
-                    val customName = newCategoryName.value.trim()
-                    if (customName.isEmpty()) throw IllegalArgumentException()
-                    productRepository.addCategory(customName)
+                val existing = if (isEditMode) {
+                    productRepository.observeById(productId).first()
+                } else {
+                    null
                 }
-                val existing = if (isEditMode) productRepository.observeById(productId).first() else null
                 if (isEditMode && existing == null) {
                     _editRecordMissing.value = true
                     return@launch
                 }
+
+                val resolvedCategoryId = categoryId ?: productRepository.addCategory(customCategoryName)
                 val product = Product(
                     id = existing?.id ?: 0L,
                     name = trimmedName,
                     categoryId = resolvedCategoryId,
-                    categoryName = "",
+                    categoryName = existing?.categoryName.orEmpty(),
                     expiryDate = date,
                     quantity = quantity,
                     createdAt = existing?.createdAt ?: System.currentTimeMillis(),
@@ -223,10 +305,10 @@ class ProductEditViewModel @Inject constructor(
                 )
                 productRepository.upsert(product)
                 _saved.value = true
-            } catch (e: IllegalArgumentException) {
-                error.value = ProductEditError.MissingCategory
-            } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
+            } catch (exception: Exception) {
+                if (exception is kotlinx.coroutines.CancellationException) {
+                    throw exception
+                }
                 error.value = ProductEditError.Generic
             } finally {
                 _isSaving.value = false
@@ -238,7 +320,10 @@ class ProductEditViewModel @Inject constructor(
         error.value = null
     }
 
-    fun consumeEditRecordMissing() {
-        _editRecordMissing.value = false
+    /** The missing-record state is persistent so it can never reopen a blank edit form. */
+    fun consumeEditRecordMissing() = Unit
+
+    private fun clearError() {
+        error.value = null
     }
 }

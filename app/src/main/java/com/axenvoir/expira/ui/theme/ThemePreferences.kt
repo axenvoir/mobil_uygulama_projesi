@@ -19,7 +19,7 @@ enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
 @Singleton
 class ThemePreferences @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) {
     private val themeModeKey = stringPreferencesKey("theme_mode")
     private val dynamicColorKey = booleanPreferencesKey("dynamic_color")

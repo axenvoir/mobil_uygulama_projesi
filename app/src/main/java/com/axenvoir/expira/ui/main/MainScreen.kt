@@ -33,6 +33,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.axenvoir.expira.R
+import com.axenvoir.expira.ui.components.OnboardingOverlay
 import com.axenvoir.expira.ui.navigation.AppNavHost
 import com.axenvoir.expira.ui.navigation.Screen
 
@@ -65,7 +66,7 @@ fun MainScreen() {
         prefs.edit { putBoolean("onboarding_done", true) }
         showOnboarding = false
     }
-    com.axenvoir.expira.ui.components.OnboardingOverlay(
+    OnboardingOverlay(
         visible = showOnboarding,
         onDismiss = dismissOnboarding,
         onOpenSettings = { navController.navigate(Screen.Settings.route) },
@@ -101,7 +102,7 @@ fun MainScreen() {
                         NavigationRailItem(
                             selected = selected,
                             onClick = { onTabClick(tab.screen) },
-                            icon = { Icon(tab.icon, contentDescription = stringResource(tab.labelRes)) },
+                            icon = { Icon(tab.icon, contentDescription = null) },
                             label = { Text(stringResource(tab.labelRes)) },
                             colors = androidx.compose.material3.NavigationRailItemDefaults.colors(
                                 selectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.onPrimaryContainer,
@@ -134,7 +135,7 @@ fun MainScreen() {
                             NavigationBarItem(
                                 selected = selected,
                                 onClick = { onTabClick(tab.screen) },
-                                icon = { Icon(tab.icon, contentDescription = stringResource(tab.labelRes)) },
+                                icon = { Icon(tab.icon, contentDescription = null) },
                                 label = { Text(stringResource(tab.labelRes)) },
                                 colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
                                     selectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.onPrimaryContainer,

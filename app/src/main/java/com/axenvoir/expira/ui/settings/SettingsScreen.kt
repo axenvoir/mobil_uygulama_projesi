@@ -33,17 +33,20 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.expira.BuildConfig
 import com.axenvoir.expira.R
-import com.axenvoir.expira.billing.BillingOperation
+import com.axenvoir.expira.ads.AdSupportViewModel
+import com.axenvoir.expira.ads.RewardedAdState
 import com.axenvoir.expira.billing.BillingViewModel
 import com.axenvoir.expira.billing.UserTier
 import com.axenvoir.expira.ui.components.expiraTopAppBarColors
@@ -55,13 +58,18 @@ fun SettingsScreen(
     onBack: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
     billingViewModel: BillingViewModel = hiltViewModel(),
+    adSupportViewModel: AdSupportViewModel = hiltViewModel(),
 ) {
     val selected by viewModel.current.collectAsStateWithLifecycle()
     val restoreResult by billingViewModel.restoreResult.collectAsStateWithLifecycle()
-    val billingState by billingViewModel.billingState.collectAsStateWithLifecycle()
-    val offers by billingViewModel.offers.collectAsStateWithLifecycle()
+    val userTier by billingViewModel.userTier.collectAsStateWithLifecycle()
+    val entitlementsChecked by billingViewModel.entitlementsChecked.collectAsStateWithLifecycle()
+    val rewardedAdState by adSupportViewModel.rewardedAdState.collectAsStateWithLifecycle()
+    val supportPoints by adSupportViewModel.supportPoints.collectAsStateWithLifecycle()
+    val privacyOptionsRequired by adSupportViewModel.privacyOptionsRequired.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = androidx.compose.ui.platform.LocalContext.current
+    val resources = androidx.compose.ui.platform.LocalResources.current
     val exportDoneMessage = stringResource(R.string.export_done)
     val exportFailedMessage = stringResource(R.string.export_failed)
     val testNotificationSentMessage = stringResource(R.string.test_notification_sent)
@@ -69,7 +77,21 @@ fun SettingsScreen(
     val openSettingsLabel = stringResource(R.string.open_settings)
     val restoreSuccessMessage = stringResource(R.string.restore_success)
     val restoreUnavailableMessage = stringResource(R.string.restore_unavailable)
+    val manageSubscriptionUnavailableMessage = stringResource(R.string.play_store_unavailable)
     val scope = androidx.compose.runtime.rememberCoroutineScope()
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        billingViewModel.refreshEntitlements()
+    }
+    androidx.compose.runtime.LaunchedEffect(resources) {
+        adSupportViewModel.rewardEvents.collect { amount ->
+            val message = resources.getQuantityString(
+                R.plurals.support_reward_earned,
+                amount,
+                amount,
+            )
+            snackbarHostState.showSnackbar(message)
+        }
+    }
     androidx.compose.runtime.LaunchedEffect(restoreResult) {
         restoreResult?.let { success ->
             snackbarHostState.showSnackbar(if (success) restoreSuccessMessage else restoreUnavailableMessage)
@@ -200,112 +222,35 @@ fun SettingsScreen(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.support_section)) {
-                    val tier by billingViewModel.userTier.collectAsStateWithLifecycle()
-                    val purchaseInProgress = billingState.operation == BillingOperation.LOADING
-                    val supporterPrice = offers.firstOrNull { it.productId == "supporter_monthly" }?.formattedPrice
-                    val supporterYearlyPrice = offers.firstOrNull { it.productId == "supporter_yearly" }?.formattedPrice
-                    val premiumPrice = offers.firstOrNull { it.productId == "premium_monthly" }?.formattedPrice
-                    val premiumYearlyPrice = offers.firstOrNull { it.productId == "premium_yearly" }?.formattedPrice
-                    val lifetimePrice = offers.firstOrNull { it.productId == "premium_lifetime" }?.formattedPrice
-                    val billingStatusText = when (billingState.operation) {
-                        BillingOperation.LOADING -> stringResource(R.string.billing_loading)
-                        BillingOperation.SUCCESS -> stringResource(R.string.billing_success)
-                        BillingOperation.CANCELLED -> stringResource(R.string.billing_cancelled)
-                        BillingOperation.PENDING -> stringResource(R.string.billing_pending)
-                        BillingOperation.UNAVAILABLE -> stringResource(R.string.billing_unavailable)
-                        BillingOperation.ERROR -> stringResource(R.string.billing_error)
-                        BillingOperation.IDLE -> if (offers.isEmpty()) {
-                            stringResource(R.string.billing_products_unavailable)
-                        } else {
-                            null
-                        }
-                    }
-                    Text(
-                        text = stringResource(R.string.support_description),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    RewardedSupportSection(
+                        userTier = userTier,
+                        entitlementsChecked = entitlementsChecked,
+                        rewardedAdState = rewardedAdState,
+                        supportPoints = supportPoints,
+                        privacyOptionsRequired = privacyOptionsRequired,
+                        onPrepareAd = { adSupportViewModel.prepareRewardedAd(isEligible = true) },
+                        onRetryAd = { adSupportViewModel.retryRewardedAd(isEligible = true) },
+                        onShowAd = {
+                            (context as? android.app.Activity)?.let(adSupportViewModel::showRewardedAd)
+                        },
+                        onShowPrivacyOptions = {
+                            (context as? android.app.Activity)?.let(adSupportViewModel::showPrivacyOptions)
+                        },
+                        onRetryConsent = {
+                            (context as? android.app.Activity)?.let(adSupportViewModel::retryConsentUpdate)
+                        },
+                        onRestorePurchases = billingViewModel::restorePurchases,
+                        onRefreshPurchases = billingViewModel::refreshEntitlements,
+                        onManageSubscription = {
+                            val intent = android.content.Intent(
+                                android.content.Intent.ACTION_VIEW,
+                                "https://play.google.com/store/account/subscriptions?package=${context.packageName}".toUri(),
+                            )
+                            runCatching { context.startActivity(intent) }.onFailure {
+                                scope.launch { snackbarHostState.showSnackbar(manageSubscriptionUnavailableMessage) }
+                            }
+                        },
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    billingStatusText?.let { statusText ->
-                        Text(
-                            text = statusText,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (billingState.operation == BillingOperation.ERROR || billingState.operation == BillingOperation.UNAVAILABLE) {
-                                MaterialTheme.colorScheme.error
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                    }
-                    if (tier == UserTier.FREE) {
-                        SupportPlanCard(
-                            tier = stringResource(R.string.support_tier_supporter),
-                            period = stringResource(R.string.support_plan_monthly),
-                            price = supporterPrice ?: stringResource(R.string.billing_price_unavailable),
-                            enabled = !purchaseInProgress && supporterPrice != null,
-                            onClick = {
-                                val activity = context as? android.app.Activity
-                                if (activity != null) billingViewModel.purchaseSupporter(activity)
-                            },
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        SupportPlanCard(
-                            tier = stringResource(R.string.support_tier_supporter),
-                            period = stringResource(R.string.support_plan_yearly),
-                            price = supporterYearlyPrice ?: stringResource(R.string.billing_price_unavailable),
-                            enabled = !purchaseInProgress && supporterYearlyPrice != null,
-                            onClick = {
-                                val activity = context as? android.app.Activity
-                                if (activity != null) billingViewModel.purchaseSupporterYearly(activity)
-                            },
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        SupportPlanCard(
-                            tier = stringResource(R.string.support_tier_premium),
-                            period = stringResource(R.string.support_plan_monthly),
-                            price = premiumPrice ?: stringResource(R.string.billing_price_unavailable),
-                            enabled = !purchaseInProgress && premiumPrice != null,
-                            onClick = {
-                                val activity = context as? android.app.Activity
-                                if (activity != null) billingViewModel.purchasePremium(activity)
-                            },
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        SupportPlanCard(
-                            tier = stringResource(R.string.support_tier_premium),
-                            period = stringResource(R.string.support_plan_yearly),
-                            price = premiumYearlyPrice ?: stringResource(R.string.billing_price_unavailable),
-                            enabled = !purchaseInProgress && premiumYearlyPrice != null,
-                            onClick = {
-                                val activity = context as? android.app.Activity
-                                if (activity != null) billingViewModel.purchasePremiumYearly(activity)
-                            },
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        SupportPlanCard(
-                            tier = stringResource(R.string.support_tier_lifetime),
-                            period = stringResource(R.string.support_plan_one_time),
-                            price = lifetimePrice ?: stringResource(R.string.billing_price_unavailable),
-                            enabled = !purchaseInProgress && lifetimePrice != null,
-                            onClick = {
-                                val activity = context as? android.app.Activity
-                                if (activity != null) billingViewModel.purchaseLifetime(activity)
-                            },
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(R.string.support_thanks),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    TextButton(
-                        onClick = { billingViewModel.restorePurchases() },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(R.string.support_restore)) }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.theme_section)) {
@@ -363,56 +308,143 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SupportPlanCard(
-    tier: String,
-    period: String,
-    price: String,
-    enabled: Boolean,
-    onClick: () -> Unit,
+private fun RewardedSupportSection(
+    userTier: UserTier,
+    entitlementsChecked: Boolean,
+    rewardedAdState: RewardedAdState,
+    supportPoints: Int,
+    privacyOptionsRequired: Boolean,
+    onPrepareAd: () -> Unit,
+    onRetryAd: () -> Unit,
+    onShowAd: () -> Unit,
+    onShowPrivacyOptions: () -> Unit,
+    onRetryConsent: () -> Unit,
+    onRestorePurchases: () -> Unit,
+    onRefreshPurchases: () -> Unit,
+    onManageSubscription: () -> Unit,
 ) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant,
-        ),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = tier,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Text(
-                    text = period,
-                    style = MaterialTheme.typography.bodySmall,
+    Text(
+        text = stringResource(R.string.support_description),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    if (supportPoints > 0) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = androidx.compose.ui.res.pluralStringResource(
+                R.plurals.support_points_total,
+                supportPoints,
+                supportPoints,
+            ),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
+    Spacer(modifier = Modifier.height(12.dp))
+
+    when {
+        userTier != UserTier.FREE -> {
+            Text(
+                text = stringResource(R.string.support_thanks),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.support_legacy_ad_free),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            if (userTier == UserTier.SUPPORTER || userTier == UserTier.PREMIUM) {
+                TextButton(onClick = onManageSubscription) {
+                    Text(stringResource(R.string.support_manage_subscription))
+                }
+            }
+        }
+        !entitlementsChecked -> {
+            Text(
+                text = stringResource(R.string.support_entitlement_checking),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            FilledTonalButton(onClick = onRefreshPurchases) {
+                Text(stringResource(R.string.support_check_purchases))
+            }
+        }
+        else -> {
+            Text(
+                text = stringResource(R.string.support_ad_disclosure),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            when (rewardedAdState) {
+                RewardedAdState.NOT_REQUESTED -> FilledTonalButton(
+                    onClick = onPrepareAd,
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text(stringResource(R.string.support_ad_prepare)) }
+                RewardedAdState.LOADING -> Text(
+                    text = stringResource(R.string.support_ad_loading),
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = price,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                RewardedAdState.READY -> FilledTonalButton(
+                    onClick = onShowAd,
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text(stringResource(R.string.support_ad_watch)) }
+                RewardedAdState.SHOWING -> Text(
+                    text = stringResource(R.string.support_ad_showing),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            }
-            FilledTonalButton(
-                onClick = onClick,
-                enabled = enabled,
-            ) {
-                Text(stringResource(R.string.support_plan_cta))
+                RewardedAdState.CONSENT_REQUIRED -> {
+                    Text(
+                        text = stringResource(R.string.support_ad_consent_required),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    FilledTonalButton(
+                        onClick = onRetryConsent,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text(stringResource(R.string.support_ad_retry_consent)) }
+                }
+                RewardedAdState.CONFIGURATION_MISSING -> Text(
+                    text = stringResource(R.string.support_ad_configuration_missing),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                RewardedAdState.UNAVAILABLE -> {
+                    Text(
+                        text = stringResource(R.string.support_ad_unavailable),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    FilledTonalButton(
+                        onClick = onRetryAd,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text(stringResource(R.string.support_ad_retry)) }
+                }
+                RewardedAdState.LEGACY_PURCHASE -> Text(
+                    text = stringResource(R.string.support_legacy_ad_free),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
             }
         }
     }
+
+    if (privacyOptionsRequired && userTier == UserTier.FREE) {
+        TextButton(onClick = onShowPrivacyOptions) {
+            Text(stringResource(R.string.support_privacy_options))
+        }
+    }
+    Spacer(modifier = Modifier.height(4.dp))
+    TextButton(
+        onClick = onRestorePurchases,
+        modifier = Modifier.fillMaxWidth(),
+    ) { Text(stringResource(R.string.support_restore)) }
 }
 
 @Composable

@@ -20,10 +20,10 @@ import javax.inject.Singleton
 @Singleton
 class ProductRepositoryImpl @Inject constructor(
     private val productDao: ProductDao,
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) : ProductRepository {
 
-    private val seedMutex = Mutex()
+    private val categoryMutex = Mutex()
 
     override fun observeAll(): Flow<List<Product>> =
         productDao.observeAllWithCategory().map { rows -> rows.map { it.toDomain() } }
@@ -60,22 +60,22 @@ class ProductRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun addCategory(name: String): Long {
+    override suspend fun addCategory(name: String): Long = categoryMutex.withLock {
         val trimmed = name.trim()
         if (trimmed.isEmpty()) throw IllegalArgumentException("Category name cannot be empty")
         val existing = productDao.findCategoryIdByName(trimmed)
-        if (existing != null) return existing
+        if (existing != null) return@withLock existing
         val result = productDao.insertCategory(CategoryEntity(name = trimmed, isDefault = false))
         if (result == -1L) {
             val retry = productDao.findCategoryIdByName(trimmed)
-            if (retry != null) return retry
+            if (retry != null) return@withLock retry
             throw IllegalStateException("Category could not be inserted: $trimmed")
         }
-        return result
+        return@withLock result
     }
 
     override suspend fun seedDefaultCategoriesIfEmpty() {
-        seedMutex.withLock {
+        categoryMutex.withLock {
             if (productDao.categoryCount() > 0) return
             productDao.insertCategories(
                 listOf(

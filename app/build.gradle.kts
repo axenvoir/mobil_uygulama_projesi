@@ -15,6 +15,20 @@ val keystoreProperties = Properties().apply {
     }
 }
 
+val productionAdMobAppId = providers.gradleProperty("expiraAdMobAppId")
+    .orElse(providers.environmentVariable("EXPIRA_ADMOB_APP_ID"))
+    .getOrElse("")
+val productionRewardedAdUnitId = providers.gradleProperty("expiraRewardedAdUnitId")
+    .orElse(providers.environmentVariable("EXPIRA_REWARDED_AD_UNIT_ID"))
+    .getOrElse("")
+val validAdMobAppId = Regex("^ca-app-pub-\\d{16}~\\d{10}$")
+val validRewardedAdUnitId = Regex("^ca-app-pub-\\d{16}/\\d{10}$")
+val productionAdsConfigured = validAdMobAppId.matches(productionAdMobAppId) &&
+    validRewardedAdUnitId.matches(productionRewardedAdUnitId) &&
+    productionAdMobAppId != "ca-app-pub-3940256099942544~3347511713" &&
+    productionRewardedAdUnitId != "ca-app-pub-3940256099942544/5224354917"
+fun String.asBuildConfigString(): String = "\"${replace("\\", "\\\\").replace("\"", "\\\"")}\""
+
 android {
     namespace = "com.axenvoir.expira"
     compileSdk = 37
@@ -23,8 +37,12 @@ android {
         applicationId = "com.expira.app.tr"
         minSdk = 26
         targetSdk = 37
-        versionCode = 99
-        versionName = "2.0.1"
+        versionCode = 100
+        versionName = "2.0.2"
+        manifestPlaceholders["admobAppId"] = ""
+        buildConfigField("String", "ADMOB_APP_ID", "\"\"")
+        buildConfigField("String", "REWARDED_AD_UNIT_ID", "\"\"")
+        buildConfigField("Boolean", "ADS_ENABLED", "false")
     }
 
     androidResources {
@@ -46,6 +64,10 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            manifestPlaceholders["admobAppId"] = productionAdMobAppId
+            buildConfigField("String", "ADMOB_APP_ID", productionAdMobAppId.asBuildConfigString())
+            buildConfigField("String", "REWARDED_AD_UNIT_ID", productionRewardedAdUnitId.asBuildConfigString())
+            buildConfigField("Boolean", "ADS_ENABLED", productionAdsConfigured.toString())
             if (keystoreProperties.isNotEmpty()) {
                 signingConfig = signingConfigs.getByName("release")
             }
@@ -57,6 +79,10 @@ android {
         debug {
             isMinifyEnabled = false
             isShrinkResources = false
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
+            buildConfigField("String", "ADMOB_APP_ID", "\"ca-app-pub-3940256099942544~3347511713\"")
+            buildConfigField("String", "REWARDED_AD_UNIT_ID", "\"ca-app-pub-3940256099942544/5224354917\"")
+            buildConfigField("Boolean", "ADS_ENABLED", "true")
         }
     }
 
@@ -119,6 +145,8 @@ dependencies {
 
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.billing)
+    implementation(libs.google.mobile.ads)
+    implementation(libs.google.ump)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
 
@@ -144,6 +172,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.truth)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(platform(libs.androidx.compose.bom))

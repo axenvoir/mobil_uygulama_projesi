@@ -1,16 +1,46 @@
 package com.axenvoir.expira.domain.util
 
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.isActive
+import java.time.Clock
 import java.time.Duration
-import java.time.LocalDateTime
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
-fun todayFlow(): Flow<java.time.LocalDate> = flow {
-    while (true) {
-        val now = LocalDateTime.now()
-        val nextMidnight = now.toLocalDate().plusDays(1).atStartOfDay()
+/**
+ * Emits the current local date and then emits again at each following local
+ * midnight. The clock and zone are explicit so DST transitions and tests do
+ * not depend on the JVM default time zone.
+ */
+fun todayFlow(
+    clock: Clock = Clock.systemDefaultZone(),
+    zoneId: ZoneId = clock.zone,
+): Flow<LocalDate> = flow {
+    val zoneClock = clock.withZone(zoneId)
+    while (currentCoroutineContext().isActive) {
+        val now = ZonedDateTime.now(zoneClock)
         emit(now.toLocalDate())
-        delay(Duration.between(now, nextMidnight).toMillis().coerceAtLeast(0))
+        delay(millisUntilNextMidnight(now))
     }
+}
+
+/** Convenience overload for callers that only need to select a zone. */
+fun todayFlow(zoneId: ZoneId): Flow<LocalDate> =
+    todayFlow(clock = Clock.system(zoneId), zoneId = zoneId)
+
+/** Returns the first valid instant at the next local midnight in [now]'s zone. */
+internal fun nextMidnight(now: ZonedDateTime): ZonedDateTime =
+    now.toLocalDate().plusDays(1).atStartOfDay(now.zone)
+
+/**
+ * Returns the real elapsed time to the next local midnight. This is 23 or 25
+ * hours on DST transition days, rather than an assumed 24-hour duration.
+ */
+internal fun millisUntilNextMidnight(now: ZonedDateTime): Long {
+    val duration = Duration.between(now, nextMidnight(now))
+    return duration.toMillis().coerceAtLeast(1L)
 }
