@@ -120,6 +120,7 @@ fun ProductListScreen(
         modifier = Modifier.nestedScroll(topBarScrollBehavior.nestedScrollConnection),
         topBar = {
             androidx.compose.material3.MediumTopAppBar(
+                colors = com.axenvoir.expira.ui.components.expiraTopAppBarColors(),
                 title = {
                     Text(
                         text = stringResource(R.string.expiry_list_title),
@@ -133,7 +134,7 @@ fun ProductListScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             androidx.compose.animation.AnimatedVisibility(
-                visible = fabVisible,
+                visible = fabVisible && visibleProducts.isNotEmpty(),
                 enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(
                     initialScale = 0.85f,
                     animationSpec = androidx.compose.animation.core.spring(
@@ -164,7 +165,7 @@ fun ProductListScreen(
             },
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding),
         ) {
             androidx.compose.foundation.layout.Box(

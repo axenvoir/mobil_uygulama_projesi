@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -47,6 +48,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.expira.R
+import com.axenvoir.expira.ui.components.ExpiraSelectChip
+import com.axenvoir.expira.ui.components.expiraTopAppBarColors
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -109,11 +112,14 @@ fun ProductEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                colors = expiraTopAppBarColors(),
                 title = {
                     Text(
-                        stringResource(
+                        text = stringResource(
                             if (viewModel.isEditMode) R.string.edit_product else R.string.add_product
-                        )
+                        ),
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                     )
                 },
                 navigationIcon = {
@@ -127,13 +133,35 @@ fun ProductEditScreen(
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = {
+            Surface(color = MaterialTheme.colorScheme.background) {
+                Button(
+                    onClick = viewModel::save,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .imePadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .height(52.dp),
+                    enabled = !isSaving,
+                    shape = MaterialTheme.shapes.large,
+                ) {
+                    if (isSaving) {
+                        androidx.compose.material3.CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    } else {
+                        Text(stringResource(R.string.save))
+                    }
+                }
+            }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .navigationBarsPadding()
-                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -169,13 +197,13 @@ fun ProductEditScreen(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     uiState.categories.forEach { category ->
-                        FilterChip(
+                        ExpiraSelectChip(
                             selected = uiState.selectedCategoryId == category.id,
                             onClick = { viewModel.onCategorySelect(category.id) },
-                            label = { Text(category.name) },
+                            label = category.name,
                         )
                     }
                 }
@@ -194,6 +222,7 @@ fun ProductEditScreen(
             )
             androidx.compose.foundation.layout.FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 listOf(
                     "" to R.string.location_other,
@@ -201,10 +230,10 @@ fun ProductEditScreen(
                     "pantry" to R.string.location_pantry,
                     "freezer" to R.string.location_freezer,
                 ).forEach { (key, labelRes) ->
-                    androidx.compose.material3.FilterChip(
+                    ExpiraSelectChip(
                         selected = uiState.storageLocation == key,
                         onClick = { viewModel.onStorageLocationChange(key) },
-                        label = { Text(stringResource(labelRes)) },
+                        label = stringResource(labelRes),
                     )
                 }
             }
@@ -224,25 +253,6 @@ fun ProductEditScreen(
                     ) ?: stringResource(R.string.pick_date)
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = viewModel::save,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                enabled = !isSaving,
-                shape = MaterialTheme.shapes.large,
-            ) {
-                if (isSaving) {
-                    androidx.compose.material3.CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(24.dp),
-                    )
-                } else {
-                    Text(stringResource(R.string.save))
-                }
-            }
-
         }
     }
 
@@ -259,7 +269,7 @@ fun ProductEditScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showUnsavedDialog = false }) {
-                    Text(stringResource(R.string.no))
+                    Text(stringResource(R.string.keep_editing))
                 }
             },
         )
