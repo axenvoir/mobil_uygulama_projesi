@@ -1,10 +1,12 @@
 package com.axenvoir.expira.ui.main
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,57 +72,71 @@ fun MainScreen() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
+    // Alt menu / yan menu sadece ana sekmelerde gorunur.
+    // Ekle, duzenle ve ayarlar ekranlarinda gizlenir (Kaydet butonunu kapatmasin).
+    // currentDestination ilk karede null olabilir; bu durumda menuyu gostererek titremeyi onle.
+    val showNavigation = currentDestination == null || tabs.any { tab ->
+        currentDestination.hierarchy.any { it.route == tab.screen.route }
+    }
+
+    val onTabClick: (Screen) -> Unit = { screen ->
+        navController.navigate(screen.route) {
+            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
+    // contentWindowInsets = 0: sistem cubugu bosluklarini her ekran kendi Scaffold'unda
+    // bir kez uygular. Boylece ust barin ustunde ikinci bir bosluk / ton seridi olusmaz.
     if (useRail) {
         Row {
-            NavigationRail {
-                tabs.forEach { tab ->
-                    val selected = currentDestination?.hierarchy?.any { it.route == tab.screen.route } == true
-                    NavigationRailItem(
-                        selected = selected,
-                        onClick = {
-                            navController.navigate(tab.screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = { Icon(tab.icon, contentDescription = stringResource(tab.labelRes)) },
-                        label = { Text(stringResource(tab.labelRes)) },
-                    )
+            if (showNavigation) {
+                NavigationRail {
+                    tabs.forEach { tab ->
+                        val selected = currentDestination?.hierarchy?.any { it.route == tab.screen.route } == true
+                        NavigationRailItem(
+                            selected = selected,
+                            onClick = { onTabClick(tab.screen) },
+                            icon = { Icon(tab.icon, contentDescription = stringResource(tab.labelRes)) },
+                            label = { Text(stringResource(tab.labelRes)) },
+                        )
+                    }
                 }
             }
-            Scaffold { innerPadding ->
+            Scaffold(contentWindowInsets = WindowInsets(0, 0, 0, 0)) { innerPadding ->
                 AppNavHost(
                     navController = navController,
-                    modifier = Modifier.padding(innerPadding),
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .consumeWindowInsets(innerPadding),
                 )
             }
         }
     } else {
         Scaffold(
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
-                NavigationBar {
-                    tabs.forEach { tab ->
-                        val selected = currentDestination?.hierarchy?.any { it.route == tab.screen.route } == true
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = {
-                            navController.navigate(tab.screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = { Icon(tab.icon, contentDescription = stringResource(tab.labelRes)) },
-                        label = { Text(stringResource(tab.labelRes)) },
-                    )
+                if (showNavigation) {
+                    NavigationBar {
+                        tabs.forEach { tab ->
+                            val selected = currentDestination?.hierarchy?.any { it.route == tab.screen.route } == true
+                            NavigationBarItem(
+                                selected = selected,
+                                onClick = { onTabClick(tab.screen) },
+                                icon = { Icon(tab.icon, contentDescription = stringResource(tab.labelRes)) },
+                                label = { Text(stringResource(tab.labelRes)) },
+                            )
+                        }
                     }
                 }
             },
         ) { innerPadding ->
             AppNavHost(
                 navController = navController,
-                modifier = Modifier.padding(innerPadding),
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding),
             )
         }
     }
