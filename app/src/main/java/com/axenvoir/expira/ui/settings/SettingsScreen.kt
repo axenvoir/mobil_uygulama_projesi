@@ -18,7 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -42,6 +42,7 @@ import com.axenvoir.expira.BuildConfig
 import com.axenvoir.expira.R
 import com.axenvoir.expira.billing.BillingViewModel
 import com.axenvoir.expira.billing.UserTier
+import com.axenvoir.expira.ui.components.expiraTopAppBarColors
 import com.axenvoir.expira.ui.theme.ThemeMode
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,7 +98,8 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
+                colors = expiraTopAppBarColors(),
+                title = { Text(stringResource(R.string.settings_title), maxLines = 1) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -142,7 +144,7 @@ fun SettingsScreen(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.notifications_section)) {
-                    OutlinedButton(
+                    FilledTonalButton(
                         onClick = {
                             if (
                                 android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU &&
@@ -163,7 +165,7 @@ fun SettingsScreen(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.data_section)) {
-                    OutlinedButton(
+                    FilledTonalButton(
                         onClick = { exportLauncher.launch("expira-verileri.csv") },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.export_csv)) }
@@ -184,7 +186,7 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     if (tier == UserTier.FREE) {
-                        OutlinedButton(
+                        FilledTonalButton(
                             onClick = {
                                 val activity = context as? android.app.Activity
                                 if (activity != null) billingViewModel.purchaseSupporter(activity)
@@ -192,7 +194,7 @@ fun SettingsScreen(
                             modifier = Modifier.fillMaxWidth(),
                         ) { Text(stringResource(R.string.support_tier_supporter)) }
                         Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedButton(
+                        FilledTonalButton(
                             onClick = {
                                 val activity = context as? android.app.Activity
                                 if (activity != null) billingViewModel.purchasePremium(activity)
@@ -200,7 +202,7 @@ fun SettingsScreen(
                             modifier = Modifier.fillMaxWidth(),
                         ) { Text(stringResource(R.string.support_tier_premium)) }
                         Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedButton(
+                        FilledTonalButton(
                             onClick = {
                                 val activity = context as? android.app.Activity
                                 if (activity != null) billingViewModel.purchaseLifetime(activity)
