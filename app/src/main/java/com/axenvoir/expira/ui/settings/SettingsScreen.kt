@@ -59,6 +59,27 @@ fun SettingsScreen(
     val notificationsBlockedMessage = stringResource(R.string.notifications_blocked)
     val openSettingsLabel = stringResource(R.string.open_settings)
     val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val showNotificationResult: (Boolean) -> Unit = { sent ->
+        scope.launch {
+            val result = snackbarHostState.showSnackbar(
+                message = if (sent) testNotificationSentMessage else notificationsBlockedMessage,
+                actionLabel = if (sent) null else openSettingsLabel,
+            )
+            if (!sent && result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
+                val intent = android.content.Intent(
+                    android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS,
+                ).apply {
+                    putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+                }
+                runCatching { context.startActivity(intent) }
+            }
+        }
+    }
+    val notificationPermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        showNotificationResult(granted && viewModel.sendTestNotification())
+    }
     val exportLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         contract = androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/csv"),
     ) { uri ->
@@ -122,21 +143,18 @@ fun SettingsScreen(
                 SettingsCard(title = stringResource(R.string.notifications_section)) {
                     OutlinedButton(
                         onClick = {
-                            val sent = viewModel.sendTestNotification()
-                            scope.launch {
-                                val result = snackbarHostState.showSnackbar(
-                                    message = if (sent) testNotificationSentMessage
-                                    else notificationsBlockedMessage,
-                                    actionLabel = if (sent) null else openSettingsLabel,
+                            if (
+                                android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU &&
+                                androidx.core.content.ContextCompat.checkSelfPermission(
+                                    context,
+                                    android.Manifest.permission.POST_NOTIFICATIONS,
+                                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+                            ) {
+                                notificationPermissionLauncher.launch(
+                                    android.Manifest.permission.POST_NOTIFICATIONS,
                                 )
-                                if (!sent && result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
-                                    val intent = android.content.Intent(
-                                        android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS,
-                                    ).apply {
-                                        putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
-                                    }
-                                    runCatching { context.startActivity(intent) }
-                                }
+                            } else {
+                                showNotificationResult(viewModel.sendTestNotification())
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),

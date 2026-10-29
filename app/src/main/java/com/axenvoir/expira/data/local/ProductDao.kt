@@ -12,6 +12,7 @@ data class ProductWithCategory(
     val name: String,
     val categoryId: Long,
     val categoryName: String,
+    val categoryIsDefault: Boolean,
     val expiryEpochDay: Long,
     val quantity: Int,
     val createdAt: Long,
@@ -23,7 +24,8 @@ interface ProductDao {
     @Query(
         """
         SELECT p.id AS id, p.name AS name, p.categoryId AS categoryId,
-               c.name AS categoryName, p.expiryEpochDay AS expiryEpochDay,
+               c.name AS categoryName, c.isDefault AS categoryIsDefault,
+               p.expiryEpochDay AS expiryEpochDay,
                p.quantity AS quantity, p.createdAt AS createdAt,
                p.storageLocation AS storageLocation
         FROM products AS p
@@ -36,7 +38,8 @@ interface ProductDao {
     @Query(
         """
         SELECT p.id AS id, p.name AS name, p.categoryId AS categoryId,
-               c.name AS categoryName, p.expiryEpochDay AS expiryEpochDay,
+               c.name AS categoryName, c.isDefault AS categoryIsDefault,
+               p.expiryEpochDay AS expiryEpochDay,
                p.quantity AS quantity, p.createdAt AS createdAt,
                p.storageLocation AS storageLocation
         FROM products AS p

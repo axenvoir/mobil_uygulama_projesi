@@ -1,11 +1,14 @@
 package com.axenvoir.expira.data.repository
 
+import android.content.Context
+import com.axenvoir.expira.R
 import com.axenvoir.expira.data.local.CategoryEntity
 import com.axenvoir.expira.data.local.ProductDao
 import com.axenvoir.expira.data.local.ProductEntity
 import com.axenvoir.expira.domain.model.Category
 import com.axenvoir.expira.domain.model.Product
 import com.axenvoir.expira.domain.repository.ProductRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
@@ -17,6 +20,7 @@ import javax.inject.Singleton
 @Singleton
 class ProductRepositoryImpl @Inject constructor(
     private val productDao: ProductDao,
+    @ApplicationContext private val context: Context,
 ) : ProductRepository {
 
     private val seedMutex = Mutex()
@@ -47,7 +51,13 @@ class ProductRepositoryImpl @Inject constructor(
 
     override fun observeCategories(): Flow<List<Category>> =
         productDao.observeCategories().map { entities ->
-            entities.map { Category(id = it.id, name = it.name, isDefault = it.isDefault) }
+            entities.map {
+                Category(
+                    id = it.id,
+                    name = displayCategoryName(it.name, it.isDefault),
+                    isDefault = it.isDefault,
+                )
+            }
         }
 
     override suspend fun addCategory(name: String): Long {
@@ -83,10 +93,23 @@ class ProductRepositoryImpl @Inject constructor(
         id = id,
         name = name,
         categoryId = categoryId,
-        categoryName = categoryName,
+        categoryName = displayCategoryName(categoryName, categoryIsDefault),
         expiryDate = LocalDate.ofEpochDay(expiryEpochDay),
         quantity = quantity,
         createdAt = createdAt,
         storageLocation = storageLocation,
     )
+
+    private fun displayCategoryName(name: String, isDefault: Boolean): String {
+        if (!isDefault) return name
+        val resourceId = when (name) {
+            "Gıda" -> R.string.category_food
+            "İlaç" -> R.string.category_medicine
+            "Kozmetik" -> R.string.category_cosmetics
+            "Temizlik" -> R.string.category_cleaning
+            "Diğer" -> R.string.category_other
+            else -> return name
+        }
+        return context.getString(resourceId)
+    }
 }

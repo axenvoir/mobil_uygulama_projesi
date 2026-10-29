@@ -54,13 +54,15 @@ class BillingRepositoryImpl @Inject constructor(
 
     override suspend fun purchaseSupporter(activity: Activity): Boolean {
         val details = billingManager.getProductDetails("supporter_monthly") ?: return false
-        billingManager.launchPurchaseFlow(activity, details)
+        val offerToken = details.subscriptionOfferDetails?.firstOrNull()?.offerToken ?: return false
+        billingManager.launchPurchaseFlow(activity, details, offerToken)
         return true
     }
 
     override suspend fun purchasePremium(activity: Activity): Boolean {
         val details = billingManager.getProductDetails("premium_monthly") ?: return false
-        billingManager.launchPurchaseFlow(activity, details)
+        val offerToken = details.subscriptionOfferDetails?.firstOrNull()?.offerToken ?: return false
+        billingManager.launchPurchaseFlow(activity, details, offerToken)
         return true
     }
 
@@ -71,7 +73,7 @@ class BillingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun restorePurchases(): Boolean {
-        billingManager.connect()
+        billingManager.refreshPurchases()
         return true
     }
 }

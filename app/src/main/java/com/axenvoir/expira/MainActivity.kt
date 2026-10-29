@@ -1,6 +1,5 @@
 package com.axenvoir.expira
 
-import android.Manifest
 import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -10,7 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.activity.result.contract.ActivityResultContracts
 import com.axenvoir.expira.notification.NotificationHelper
 import com.axenvoir.expira.ui.settings.LanguageManager
 import com.axenvoir.expira.notification.ReminderScheduler
@@ -35,12 +33,6 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var themePreferences: ThemePreferences
-
-    private val permissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
-            notificationHelper.createChannel()
-            reminderScheduler.scheduleDailyReminder()
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
@@ -76,15 +68,6 @@ class MainActivity : AppCompatActivity() {
             }
             ExpiraTheme(darkTheme = darkTheme, dynamicColor = dynamicColor) {
                 MainScreen()
-            }
-        }
-        requestNotificationPermissionIfNeeded()
-    }
-
-    private fun requestNotificationPermissionIfNeeded() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (!notificationHelper.canPostNotifications()) {
-                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
         reminderScheduler.scheduleDailyReminder()
