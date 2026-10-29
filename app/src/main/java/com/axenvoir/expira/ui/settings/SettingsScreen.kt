@@ -205,7 +205,9 @@ fun SettingsScreen(
                     val tier by billingViewModel.userTier.collectAsStateWithLifecycle()
                     val purchaseInProgress = billingState.operation == BillingOperation.LOADING
                     val supporterPrice = offers.firstOrNull { it.productId == "supporter_monthly" }?.formattedPrice
+                    val supporterYearlyPrice = offers.firstOrNull { it.productId == "supporter_yearly" }?.formattedPrice
                     val premiumPrice = offers.firstOrNull { it.productId == "premium_monthly" }?.formattedPrice
+                    val premiumYearlyPrice = offers.firstOrNull { it.productId == "premium_yearly" }?.formattedPrice
                     val lifetimePrice = offers.firstOrNull { it.productId == "premium_lifetime" }?.formattedPrice
                     Text(
                         text = stringResource(R.string.support_description),
@@ -227,10 +229,28 @@ fun SettingsScreen(
                             enabled = !purchaseInProgress,
                             onClick = {
                                 val activity = context as? android.app.Activity
+                                if (activity != null) billingViewModel.purchaseSupporterYearly(activity)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text("${stringResource(R.string.support_tier_supporter)} (${stringResource(R.string.support_plan_yearly)}) — ${supporterYearlyPrice ?: stringResource(R.string.billing_price_unavailable)}") }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        FilledTonalButton(
+                            enabled = !purchaseInProgress,
+                            onClick = {
+                                val activity = context as? android.app.Activity
                                 if (activity != null) billingViewModel.purchasePremium(activity)
                             },
                             modifier = Modifier.fillMaxWidth(),
                         ) { Text("${stringResource(R.string.support_tier_premium)} — ${premiumPrice ?: stringResource(R.string.billing_price_unavailable)}") }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        FilledTonalButton(
+                            enabled = !purchaseInProgress,
+                            onClick = {
+                                val activity = context as? android.app.Activity
+                                if (activity != null) billingViewModel.purchasePremiumYearly(activity)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text("${stringResource(R.string.support_tier_premium)} (${stringResource(R.string.support_plan_yearly)}) — ${premiumYearlyPrice ?: stringResource(R.string.billing_price_unavailable)}") }
                         Spacer(modifier = Modifier.height(8.dp))
                         FilledTonalButton(
                             enabled = !purchaseInProgress,

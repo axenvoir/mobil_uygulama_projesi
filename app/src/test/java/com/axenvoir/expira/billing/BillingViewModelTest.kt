@@ -64,7 +64,9 @@ class BillingViewModelTest {
 
         override fun refreshEntitlements() = Unit
         override suspend fun purchaseSupporter(activity: Activity) = false
+        override suspend fun purchaseSupporterYearly(activity: Activity) = false
         override suspend fun purchasePremium(activity: Activity) = false
+        override suspend fun purchasePremiumYearly(activity: Activity) = false
         override suspend fun purchaseLifetime(activity: Activity) = false
         override suspend fun restorePurchases() = result
     }

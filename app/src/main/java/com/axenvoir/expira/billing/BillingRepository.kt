@@ -33,7 +33,9 @@ interface BillingRepository {
     val offers: StateFlow<List<BillingOffer>>
     fun refreshEntitlements()
     suspend fun purchaseSupporter(activity: Activity): Boolean
+    suspend fun purchaseSupporterYearly(activity: Activity): Boolean
     suspend fun purchasePremium(activity: Activity): Boolean
+    suspend fun purchasePremiumYearly(activity: Activity): Boolean
     suspend fun purchaseLifetime(activity: Activity): Boolean
     suspend fun restorePurchases(): Boolean
 }

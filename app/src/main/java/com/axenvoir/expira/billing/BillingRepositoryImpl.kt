@@ -86,8 +86,14 @@ class BillingRepositoryImpl @Inject constructor(
     override suspend fun purchaseSupporter(activity: Activity): Boolean =
         launchSubscription(activity, "supporter_monthly")
 
+    override suspend fun purchaseSupporterYearly(activity: Activity): Boolean =
+        launchSubscription(activity, "supporter_yearly")
+
     override suspend fun purchasePremium(activity: Activity): Boolean =
         launchSubscription(activity, "premium_monthly")
+
+    override suspend fun purchasePremiumYearly(activity: Activity): Boolean =
+        launchSubscription(activity, "premium_yearly")
 
     override suspend fun purchaseLifetime(activity: Activity): Boolean {
         val productId = "premium_lifetime"

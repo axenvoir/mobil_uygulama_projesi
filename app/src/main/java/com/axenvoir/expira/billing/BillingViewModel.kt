@@ -37,9 +37,21 @@ class BillingViewModel @Inject constructor(
         }
     }
 
+    fun purchaseSupporterYearly(activity: android.app.Activity) {
+        viewModelScope.launch {
+            billingRepository.purchaseSupporterYearly(activity)
+        }
+    }
+
     fun purchasePremium(activity: android.app.Activity) {
         viewModelScope.launch {
             billingRepository.purchasePremium(activity)
+        }
+    }
+
+    fun purchasePremiumYearly(activity: android.app.Activity) {
+        viewModelScope.launch {
+            billingRepository.purchasePremiumYearly(activity)
         }
     }
 
