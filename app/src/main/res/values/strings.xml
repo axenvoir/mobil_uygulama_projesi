@@ -23,6 +23,7 @@
     <string name="product_name">Ürün adı</string>
     <string name="product_basic_info">Temel bilgiler</string>
     <string name="category">Kategori</string>
+    <string name="category_hint">Ürünü daha sonra kolayca bulmak için bir kategori seçin.</string>
     <string name="expiry_date">Son kullanma tarihi</string>
     <string name="quantity">Adet</string>
     <string name="save">Kaydet</string>
@@ -142,6 +143,7 @@
     <string name="data_section">Veriler</string>
     <string name="data_export_description">Ürün ve not verilerinizi CSV dosyası olarak dışa aktarabilirsiniz. Bu dosya uygulamaya geri yüklenemez.</string>
     <string name="storage_location">Depolama yeri</string>
+    <string name="storage_location_hint">Ürünün bulunduğu yeri seçin.</string>
     <string name="location_fridge">Buzdolabı</string>
     <string name="location_pantry">Kiler</string>
     <string name="location_freezer">Dondurucu</string>
