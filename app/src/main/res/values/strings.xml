@@ -35,12 +35,9 @@
     <string name="error_empty_title">Başlık boş olamaz</string>
     <string name="error_generic">Bir hata oluştu. Tekrar deneyin.</string>
     <string name="delete_confirm">Silmek istediğinize emin misiniz?</string>
-    <string name="yes">Evet</string>
-    <string name="no">Hayır</string>
     <string name="delete_action">Sil</string>
     <string name="cancel_action">İptal</string>
     <string name="new_category">Yeni kategori…</string>
-    <string name="category_name">Kategori adı</string>
     <string name="notification_channel_name">Expira Hatırlatmaları</string>
     <string name="notification_channel_desc">Yaklaşan son kullanma tarihleri için hatırlatmalar</string>
     <string name="notification_title">Yaklaşan son kullanma tarihleri</string>
@@ -51,8 +48,6 @@
     <string name="notification_test_title">Expira test bildirimi</string>
     <string name="notification_test_text">Bildirimler cihazınızda çalışıyor.</string>
     <string name="all">Tümü</string>
-    <string name="select_date">Tarih seç</string>
-    <string name="expired_badge">GEÇMİŞ</string>
     <string name="pin">Sabitle</string>
     <string name="unpin">Sabitlemeyi kaldır</string>
     <string name="pick_date">Tarih seç</string>
@@ -88,7 +83,6 @@
     <string name="support_tier_supporter">Destekçi — Aylık plan</string>
     <string name="support_tier_premium">Premium — Aylık plan</string>
     <string name="support_tier_lifetime">Ömür Boyu — Tek seferlik</string>
-    <string name="support_current_tier">Mevcut planınız</string>
     <string name="support_restore">Satın alımları geri yükle</string>
     <string name="restore_success">Satın alımlar kontrol edildi.</string>
     <string name="restore_unavailable">Satın alımlar şu anda kontrol edilemiyor.</string>
