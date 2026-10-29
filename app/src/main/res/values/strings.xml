@@ -84,7 +84,6 @@
     <string name="support_tier_premium">Premium</string>
     <string name="support_tier_lifetime">Ömür Boyu</string>
     <string name="support_plan_yearly">Yıllık</string>
-    <string name="support_plan_yearly_hint">Yıllık plan</string>
     <string name="support_restore">Satın alımları geri yükle</string>
     <string name="restore_success">Satın alımlar kontrol edildi.</string>
     <string name="restore_unavailable">Satın alımlar şu anda kontrol edilemiyor.</string>
