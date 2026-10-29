@@ -6,7 +6,11 @@
     <string name="expiry_list_title">Expiry Dates</string>
     <string name="product_summary_title">Product status</string>
     <string name="product_summary_total">%1$d products</string>
-    <string name="notes_list_title">My Notes</string>
+    <string name="notes_list_title">Notes</string>
+    <plurals name="notes_count">
+        <item quantity="one">%1$d note</item>
+        <item quantity="other">%1$d notes</item>
+    </plurals>
     <string name="notes_filter_all">All</string>
     <string name="notes_filter_pinned">Pinned</string>
     <string name="notes_filter_recent">Recently updated</string>

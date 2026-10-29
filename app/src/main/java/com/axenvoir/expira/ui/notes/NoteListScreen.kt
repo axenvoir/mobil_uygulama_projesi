@@ -47,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,6 +57,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.expira.R
 import com.axenvoir.expira.domain.model.Note
 import com.axenvoir.expira.ui.components.ExpiraEmptyState
+import com.axenvoir.expira.ui.components.expiraChipColors
 import com.axenvoir.expira.ui.main.SettingsIconButton
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -144,6 +146,20 @@ fun NoteListScreen(
                         singleLine = true,
                         shape = MaterialTheme.shapes.extraLarge,
                     )
+                    if (notes.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 2.dp),
+                            horizontalArrangement = Arrangement.End,
+                        ) {
+                            Text(
+                                text = pluralStringResource(R.plurals.notes_count, notes.size, notes.size),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -155,16 +171,19 @@ fun NoteListScreen(
                             selected = filter == NoteFilter.ALL,
                             onClick = { viewModel.setFilter(NoteFilter.ALL) },
                             label = { Text(stringResource(R.string.notes_filter_all)) },
+                            colors = expiraChipColors(),
                         )
                         FilterChip(
                             selected = filter == NoteFilter.PINNED,
                             onClick = { viewModel.setFilter(NoteFilter.PINNED) },
                             label = { Text(stringResource(R.string.notes_filter_pinned)) },
+                            colors = expiraChipColors(),
                         )
                         FilterChip(
                             selected = filter == NoteFilter.RECENT,
                             onClick = { viewModel.setFilter(NoteFilter.RECENT) },
                             label = { Text(stringResource(R.string.notes_filter_recent)) },
+                            colors = expiraChipColors(),
                         )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
@@ -317,11 +336,14 @@ private fun NoteCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp, pressedElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp, pressedElevation = 3.dp),
         border = if (note.isPinned) androidx.compose.foundation.BorderStroke(
             width = 2.dp,
             color = MaterialTheme.colorScheme.primary,
-        ) else null,
+        ) else androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant,
+        ),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
