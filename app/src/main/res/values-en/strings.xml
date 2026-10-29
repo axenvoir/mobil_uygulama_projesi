@@ -157,4 +157,5 @@
     <string name="billing_unavailable">This product is currently unavailable. Please try again later.</string>
     <string name="billing_error">Purchase could not be started. Check your Google Play connection and try again.</string>
     <string name="billing_price_unavailable">Loading price</string>
+    <string name="billing_products_unavailable">Support plans are currently unavailable. Check your internet connection and try again.</string>
 </resources>
