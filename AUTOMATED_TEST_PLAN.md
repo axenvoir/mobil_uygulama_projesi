@@ -36,7 +36,7 @@ Bu seçenek `adb` ile bağlı ve yetkili cihazı doğrular, ardından yalnızca 
 
 `.github/workflows/build-aab.yml` içindeki `verify` job’ı şu sırayı korur:
 
-1. Android SDK lisanslarını doğrular; `sdkmanager` yoksa veya lisans kabulü başarısızsa job başarısız olur.
+1. Android SDK içinde `sdkmanager` bulunursa lisansları kabul eder; araç PATH’te yoksa kurulu SDK konumlarında arar ve bulunamadığında runner’ın önceden kabul edilmiş lisanslarına dayanıp Gradle SDK doğrulamasını sürdürür.
 2. `:app:testDebugUnitTest`, `:app:lintDebug` ve `:app:assembleDebug` görevlerini çalıştırır.
 3. KVM’i etkinleştirir ve doğrulanmış `reactivecircus/android-emulator-runner@v2.38.0` action’ı ile API 35 `google_apis` x86_64 emülatörünü boot eder.
 4. Emülatör hazır olduğunda `./scripts/run_automated_tests.sh --connected-only` komutunu çağırır. Bu komut gerçek `:app:connectedDebugAndroidTest` Gradle görevini çalıştırır; Room migration ve Compose smoke testleri bu instrumentation aşamasında koşar.

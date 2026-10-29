@@ -31,21 +31,32 @@ jobs:
 
       - name: Verify tests, lint, and debug APK
         run: |
-          if ! command -v sdkmanager >/dev/null 2>&1; then
-            echo "::error::sdkmanager is not available on the runner"
-            exit 1
-          fi
-          python3 - <<'PY'
+          SDKMANAGER=""
+          for candidate in "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+                           "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager \
+                           "$ANDROID_HOME/tools/bin/sdkmanager"; do
+            if [ -x "$candidate" ]; then
+              SDKMANAGER="$candidate"
+              break
+            fi
+          done
+          if [ -n "$SDKMANAGER" ]; then
+            export SDKMANAGER
+            python3 - <<'PY'
+          import os
           import subprocess
           import sys
 
-          process = subprocess.Popen(["sdkmanager", "--licenses"], stdin=subprocess.PIPE)
+          process = subprocess.Popen([os.environ["SDKMANAGER"], "--licenses"], stdin=subprocess.PIPE)
           try:
               process.communicate(input=b"y\n" * 1000)
           except BrokenPipeError:
               process.wait()
           sys.exit(process.returncode)
           PY
+          else
+            echo "::warning::sdkmanager not found in the Android SDK; relying on runner-preaccepted licenses and Gradle SDK validation"
+          fi
           ./gradlew --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
