@@ -112,9 +112,7 @@ class BillingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun restorePurchases(): Boolean {
-        val wasConnected = billingManager.connectionState.value
-        billingManager.refreshPurchases()
-        return wasConnected
+        return billingManager.refreshPurchasesAwait()
     }
 
     private fun launchSubscription(activity: Activity, productId: String): Boolean {

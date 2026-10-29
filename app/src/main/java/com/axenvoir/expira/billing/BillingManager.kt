@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -71,7 +73,7 @@ class BillingManager @Inject constructor(
         _connectionState.value = false
     }
 
-    private fun queryPurchases() {
+    private fun queryPurchases(onComplete: (Boolean) -> Unit = {}) {
         val productTypes = listOf(
             BillingClient.ProductType.SUBS,
             BillingClient.ProductType.INAPP,
@@ -95,6 +97,9 @@ class BillingManager @Inject constructor(
                 val distinctPurchases = allPurchases.distinctBy { it.purchaseToken }
                 _purchases.value = distinctPurchases
                 acknowledgePurchases(distinctPurchases.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED })
+            }
+            if (remaining == 0) {
+                onComplete(allPurchases != null)
             }
         }
 
@@ -149,6 +154,19 @@ class BillingManager @Inject constructor(
         }
     }
 
+    suspend fun refreshPurchasesAwait(): Boolean {
+        if (!_connectionState.value) {
+            connect()
+            return false
+        }
+        return suspendCancellableCoroutine { continuation ->
+            queryPurchases { success ->
+                if (continuation.isActive) continuation.resume(success)
+            }
+            continuation.invokeOnCancellation { /* Billing callbacks are not cancellable. */ }
+        }
+    }
+
     fun launchPurchaseFlow(activity: Activity, productDetails: ProductDetails, offerToken: String? = null): BillingResult {
         val productDetailsParamsList = listOf(
             BillingFlowParams.ProductDetailsParams.newBuilder()
@@ -165,8 +183,10 @@ class BillingManager @Inject constructor(
     override fun onPurchasesUpdated(result: BillingResult, purchases: MutableList<Purchase>?) {
         when {
             result.responseCode == BillingClient.BillingResponseCode.OK && !purchases.isNullOrEmpty() -> {
-                _purchases.value = purchases
-                acknowledgePurchases(purchases.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED })
+                val mergedPurchases = (_purchases.value + purchases)
+                    .distinctBy { it.purchaseToken }
+                _purchases.value = mergedPurchases
+                acknowledgePurchases(mergedPurchases.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED })
                 val pending = purchases.any { it.purchaseState == Purchase.PurchaseState.PENDING }
                 _purchaseResults.tryEmit(if (pending) PurchaseResult.Pending else PurchaseResult.Success)
             }
