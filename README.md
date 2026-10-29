@@ -14,7 +14,7 @@ Expira is an Android app for tracking product expiry dates and keeping personal 
 ## Technology
 
 - Kotlin, Jetpack Compose, and Material 3
-- Android Gradle Plugin 9.3.1, Gradle 9.5.0, and Kotlin 2.4.21
+- Android Gradle Plugin 9.4.1, Gradle 9.8.2, and Kotlin 2.4.21
 - MVVM with repositories and Kotlin Coroutines/Flow
 - Room for on-device storage, Hilt for dependency injection, and WorkManager for reminders
 - minSdk 26; compileSdk 37; targetSdk 36
@@ -35,5 +35,4 @@ For local signing, copy `keystore.properties.example` to `keystore.properties`, 
 
 ## Compatibility and data
 
-The public application ID (`com.expira.app.tr`), internal Kotlin namespace (`com.axenvoir.expira`), Room database filename (`expira.db`), and signing key are intentionally preserved. Changing these can prevent existing users from installing an update or accessing their saved data. The app currently keeps product and note data locally; CSV export is the available way to copy that data outside the app.
-#inceleme başlatıldı.
+The public application ID (`com.expira.app.tr`), internal Kotlin namespace (`com.axenvoir.expira`), Room database filename (`skt_plus.db`), and signing key are intentionally preserved. Changing these can prevent existing users from installing an update or accessing their saved data. The app currently keeps product and note data locally; CSV export is the available way to copy that data outside the app.
