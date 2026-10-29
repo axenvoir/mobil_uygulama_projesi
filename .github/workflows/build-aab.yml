@@ -77,7 +77,26 @@ jobs:
           profile: pixel_7_pro
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 4096
           disable-animations: true
-          script: ./gradlew --no-daemon :app:connectedDebugAndroidTest
+          script: |
+            set +e
+            ./gradlew --no-daemon :app:connectedDebugAndroidTest --stacktrace --console=plain
+            TEST_STATUS=$?
+            if [ "$TEST_STATUS" -ne 0 ]; then
+              mkdir -p app/build/reports/androidTests/connected/debug
+              adb logcat -d -v threadtime '*:E' > app/build/reports/androidTests/connected/debug/ci-logcat-errors.txt || true
+            fi
+            exit "$TEST_STATUS"
+
+      - name: Upload connected test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: expira-connected-test-results
+          path: |
+            app/build/reports/androidTests/connected/debug
+            app/build/outputs/androidTest-results/connected/debug
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v7

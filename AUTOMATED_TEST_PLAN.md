@@ -40,6 +40,7 @@ Bu seçenek `adb` ile bağlı ve yetkili cihazı doğrular, ardından yalnızca 
 2. `:app:testDebugUnitTest`, `:app:lintDebug` ve `:app:assembleDebug` görevlerini çalıştırır.
 3. KVM’i etkinleştirir ve doğrulanmış `reactivecircus/android-emulator-runner@v2.38.0` action’ı ile API 35 `google_apis` x86_64 emülatörünü boot eder.
 4. Emülatör hazır olduğunda `./gradlew --no-daemon :app:connectedDebugAndroidTest` komutunu çalıştırır; Room migration ve Compose smoke testleri bu instrumentation aşamasında koşar.
+5. Testler başarısız olsa bile HTML/XML instrumentation raporlarını ve hata seviyesindeki emulator logcat’i `expira-connected-test-results` artifact’inde saklar.
 
 Emülatörün boot edilmesi, SDK/lisans kurulumu veya Gradle instrumentation görevi hata verirse workflow başarılı kabul edilmez. Release job’ı `verify` işinin tamamlanmasına bağlıdır; imzalama secret’ları ve production AdMob kimlikleri (`EXPIRA_ADMOB_APP_ID`, `EXPIRA_REWARDED_AD_UNIT_ID`) yoksa release artifact’leri bilerek üretilmez. Ayrıntı: `ADS_SETUP.md`.
 
