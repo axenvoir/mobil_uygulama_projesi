@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.core.content.edit
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -61,7 +62,7 @@ fun MainScreen() {
     val prefs = remember { context.getSharedPreferences("app_settings", android.content.Context.MODE_PRIVATE) }
     var showOnboarding by remember { mutableStateOf(prefs.getBoolean("onboarding_done", false).not()) }
     val dismissOnboarding = {
-        prefs.edit().putBoolean("onboarding_done", true).apply()
+        prefs.edit { putBoolean("onboarding_done", true) }
         showOnboarding = false
     }
     com.axenvoir.expira.ui.components.OnboardingOverlay(
