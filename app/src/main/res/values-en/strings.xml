@@ -26,7 +26,7 @@
     <string name="expires_today">Expires today</string>
     <string name="expired_days">Expired %1$d days ago</string>
     <string name="empty_products">No products yet. Add your first one.</string>
-    <string name="empty_notes">No notes yet. Take your first note.</string>
+    <string name="empty_notes">No notes yet. Create your first note.</string>
     <string name="error_missing_expiry_date">Choose an expiry date</string>
     <string name="error_missing_category">Select a category or enter a new one</string>
     <string name="error_invalid_quantity">Quantity must be at least 1</string>
@@ -37,6 +37,8 @@
     <string name="delete_confirm">Are you sure you want to delete?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="delete_action">Delete</string>
+    <string name="cancel_action">Cancel</string>
     <string name="new_category">New category…</string>
     <string name="category_name">Category name</string>
     <string name="notification_channel_name">Expira Reminders</string>
@@ -52,6 +54,7 @@
     <string name="select_date">Pick a date</string>
     <string name="expired_badge">EXPIRED</string>
     <string name="pin">Pin</string>
+    <string name="unpin">Unpin</string>
     <string name="pick_date">Pick date</string>
     <string name="empty_products_title">No products</string>
     <string name="empty_notes_title">No notes</string>
@@ -76,6 +79,7 @@
     <string name="search_products">Search products…</string>
     <string name="clear_search">Clear search</string>
     <string name="empty_search">No products match your search</string>
+    <string name="empty_search_subtitle">Change or clear your search.</string>
     <string name="days_short">days</string>
     <string name="notifications_section">Notifications</string>
     <string name="about_section">About</string>
@@ -84,7 +88,12 @@
     <string name="version_label">Version</string>
     <string name="edit">Edit</string>
     <string name="edit_record_missing_title">Record not found</string>
-    <string name="edit_record_missing_message">This product no longer exists. Would you like to add a new one?</string>
+    <string name="product_edit_record_missing_message">This product no longer exists. Would you like to create a new product?</string>
+    <string name="note_edit_record_missing_message">This note no longer exists. Would you like to create a new note?</string>
+    <string name="create_new_product">Create new product</string>
+    <string name="create_new_note">Create new note</string>
+    <string name="clear_notes_search">Clear note search</string>
+    <string name="empty_notes_search_subtitle">Change or clear your search.</string>
     <string name="onboarding_title_1">Add your products</string>
     <string name="onboarding_text_1">Track expiry dates and never miss what is coming up</string>
     <string name="onboarding_title_2">Daily reminder</string>
@@ -122,6 +131,8 @@
     <string name="support_tier_lifetime">Lifetime — ₺249.99</string>
     <string name="support_current_tier">Current plan</string>
     <string name="support_restore">Restore purchases</string>
+    <string name="restore_success">Purchases checked.</string>
+    <string name="restore_unavailable">Purchases cannot be checked right now.</string>
     <string name="support_thanks">Thanks for your support!</string>
     <string name="theme_section">Theme</string>
     <string name="theme_system">System</string>

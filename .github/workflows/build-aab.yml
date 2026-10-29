@@ -29,8 +29,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Build debug APK
-        run: yes | sdkmanager --licenses > /dev/null 2>&1 || true && ./gradlew :app:assembleDebug -x test
+      - name: Verify tests, lint, and debug APK
+        run: |
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          ./gradlew --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
@@ -66,11 +68,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
-        with:
-          gradle-version: '9.5.0'
 
       - name: Decode release keystore
         env:

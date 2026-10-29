@@ -1,17 +1,18 @@
 package com.axenvoir.expira
 
 import android.content.Context
-import java.io.PrintWriter
-import java.io.StringWriter
 
 object CrashReporter {
 
     fun install(context: Context) {
         val previousHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            val stringWriter = StringWriter()
-            throwable.printStackTrace(PrintWriter(stringWriter))
-            val stackTrace = stringWriter.toString()
+            val stackTrace = buildString {
+                appendLine("type=${throwable::class.java.name}")
+                throwable.stackTrace.take(40).forEach { frame ->
+                    appendLine("at ${frame.className}.${frame.methodName}(${frame.fileName}:${frame.lineNumber})")
+                }
+            }
             runCatching {
                 val crashFile = java.io.File(context.cacheDir, "crash_last.txt")
                 crashFile.writeText(stackTrace.take(8000))

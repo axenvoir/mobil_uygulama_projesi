@@ -98,7 +98,7 @@ fun NoteEditScreen(
                 viewModel.consumeEditRecordMissing()
             },
             title = { Text(stringResource(R.string.edit_record_missing_title)) },
-            text = { Text(stringResource(R.string.edit_record_missing_message)) },
+            text = { Text(stringResource(R.string.note_edit_record_missing_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -106,13 +106,13 @@ fun NoteEditScreen(
                         viewModel.consumeEditRecordMissing()
                         onNavigateToAdd()
                     },
-                ) { Text(stringResource(R.string.yes)) }
+                ) { Text(stringResource(R.string.create_new_note)) }
             },
             dismissButton = {
                 TextButton(onClick = {
                     showEditRecordMissingDialog = false
                     viewModel.consumeEditRecordMissing()
-                }) { Text(stringResource(R.string.no)) }
+                }) { Text(stringResource(R.string.cancel_action)) }
             },
         )
     }
@@ -142,7 +142,9 @@ fun NoteEditScreen(
                     IconButton(onClick = { viewModel.onPinnedChange(!isPinned) }) {
                         Icon(
                             imageVector = if (isPinned) Icons.Filled.Star else Icons.Outlined.Star,
-                            contentDescription = stringResource(R.string.pin),
+                            contentDescription = stringResource(
+                                if (isPinned) R.string.unpin else R.string.pin
+                            ),
                             tint = if (isPinned) {
                                 MaterialTheme.colorScheme.primary
                             } else {

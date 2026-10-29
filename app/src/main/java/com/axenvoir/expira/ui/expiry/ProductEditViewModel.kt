@@ -140,7 +140,7 @@ class ProductEditViewModel @Inject constructor(
                     expiryDate.value = product.expiryDate
                     storageLocation.value = product.storageLocation
                 } else {
-                    error.value = ProductEditError.Generic
+                    _editRecordMissing.value = true
                 }
                 loaded.value = true
             }
@@ -177,6 +177,7 @@ class ProductEditViewModel @Inject constructor(
 
     fun save() {
         if (_isSaving.value || _saved.value) return
+        error.value = null
         val trimmedName = name.value.trim()
         val quantity = quantityText.value.toIntOrNull() ?: 0
         val date = expiryDate.value

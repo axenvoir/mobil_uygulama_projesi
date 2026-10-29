@@ -78,6 +78,8 @@ class NoteEditViewModel @Inject constructor(
                     _title.value = note.title
                     _content.value = note.content
                     _isPinned.value = note.isPinned
+                } else {
+                    _editRecordMissing.value = true
                 }
             }
         } else {

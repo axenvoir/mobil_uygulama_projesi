@@ -49,7 +49,7 @@ class BillingRepositoryImpl @Inject constructor(
     }
 
     override fun refreshEntitlements() {
-        // Re-query purchases
+        billingManager.refreshPurchases()
     }
 
     override suspend fun purchaseSupporter(activity: Activity): Boolean {
@@ -73,7 +73,8 @@ class BillingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun restorePurchases(): Boolean {
+        val wasConnected = billingManager.connectionState.value
         billingManager.refreshPurchases()
-        return true
+        return wasConnected
     }
 }

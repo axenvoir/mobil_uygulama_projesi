@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -68,7 +67,6 @@ fun NoteListScreen(
     val query by viewModel.query.collectAsStateWithLifecycle()
     val event by viewModel.events.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    var isRefreshing by remember { mutableStateOf(false) }
     var notePendingDelete by remember { mutableStateOf<Note?>(null) }
     val errorText = stringResource(R.string.error_generic)
     val listState = rememberLazyListState()
@@ -113,15 +111,7 @@ fun NoteListScreen(
             }
         },
     ) { innerPadding ->
-        androidx.compose.material3.pulltorefresh.PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = {
-                isRefreshing = true
-                scope.launch {
-                    kotlinx.coroutines.delay(800)
-                    isRefreshing = false
-                }
-            },
+        androidx.compose.foundation.layout.Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
@@ -140,6 +130,13 @@ fun NoteListScreen(
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         placeholder = { Text(stringResource(R.string.search_notes)) },
                         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.search_notes)) },
+                        trailingIcon = if (query.isNotBlank()) {
+                            {
+                                IconButton(onClick = { viewModel.onQueryChange("") }) {
+                                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.clear_notes_search))
+                                }
+                            }
+                        } else null,
                         singleLine = true,
                         shape = MaterialTheme.shapes.extraLarge,
                     )
@@ -155,7 +152,7 @@ fun NoteListScreen(
                                     icon = Icons.Filled.Search,
                                     iconContentDescription = stringResource(R.string.search_notes),
                                     title = stringResource(R.string.empty_notes_search),
-                                    subtitle = "",
+                                    subtitle = stringResource(R.string.empty_notes_search_subtitle),
                                 )
                             } else {
                                 ExpiraEmptyState(
@@ -247,11 +244,11 @@ fun NoteListScreen(
                         }
                         notePendingDelete = null
                     },
-                ) { Text(stringResource(R.string.yes)) }
+                ) { Text(stringResource(R.string.delete_action)) }
             },
             dismissButton = {
                 TextButton(onClick = { notePendingDelete = null }) {
-                    Text(stringResource(R.string.no))
+                    Text(stringResource(R.string.cancel_action))
                 }
             },
         )
@@ -305,12 +302,12 @@ private fun NoteCard(
                     if (note.isPinned) {
                         Icon(
                             Icons.Filled.Star,
-                            contentDescription = stringResource(R.string.pin),
+                            contentDescription = stringResource(R.string.unpin),
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     } else {
                         Icon(
-                            Icons.Outlined.FavoriteBorder,
+                            Icons.Filled.Star,
                             contentDescription = stringResource(R.string.pin),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

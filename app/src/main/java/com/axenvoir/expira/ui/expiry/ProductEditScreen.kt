@@ -105,7 +105,6 @@ fun ProductEditScreen(
         }
         if (message != null) {
             snackbarHostState.showSnackbar(message)
-            viewModel.consumeError()
         }
     }
 
@@ -176,6 +175,10 @@ fun ProductEditScreen(
                     modifier = Modifier.weight(5f),
                     label = { Text(stringResource(R.string.product_name)) },
                     placeholder = { Text(stringResource(R.string.name_placeholder)) },
+                    isError = uiState.error is ProductEditError.EmptyName,
+                    supportingText = if (uiState.error is ProductEditError.EmptyName) {
+                        { Text(emptyNameText) }
+                    } else null,
                     singleLine = true,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                         imeAction = androidx.compose.ui.text.input.ImeAction.Next,
@@ -186,7 +189,15 @@ fun ProductEditScreen(
                     onValueChange = viewModel::onQuantityChange,
                     modifier = Modifier.weight(2f),
                     label = { Text(stringResource(R.string.quantity)) },
+                    isError = uiState.error is ProductEditError.InvalidQuantity,
+                    supportingText = if (uiState.error is ProductEditError.InvalidQuantity) {
+                        { Text(invalidQuantityText) }
+                    } else null,
                     singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
+                        imeAction = androidx.compose.ui.text.input.ImeAction.Next,
+                    ),
                 )
             }
             Text(
@@ -214,6 +225,13 @@ fun ProductEditScreen(
                     label = { Text(stringResource(R.string.new_category)) },
                     singleLine = true,
                 )
+                if (uiState.error is ProductEditError.MissingCategory) {
+                    Text(
+                        text = missingCategoryText,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
             Text(
                 text = stringResource(R.string.storage_location),
@@ -253,6 +271,13 @@ fun ProductEditScreen(
                     ) ?: stringResource(R.string.pick_date)
                 )
             }
+            if (uiState.error is ProductEditError.MissingExpiryDate) {
+                Text(
+                    text = missingDateText,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
         }
     }
 
@@ -290,7 +315,7 @@ fun ProductEditScreen(
                         showPastDateWarning = false
                         pendingPastDate = null
                     },
-                ) { Text(stringResource(R.string.yes)) }
+                ) { Text(stringResource(R.string.save)) }
             },
             dismissButton = {
                 TextButton(
@@ -298,7 +323,7 @@ fun ProductEditScreen(
                         showPastDateWarning = false
                         pendingPastDate = null
                     },
-                ) { Text(stringResource(R.string.no)) }
+                ) { Text(stringResource(R.string.cancel_action)) }
             },
         )
     }
@@ -310,7 +335,7 @@ fun ProductEditScreen(
                 viewModel.consumeEditRecordMissing()
             },
             title = { Text(stringResource(R.string.edit_record_missing_title)) },
-            text = { Text(stringResource(R.string.edit_record_missing_message)) },
+            text = { Text(stringResource(R.string.product_edit_record_missing_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -318,13 +343,13 @@ fun ProductEditScreen(
                         viewModel.consumeEditRecordMissing()
                         onNavigateToAdd()
                     },
-                ) { Text(stringResource(R.string.yes)) }
+                ) { Text(stringResource(R.string.create_new_product)) }
             },
             dismissButton = {
                 TextButton(onClick = {
                     showEditRecordMissingDialog = false
                     viewModel.consumeEditRecordMissing()
-                }) { Text(stringResource(R.string.no)) }
+                }) { Text(stringResource(R.string.cancel_action)) }
             },
         )
     }

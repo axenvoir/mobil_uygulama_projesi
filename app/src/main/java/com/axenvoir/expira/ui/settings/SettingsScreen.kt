@@ -53,6 +53,7 @@ fun SettingsScreen(
     billingViewModel: BillingViewModel = hiltViewModel(),
 ) {
     val selected by viewModel.current.collectAsStateWithLifecycle()
+    val restoreResult by billingViewModel.restoreResult.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = androidx.compose.ui.platform.LocalContext.current
     val exportDoneMessage = stringResource(R.string.export_done)
@@ -60,7 +61,15 @@ fun SettingsScreen(
     val testNotificationSentMessage = stringResource(R.string.test_notification_sent)
     val notificationsBlockedMessage = stringResource(R.string.notifications_blocked)
     val openSettingsLabel = stringResource(R.string.open_settings)
+    val restoreSuccessMessage = stringResource(R.string.restore_success)
+    val restoreUnavailableMessage = stringResource(R.string.restore_unavailable)
     val scope = androidx.compose.runtime.rememberCoroutineScope()
+    androidx.compose.runtime.LaunchedEffect(restoreResult) {
+        restoreResult?.let { success ->
+            snackbarHostState.showSnackbar(if (success) restoreSuccessMessage else restoreUnavailableMessage)
+            billingViewModel.consumeRestoreResult()
+        }
+    }
     val showNotificationResult: (Boolean) -> Unit = { sent ->
         scope.launch {
             val result = snackbarHostState.showSnackbar(

@@ -90,7 +90,6 @@ fun ProductListScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    var isRefreshing by remember { mutableStateOf(false) }
     var productPendingDelete by remember { mutableStateOf<Product?>(null) }
     var productDetail by remember { mutableStateOf<Product?>(null) }
     val errorText = stringResource(R.string.error_generic)
@@ -154,15 +153,7 @@ fun ProductListScreen(
             }
         },
     ) { innerPadding ->
-        androidx.compose.material3.pulltorefresh.PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = {
-                isRefreshing = true
-                scope.launch {
-                    kotlinx.coroutines.delay(800)
-                    isRefreshing = false
-                }
-            },
+        androidx.compose.foundation.layout.Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
@@ -281,7 +272,9 @@ fun ProductListScreen(
                                 ExpiraEmptyState(
                                     icon = Icons.Filled.Search,
                                     title = stringResource(R.string.empty_search),
-                                    subtitle = "",
+                                    subtitle = stringResource(R.string.empty_search_subtitle),
+                                    actionLabel = stringResource(R.string.clear_search),
+                                    onAction = { viewModel.onQueryChange("") },
                                 )
                             } else {
                                 ExpiraEmptyState(
@@ -450,11 +443,11 @@ fun ProductListScreen(
                         }
                         productPendingDelete = null
                     },
-                ) { Text(stringResource(R.string.yes)) }
+                ) { Text(stringResource(R.string.delete_action)) }
             },
             dismissButton = {
                 TextButton(onClick = { productPendingDelete = null }) {
-                    Text(stringResource(R.string.no))
+                    Text(stringResource(R.string.cancel_action))
                 }
             },
         )

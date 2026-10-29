@@ -39,7 +39,12 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         ) {
             ProductEditScreen(
                 onBack = { navController.popBackStack() },
-                onNavigateToAdd = { navController.navigate(Screen.AddProduct.route) },
+                onNavigateToAdd = {
+                    navController.navigate(Screen.AddProduct.route) {
+                        popUpTo(Screen.EditProduct.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
             )
         }
         composable(Screen.NoteList.route) {
@@ -61,7 +66,12 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         ) {
             NoteEditScreen(
                 onBack = { navController.popBackStack() },
-                onNavigateToAdd = { navController.navigate(Screen.AddNote.route) },
+                onNavigateToAdd = {
+                    navController.navigate(Screen.AddNote.route) {
+                        popUpTo(Screen.EditNote.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
             )
         }
         composable(Screen.Settings.route) {
