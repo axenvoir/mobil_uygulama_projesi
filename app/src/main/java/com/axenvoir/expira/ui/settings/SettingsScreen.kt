@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
@@ -156,6 +159,12 @@ fun SettingsScreen(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.notifications_section)) {
+                    Text(
+                        text = stringResource(R.string.notifications_description),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
                     FilledTonalButton(
                         onClick = {
                             if (
@@ -177,16 +186,17 @@ fun SettingsScreen(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.data_section)) {
+                    Text(
+                        text = stringResource(R.string.data_export_description),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
                     FilledTonalButton(
                         onClick = { exportLauncher.launch("expira-verileri.csv") },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.export_csv)) }
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.export_csv_description),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.support_section)) {
@@ -437,10 +447,16 @@ private fun LanguageOption(label: String, isSelected: Boolean, onClick: () -> Un
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
+            .clip(MaterialTheme.shapes.medium)
+            .background(
+                if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)
+                else MaterialTheme.colorScheme.surface,
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RadioButton(selected = isSelected, onClick = onClick)
+        RadioButton(selected = isSelected, onClick = null)
         Text(text = label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 4.dp))
     }
 }

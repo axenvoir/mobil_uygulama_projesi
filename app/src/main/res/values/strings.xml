@@ -89,6 +89,7 @@
     <string name="empty_search_subtitle">Aramanızı değiştirin veya temizleyin.</string>
     <string name="days_short">gün</string>
     <string name="notifications_section">Bildirimler</string>
+    <string name="notifications_description">Son kullanma tarihi yaklaşan ürünleri kaçırmamak için test bildirimi gönderebilirsiniz.</string>
     <string name="about_section">Hakkında</string>
     <string name="support_section">Destek Ol</string>
     <string name="support_description">Expira’yı geliştirmemize yardımcı olun. Premium özellikler ve reklamsız deneyim için destek olun.</string>
@@ -130,10 +131,10 @@
     <string name="days_passed_short">gün geçti</string>
     <string name="eat_first">Önce bunları tüket</string>
     <string name="export_csv">Verileri CSV olarak dışa aktar</string>
-    <string name="export_csv_description">Bu dosya dışa aktarımdır; uygulama CSV dosyasından geri yükleme yapmaz.</string>
     <string name="export_done">Dışa aktarıldı</string>
     <string name="export_failed">Dışa aktarma başarısız</string>
     <string name="data_section">Veriler</string>
+    <string name="data_export_description">Ürün ve not verilerinizi CSV dosyası olarak dışa aktarabilirsiniz. Bu dosya uygulamaya geri yüklenemez.</string>
     <string name="storage_location">Depolama yeri</string>
     <string name="location_fridge">Buzdolabı</string>
     <string name="location_pantry">Kiler</string>
