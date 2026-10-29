@@ -229,50 +229,60 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.height(10.dp))
                     }
                     if (tier == UserTier.FREE) {
-                        FilledTonalButton(
+                        SupportPlanCard(
+                            tier = stringResource(R.string.support_tier_supporter),
+                            period = stringResource(R.string.support_plan_monthly),
+                            price = supporterPrice ?: stringResource(R.string.billing_price_unavailable),
                             enabled = !purchaseInProgress && supporterPrice != null,
                             onClick = {
                                 val activity = context as? android.app.Activity
                                 if (activity != null) billingViewModel.purchaseSupporter(activity)
                             },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { Text("${stringResource(R.string.support_tier_supporter)} (${stringResource(R.string.support_plan_monthly)})\n${supporterPrice ?: stringResource(R.string.billing_price_unavailable)}") }
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
-                        FilledTonalButton(
+                        SupportPlanCard(
+                            tier = stringResource(R.string.support_tier_supporter),
+                            period = stringResource(R.string.support_plan_yearly),
+                            price = supporterYearlyPrice ?: stringResource(R.string.billing_price_unavailable),
                             enabled = !purchaseInProgress && supporterYearlyPrice != null,
                             onClick = {
                                 val activity = context as? android.app.Activity
                                 if (activity != null) billingViewModel.purchaseSupporterYearly(activity)
                             },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { Text("${stringResource(R.string.support_tier_supporter)} (${stringResource(R.string.support_plan_yearly)})\n${supporterYearlyPrice ?: stringResource(R.string.billing_price_unavailable)}") }
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
-                        FilledTonalButton(
+                        SupportPlanCard(
+                            tier = stringResource(R.string.support_tier_premium),
+                            period = stringResource(R.string.support_plan_monthly),
+                            price = premiumPrice ?: stringResource(R.string.billing_price_unavailable),
                             enabled = !purchaseInProgress && premiumPrice != null,
                             onClick = {
                                 val activity = context as? android.app.Activity
                                 if (activity != null) billingViewModel.purchasePremium(activity)
                             },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { Text("${stringResource(R.string.support_tier_premium)} (${stringResource(R.string.support_plan_monthly)})\n${premiumPrice ?: stringResource(R.string.billing_price_unavailable)}") }
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
-                        FilledTonalButton(
+                        SupportPlanCard(
+                            tier = stringResource(R.string.support_tier_premium),
+                            period = stringResource(R.string.support_plan_yearly),
+                            price = premiumYearlyPrice ?: stringResource(R.string.billing_price_unavailable),
                             enabled = !purchaseInProgress && premiumYearlyPrice != null,
                             onClick = {
                                 val activity = context as? android.app.Activity
                                 if (activity != null) billingViewModel.purchasePremiumYearly(activity)
                             },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { Text("${stringResource(R.string.support_tier_premium)} (${stringResource(R.string.support_plan_yearly)})\n${premiumYearlyPrice ?: stringResource(R.string.billing_price_unavailable)}") }
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
-                        FilledTonalButton(
+                        SupportPlanCard(
+                            tier = stringResource(R.string.support_tier_lifetime),
+                            period = stringResource(R.string.support_plan_one_time),
+                            price = lifetimePrice ?: stringResource(R.string.billing_price_unavailable),
                             enabled = !purchaseInProgress && lifetimePrice != null,
                             onClick = {
                                 val activity = context as? android.app.Activity
                                 if (activity != null) billingViewModel.purchaseLifetime(activity)
                             },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { Text("${stringResource(R.string.support_tier_lifetime)} (${stringResource(R.string.support_plan_one_time)})\n${lifetimePrice ?: stringResource(R.string.billing_price_unavailable)}") }
+                        )
                     } else {
                         Text(
                             text = stringResource(R.string.support_thanks),
@@ -337,6 +347,59 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SupportPlanCard(
+    tier: String,
+    period: String,
+    price: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+        shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant,
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = tier,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = period,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = price,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            FilledTonalButton(
+                onClick = onClick,
+                enabled = enabled,
+            ) {
+                Text(stringResource(R.string.support_plan_cta))
             }
         }
     }

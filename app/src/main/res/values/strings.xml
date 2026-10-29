@@ -98,6 +98,7 @@
     <string name="support_plan_monthly">Aylık</string>
     <string name="support_plan_yearly">Yıllık</string>
     <string name="support_plan_one_time">Tek seferlik</string>
+    <string name="support_plan_cta">Seç</string>
     <string name="support_restore">Satın alımları geri yükle</string>
     <string name="restore_success">Satın alımlar kontrol edildi.</string>
     <string name="restore_unavailable">Satın alımlar şu anda kontrol edilemiyor.</string>

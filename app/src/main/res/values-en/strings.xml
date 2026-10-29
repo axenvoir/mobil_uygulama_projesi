@@ -139,6 +139,7 @@
     <string name="support_plan_monthly">Monthly</string>
     <string name="support_plan_yearly">Yearly</string>
     <string name="support_plan_one_time">One-time</string>
+    <string name="support_plan_cta">Choose</string>
     <string name="support_restore">Restore purchases</string>
     <string name="restore_success">Purchases checked.</string>
     <string name="restore_unavailable">Purchases cannot be checked right now.</string>
