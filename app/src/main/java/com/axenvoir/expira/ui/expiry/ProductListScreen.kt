@@ -37,7 +37,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -472,35 +471,50 @@ private fun SummaryCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 8.dp),
-        ) {
-            SummaryItem(
-                count = freshCount,
-                label = stringResource(R.string.status_fresh),
-                color = FreshGreenDot,
-                fraction = if (totalCount > 0) freshCount.toFloat() / totalCount else 0f,
-                modifier = Modifier.weight(1f),
-                onClick = { onStatusClick(ExpiryStatus.FRESH) },
-            )
-            SummaryItem(
-                count = expiringCount,
-                label = stringResource(R.string.status_expiring_soon),
-                color = WarningOrangeDot,
-                fraction = if (totalCount > 0) expiringCount.toFloat() / totalCount else 0f,
-                modifier = Modifier.weight(1f),
-                onClick = { onStatusClick(ExpiryStatus.EXPIRING_SOON) },
-            )
-            SummaryItem(
-                count = expiredCount,
-                label = stringResource(R.string.status_expired),
-                color = ExpiredRedDot,
-                fraction = if (totalCount > 0) expiredCount.toFloat() / totalCount else 0f,
-                modifier = Modifier.weight(1f),
-                onClick = { onStatusClick(ExpiryStatus.EXPIRED) },
-            )
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.product_summary_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = stringResource(R.string.product_summary_total, totalCount),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(modifier = Modifier.fillMaxWidth()) {
+                SummaryItem(
+                    count = freshCount,
+                    label = stringResource(R.string.status_fresh),
+                    color = FreshGreenDot,
+                    fraction = if (totalCount > 0) freshCount.toFloat() / totalCount else 0f,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onStatusClick(ExpiryStatus.FRESH) },
+                )
+                SummaryItem(
+                    count = expiringCount,
+                    label = stringResource(R.string.status_expiring_soon),
+                    color = WarningOrangeDot,
+                    fraction = if (totalCount > 0) expiringCount.toFloat() / totalCount else 0f,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onStatusClick(ExpiryStatus.EXPIRING_SOON) },
+                )
+                SummaryItem(
+                    count = expiredCount,
+                    label = stringResource(R.string.status_expired),
+                    color = ExpiredRedDot,
+                    fraction = if (totalCount > 0) expiredCount.toFloat() / totalCount else 0f,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onStatusClick(ExpiryStatus.EXPIRED) },
+                )
+            }
         }
     }
 }
@@ -579,7 +593,7 @@ private fun FilterRow(
             onClick = { onFilterChange(ProductFilter.ALL) },
             label = { Text(stringResource(R.string.all)) },
             shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
-            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer),
+            colors = com.axenvoir.expira.ui.components.expiraChipColors(),
         )
         FilterChip(
             selected = selected == ProductFilter.FRESH,
@@ -588,7 +602,7 @@ private fun FilterRow(
             leadingIcon = { com.axenvoir.expira.ui.components.ExpiraStatusDot(FreshGreenDot) },
             trailingIcon = if (freshBadge > 0) trailingBadge(freshBadge) else null,
             shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
-            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer),
+            colors = com.axenvoir.expira.ui.components.expiraChipColors(),
         )
         FilterChip(
             selected = selected == ProductFilter.EXPIRING_SOON,
@@ -597,7 +611,7 @@ private fun FilterRow(
             leadingIcon = { com.axenvoir.expira.ui.components.ExpiraStatusDot(WarningOrangeDot) },
             trailingIcon = if (soonBadge > 0) trailingBadge(soonBadge) else null,
             shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
-            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer),
+            colors = com.axenvoir.expira.ui.components.expiraChipColors(),
         )
         FilterChip(
             selected = selected == ProductFilter.EXPIRED,
@@ -606,7 +620,7 @@ private fun FilterRow(
             leadingIcon = { com.axenvoir.expira.ui.components.ExpiraStatusDot(ExpiredRedDot) },
             trailingIcon = if (expiredBadge > 0) trailingBadge(expiredBadge) else null,
             shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
-            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer),
+            colors = com.axenvoir.expira.ui.components.expiraChipColors(),
         )
     }
 }
@@ -657,11 +671,15 @@ private fun ProductCard(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
-        shape = MaterialTheme.shapes.medium,
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp, pressedElevation = 6.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp, pressedElevation = 3.dp),
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant,
+        ),
     ) {
         Row(
             modifier = Modifier
@@ -709,13 +727,29 @@ private fun ProductCard(
                     )
                 }
                 Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = product.expiryDate.format(
-                        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = product.expiryDate.format(
+                            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = statusLabel(status),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = statusColor(status),
+                        modifier = Modifier
+                            .background(
+                                color = statusColor(status).copy(alpha = 0.12f),
+                                shape = MaterialTheme.shapes.small,
+                            )
+                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                    )
+                }
             }
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,

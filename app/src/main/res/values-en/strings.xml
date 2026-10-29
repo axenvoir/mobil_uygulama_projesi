@@ -4,6 +4,8 @@
     <string name="tab_expiry">Products</string>
     <string name="tab_notes">My Notes</string>
     <string name="expiry_list_title">Expiry Dates</string>
+    <string name="product_summary_title">Product status</string>
+    <string name="product_summary_total">%1$d products</string>
     <string name="notes_list_title">My Notes</string>
     <string name="notes_filter_all">All</string>
     <string name="notes_filter_pinned">Pinned</string>
@@ -15,6 +17,7 @@
     <string name="add_note">Add Note</string>
     <string name="edit_note">Edit Note</string>
     <string name="product_name">Product name</string>
+    <string name="product_basic_info">Basic information</string>
     <string name="category">Category</string>
     <string name="expiry_date">Expiry date</string>
     <string name="quantity">Quantity</string>

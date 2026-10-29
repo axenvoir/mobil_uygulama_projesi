@@ -4,6 +4,8 @@
     <string name="tab_expiry">Ürünler</string>
     <string name="tab_notes">Notlarım</string>
     <string name="expiry_list_title">Son Kullanma Tarihleri</string>
+    <string name="product_summary_title">Ürün durumu</string>
+    <string name="product_summary_total">%1$d ürün</string>
     <string name="notes_list_title">Notlarım</string>
     <string name="notes_filter_all">Tümü</string>
     <string name="notes_filter_pinned">Sabitlenenler</string>
@@ -15,6 +17,7 @@
     <string name="add_note">Not Ekle</string>
     <string name="edit_note">Notu Düzenle</string>
     <string name="product_name">Ürün adı</string>
+    <string name="product_basic_info">Temel bilgiler</string>
     <string name="category">Kategori</string>
     <string name="expiry_date">Son kullanma tarihi</string>
     <string name="quantity">Adet</string>

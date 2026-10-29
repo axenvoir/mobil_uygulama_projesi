@@ -133,7 +133,7 @@ fun ProductEditScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            Surface(color = MaterialTheme.colorScheme.background) {
+            Surface(color = MaterialTheme.colorScheme.surface) {
                 Button(
                     onClick = viewModel::save,
                     modifier = Modifier
@@ -165,6 +165,11 @@ fun ProductEditScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            Text(
+                text = stringResource(R.string.product_basic_info),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
             androidx.compose.foundation.layout.Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth(),
