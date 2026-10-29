@@ -17,11 +17,11 @@ Static review of the Android app source and release configuration. The app has 5
 - Release builds enable code minification and resource shrinking.
 - Google Play Billing is on version 8.3.0. Subscription purchases pass an available offer token, and entitlement refresh queries both subscriptions and one-time products.
 - The original Room database name, `skt_plus.db`, is retained for existing local data.
-- CI runs unit tests, Android lint, and a debug build.
+- CI currently builds a debug APK but does not run unit tests or Android lint.
 - Default category labels are localized at display time; notification permission is requested only after a user action in notification settings.
 
 ## Remaining limitations
 
-- Automated coverage is limited to domain/model tests; billing, database migrations, repositories, WorkManager, and UI flows still need focused tests.
+- Automated coverage is limited to domain/model tests; billing, database migrations, repositories, WorkManager, and UI flows still need focused tests. The CI workflow should also be updated to run its existing unit tests and Android lint task.
 - CSV export is one-way; the app does not yet import or restore from an exported file.
 - A release build and Play Billing purchase flow should be verified in an Android SDK/Play test environment before publishing.

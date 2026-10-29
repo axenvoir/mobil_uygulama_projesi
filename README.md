@@ -27,7 +27,13 @@ Use Android Studio with Java 17, or build a debug APK with the included Gradle w
 ./gradlew :app:assembleDebug
 ```
 
-The GitHub Actions verification workflow runs unit tests, Android lint, and a debug build for pull requests and updates to `main`. Dependabot checks Gradle and GitHub Actions dependencies weekly and opens update pull requests.
+Run the available unit tests and Android lint locally with:
+
+```sh
+./gradlew :app:testDebugUnitTest :app:lintDebug
+```
+
+The current GitHub Actions verification workflow builds a debug APK but does not yet run tests or Android lint. Dependabot checks Gradle and GitHub Actions dependencies weekly and opens update pull requests.
 
 ## Release signing
 
