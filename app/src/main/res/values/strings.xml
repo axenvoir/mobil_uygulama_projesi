@@ -80,9 +80,9 @@
     <string name="about_section">Hakkında</string>
     <string name="support_section">Destek Ol</string>
     <string name="support_description">Expira’yı geliştirmemize yardımcı olun. Premium özellikler ve reklamsız deneyim için destek olun.</string>
-    <string name="support_tier_supporter">Destekçi — Aylık plan</string>
-    <string name="support_tier_premium">Premium — Aylık plan</string>
-    <string name="support_tier_lifetime">Ömür Boyu — Tek seferlik</string>
+    <string name="support_tier_supporter">Destekçi</string>
+    <string name="support_tier_premium">Premium</string>
+    <string name="support_tier_lifetime">Ömür Boyu</string>
     <string name="support_restore">Satın alımları geri yükle</string>
     <string name="restore_success">Satın alımlar kontrol edildi.</string>
     <string name="restore_unavailable">Satın alımlar şu anda kontrol edilemiyor.</string>
@@ -135,4 +135,11 @@
     <string name="category_cosmetics">Kozmetik</string>
     <string name="category_cleaning">Temizlik</string>
     <string name="category_other">Diğer</string>
+    <string name="billing_loading">Satın alma hazırlanıyor…</string>
+    <string name="billing_success">Satın alma başarıyla tamamlandı.</string>
+    <string name="billing_cancelled">Satın alma iptal edildi.</string>
+    <string name="billing_pending">Satın alma beklemede. Google Play işlemi tamamladığında planınız güncellenecek.</string>
+    <string name="billing_unavailable">Bu ürün şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.</string>
+    <string name="billing_error">Satın alma başlatılamadı. Google Play bağlantınızı kontrol edip tekrar deneyin.</string>
+    <string name="billing_price_unavailable">Fiyat bilgisi yükleniyor</string>
 </resources>

@@ -121,9 +121,9 @@
     <string name="category_other">Other</string>
     <string name="support_section">Support Expira</string>
     <string name="support_description">Help us improve Expira. Support the app for premium features and an ad-free experience.</string>
-    <string name="support_tier_supporter">Supporter — ₺9.99/month</string>
-    <string name="support_tier_premium">Premium — ₺19.99/month</string>
-    <string name="support_tier_lifetime">Lifetime — ₺249.99</string>
+    <string name="support_tier_supporter">Supporter</string>
+    <string name="support_tier_premium">Premium</string>
+    <string name="support_tier_lifetime">Lifetime</string>
     <string name="support_restore">Restore purchases</string>
     <string name="restore_success">Purchases checked.</string>
     <string name="restore_unavailable">Purchases cannot be checked right now.</string>
@@ -135,4 +135,11 @@
     <string name="onboarding_icon_date_range">Expiry tracking</string>
     <string name="onboarding_icon_settings">Settings</string>
     <string name="onboarding_icon_edit">Edit</string>
+    <string name="billing_loading">Preparing purchase…</string>
+    <string name="billing_success">Purchase completed successfully.</string>
+    <string name="billing_cancelled">Purchase cancelled.</string>
+    <string name="billing_pending">Purchase pending. Your plan will update when Google Play completes the transaction.</string>
+    <string name="billing_unavailable">This product is currently unavailable. Please try again later.</string>
+    <string name="billing_error">Purchase could not be started. Check your Google Play connection and try again.</string>
+    <string name="billing_price_unavailable">Loading price</string>
 </resources>

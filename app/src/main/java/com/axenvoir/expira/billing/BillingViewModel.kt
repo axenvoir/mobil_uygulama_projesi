@@ -25,6 +25,12 @@ class BillingViewModel @Inject constructor(
     val isPremium: StateFlow<Boolean> = billingRepository.isPremium
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
+    val billingState: StateFlow<BillingState> = billingRepository.billingState
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BillingState())
+
+    val offers: StateFlow<List<BillingOffer>> = billingRepository.offers
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
     fun purchaseSupporter(activity: android.app.Activity) {
         viewModelScope.launch {
             billingRepository.purchaseSupporter(activity)

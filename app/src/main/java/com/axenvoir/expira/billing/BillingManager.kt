@@ -15,8 +15,11 @@ import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -43,6 +46,9 @@ class BillingManager @Inject constructor(
 
     private val _productDetails = MutableStateFlow<List<ProductDetails>>(emptyList())
     val productDetails: StateFlow<List<ProductDetails>> = _productDetails.asStateFlow()
+
+    private val _purchaseResults = MutableSharedFlow<PurchaseResult>(extraBufferCapacity = 1)
+    val purchaseResults: SharedFlow<PurchaseResult> = _purchaseResults.asSharedFlow()
 
     fun connect() {
         billingClient.startConnection(object : BillingClientStateListener {
@@ -88,7 +94,7 @@ class BillingManager @Inject constructor(
             if (allPurchases != null) {
                 val distinctPurchases = allPurchases.distinctBy { it.purchaseToken }
                 _purchases.value = distinctPurchases
-                acknowledgePurchases(distinctPurchases)
+                acknowledgePurchases(distinctPurchases.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED })
             }
         }
 
@@ -143,7 +149,7 @@ class BillingManager @Inject constructor(
         }
     }
 
-    fun launchPurchaseFlow(activity: Activity, productDetails: ProductDetails, offerToken: String? = null) {
+    fun launchPurchaseFlow(activity: Activity, productDetails: ProductDetails, offerToken: String? = null): BillingResult {
         val productDetailsParamsList = listOf(
             BillingFlowParams.ProductDetailsParams.newBuilder()
                 .setProductDetails(productDetails)
@@ -153,13 +159,23 @@ class BillingManager @Inject constructor(
         val billingFlowParams = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(productDetailsParamsList)
             .build()
-        billingClient.launchBillingFlow(activity, billingFlowParams)
+        return billingClient.launchBillingFlow(activity, billingFlowParams)
     }
 
     override fun onPurchasesUpdated(result: BillingResult, purchases: MutableList<Purchase>?) {
-        if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
-            _purchases.value = purchases
-            acknowledgePurchases(purchases)
+        when {
+            result.responseCode == BillingClient.BillingResponseCode.OK && !purchases.isNullOrEmpty() -> {
+                _purchases.value = purchases
+                acknowledgePurchases(purchases.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED })
+                val pending = purchases.any { it.purchaseState == Purchase.PurchaseState.PENDING }
+                _purchaseResults.tryEmit(if (pending) PurchaseResult.Pending else PurchaseResult.Success)
+            }
+            result.responseCode == BillingClient.BillingResponseCode.USER_CANCELED -> {
+                _purchaseResults.tryEmit(PurchaseResult.Cancelled)
+            }
+            else -> {
+                _purchaseResults.tryEmit(PurchaseResult.Error(result.responseCode))
+            }
         }
     }
 
@@ -181,4 +197,11 @@ class BillingManager @Inject constructor(
     fun getProductDetails(productId: String): ProductDetails? {
         return _productDetails.value.find { it.productId == productId }
     }
+}
+
+sealed interface PurchaseResult {
+    data object Success : PurchaseResult
+    data object Pending : PurchaseResult
+    data object Cancelled : PurchaseResult
+    data class Error(val responseCode: Int) : PurchaseResult
 }

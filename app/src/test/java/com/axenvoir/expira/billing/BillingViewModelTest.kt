@@ -58,6 +58,8 @@ class BillingViewModelTest {
     ) : BillingRepository {
         override val userTier = MutableStateFlow(UserTier.FREE)
         override val isPremium = MutableStateFlow(false)
+        override val billingState = MutableStateFlow(BillingState())
+        override val offers = MutableStateFlow(emptyList<BillingOffer>())
         private val result = restoreResult
 
         override fun refreshEntitlements() = Unit

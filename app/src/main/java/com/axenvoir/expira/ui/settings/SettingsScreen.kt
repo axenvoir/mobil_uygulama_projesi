@@ -40,6 +40,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.expira.BuildConfig
 import com.axenvoir.expira.R
+import com.axenvoir.expira.billing.BillingOperation
 import com.axenvoir.expira.billing.BillingViewModel
 import com.axenvoir.expira.billing.UserTier
 import com.axenvoir.expira.ui.components.expiraTopAppBarColors
@@ -54,6 +55,8 @@ fun SettingsScreen(
 ) {
     val selected by viewModel.current.collectAsStateWithLifecycle()
     val restoreResult by billingViewModel.restoreResult.collectAsStateWithLifecycle()
+    val billingState by billingViewModel.billingState.collectAsStateWithLifecycle()
+    val offers by billingViewModel.offers.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = androidx.compose.ui.platform.LocalContext.current
     val exportDoneMessage = stringResource(R.string.export_done)
@@ -63,12 +66,24 @@ fun SettingsScreen(
     val openSettingsLabel = stringResource(R.string.open_settings)
     val restoreSuccessMessage = stringResource(R.string.restore_success)
     val restoreUnavailableMessage = stringResource(R.string.restore_unavailable)
+    val billingMessage = when (billingState.operation) {
+        BillingOperation.LOADING -> stringResource(R.string.billing_loading)
+        BillingOperation.SUCCESS -> stringResource(R.string.billing_success)
+        BillingOperation.CANCELLED -> stringResource(R.string.billing_cancelled)
+        BillingOperation.PENDING -> stringResource(R.string.billing_pending)
+        BillingOperation.UNAVAILABLE -> stringResource(R.string.billing_unavailable)
+        BillingOperation.ERROR -> stringResource(R.string.billing_error)
+        BillingOperation.IDLE -> null
+    }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     androidx.compose.runtime.LaunchedEffect(restoreResult) {
         restoreResult?.let { success ->
             snackbarHostState.showSnackbar(if (success) restoreSuccessMessage else restoreUnavailableMessage)
             billingViewModel.consumeRestoreResult()
         }
+    }
+    androidx.compose.runtime.LaunchedEffect(billingState.operation, billingState.productId) {
+        if (billingMessage != null) snackbarHostState.showSnackbar(billingMessage)
     }
     val showNotificationResult: (Boolean) -> Unit = { sent ->
         scope.launch {
@@ -188,6 +203,10 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCard(title = stringResource(R.string.support_section)) {
                     val tier by billingViewModel.userTier.collectAsStateWithLifecycle()
+                    val purchaseInProgress = billingState.operation == BillingOperation.LOADING
+                    val supporterPrice = offers.firstOrNull { it.productId == "supporter_monthly" }?.formattedPrice
+                    val premiumPrice = offers.firstOrNull { it.productId == "premium_monthly" }?.formattedPrice
+                    val lifetimePrice = offers.firstOrNull { it.productId == "premium_lifetime" }?.formattedPrice
                     Text(
                         text = stringResource(R.string.support_description),
                         style = MaterialTheme.typography.bodyMedium,
@@ -196,28 +215,31 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                     if (tier == UserTier.FREE) {
                         FilledTonalButton(
+                            enabled = !purchaseInProgress,
                             onClick = {
                                 val activity = context as? android.app.Activity
                                 if (activity != null) billingViewModel.purchaseSupporter(activity)
                             },
                             modifier = Modifier.fillMaxWidth(),
-                        ) { Text(stringResource(R.string.support_tier_supporter)) }
+                        ) { Text("${stringResource(R.string.support_tier_supporter)} — ${supporterPrice ?: stringResource(R.string.billing_price_unavailable)}") }
                         Spacer(modifier = Modifier.height(8.dp))
                         FilledTonalButton(
+                            enabled = !purchaseInProgress,
                             onClick = {
                                 val activity = context as? android.app.Activity
                                 if (activity != null) billingViewModel.purchasePremium(activity)
                             },
                             modifier = Modifier.fillMaxWidth(),
-                        ) { Text(stringResource(R.string.support_tier_premium)) }
+                        ) { Text("${stringResource(R.string.support_tier_premium)} — ${premiumPrice ?: stringResource(R.string.billing_price_unavailable)}") }
                         Spacer(modifier = Modifier.height(8.dp))
                         FilledTonalButton(
+                            enabled = !purchaseInProgress,
                             onClick = {
                                 val activity = context as? android.app.Activity
                                 if (activity != null) billingViewModel.purchaseLifetime(activity)
                             },
                             modifier = Modifier.fillMaxWidth(),
-                        ) { Text(stringResource(R.string.support_tier_lifetime)) }
+                        ) { Text("${stringResource(R.string.support_tier_lifetime)} — ${lifetimePrice ?: stringResource(R.string.billing_price_unavailable)}") }
                     } else {
                         Text(
                             text = stringResource(R.string.support_thanks),
