@@ -13,8 +13,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.invisibleToUser
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.contentDescription as semanticsContentDescription
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
@@ -28,7 +28,7 @@ fun ExpiraStatusDot(
         modifier = modifier
             .size(size)
             .background(color, CircleShape)
-            .semantics { semanticsContentDescription = null },
+            .semantics { invisibleToUser() },
     )
 }
 

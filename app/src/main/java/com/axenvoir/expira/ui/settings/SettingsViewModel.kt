@@ -2,6 +2,7 @@ package com.axenvoir.expira.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.axenvoir.expira.ui.theme.ThemeMode
 import com.axenvoir.expira.ui.theme.ThemePreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
