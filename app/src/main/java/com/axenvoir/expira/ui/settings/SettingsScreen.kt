@@ -223,7 +223,7 @@ fun SettingsScreen(
                                 if (activity != null) billingViewModel.purchaseSupporter(activity)
                             },
                             modifier = Modifier.fillMaxWidth(),
-                        ) { Text("${stringResource(R.string.support_tier_supporter)} — ${supporterPrice ?: stringResource(R.string.billing_price_unavailable)}") }
+                        ) { Text("${stringResource(R.string.support_tier_supporter)} (${stringResource(R.string.support_plan_monthly)}) — ${supporterPrice ?: stringResource(R.string.billing_price_unavailable)}") }
                         Spacer(modifier = Modifier.height(8.dp))
                         FilledTonalButton(
                             enabled = !purchaseInProgress,
@@ -241,7 +241,7 @@ fun SettingsScreen(
                                 if (activity != null) billingViewModel.purchasePremium(activity)
                             },
                             modifier = Modifier.fillMaxWidth(),
-                        ) { Text("${stringResource(R.string.support_tier_premium)} — ${premiumPrice ?: stringResource(R.string.billing_price_unavailable)}") }
+                        ) { Text("${stringResource(R.string.support_tier_premium)} (${stringResource(R.string.support_plan_monthly)}) — ${premiumPrice ?: stringResource(R.string.billing_price_unavailable)}") }
                         Spacer(modifier = Modifier.height(8.dp))
                         FilledTonalButton(
                             enabled = !purchaseInProgress,
@@ -259,7 +259,7 @@ fun SettingsScreen(
                                 if (activity != null) billingViewModel.purchaseLifetime(activity)
                             },
                             modifier = Modifier.fillMaxWidth(),
-                        ) { Text("${stringResource(R.string.support_tier_lifetime)} — ${lifetimePrice ?: stringResource(R.string.billing_price_unavailable)}") }
+                        ) { Text("${stringResource(R.string.support_tier_lifetime)} (${stringResource(R.string.support_plan_one_time)}) — ${lifetimePrice ?: stringResource(R.string.billing_price_unavailable)}") }
                     } else {
                         Text(
                             text = stringResource(R.string.support_thanks),
