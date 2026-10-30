@@ -84,24 +84,22 @@ class CsvExporter @Inject constructor() {
     }
 
     private fun Writer.appendCsvRow(values: List<String>) {
-        append(values.joinToString(",", transform = ::escape))
+        append(values.joinToString(",", transform = ::escapeCsvField))
         append("\r\n")
     }
+}
 
-    private fun escape(value: String): String {
-        val spreadsheetSafe = if (value.firstOrNull { !it.isWhitespace() } in FORMULA_PREFIXES) {
-            "'$value"
-        } else {
-            value
-        }
-        return if (spreadsheetSafe.any { it == ',' || it == '"' || it == '\n' || it == '\r' }) {
-            "\"${spreadsheetSafe.replace("\"", "\"\"")}\""
-        } else {
-            spreadsheetSafe
-        }
+private val FORMULA_PREFIXES = setOf('=', '+', '-', '@')
+
+internal fun escapeCsvField(value: String): String {
+    val spreadsheetSafe = if (value.firstOrNull { !it.isWhitespace() } in FORMULA_PREFIXES) {
+        "'$value"
+    } else {
+        value
     }
-
-    private companion object {
-        val FORMULA_PREFIXES = setOf('=', '+', '-', '@')
+    return if (spreadsheetSafe.any { it == ',' || it == '"' || it == '\n' || it == '\r' }) {
+        "\"${spreadsheetSafe.replace("\"", "\"\"")}\""
+    } else {
+        spreadsheetSafe
     }
 }
