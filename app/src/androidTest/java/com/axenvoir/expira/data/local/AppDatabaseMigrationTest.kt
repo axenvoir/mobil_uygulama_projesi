@@ -23,6 +23,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class AppDatabaseMigrationTest {
     private lateinit var context: Context
+    private val migrationDatabaseName = "skt_plus_migration_test.db"
 
     @get:Rule
     val migrationTestHelper = MigrationTestHelper(
@@ -37,14 +38,14 @@ class AppDatabaseMigrationTest {
 
     @After
     fun tearDown() {
-        context.deleteDatabase(AppDatabase.NAME)
+        context.deleteDatabase(migrationDatabaseName)
     }
 
     @Test
     fun migration_1_to_3_preserves_data_and_schema() = runBlocking {
-        // Use the production database name so this models a restored Room file, not a
-        // separate test-only filename that could hide backup/restore naming mistakes.
-        migrationTestHelper.createDatabase(AppDatabase.NAME, 1).use { db ->
+        // Keep migration work isolated from the live Hilt database used by UI smoke tests.
+        // Room schema migrations do not depend on the physical database filename.
+        migrationTestHelper.createDatabase(migrationDatabaseName, 1).use { db ->
             db.execSQL("INSERT INTO categories(id, name, isDefault) VALUES (1, 'Gıda', 1)")
             db.execSQL(
                 "INSERT INTO products(id, name, categoryId, expiryEpochDay, quantity, createdAt) VALUES (7, 'Süt', 1, 30000, 2, 1234)"
@@ -55,7 +56,7 @@ class AppDatabaseMigrationTest {
         }
 
         migrationTestHelper.runMigrationsAndValidate(
-            AppDatabase.NAME,
+            migrationDatabaseName,
             3,
             true,
             AppDatabase.MIGRATION_1_2,
@@ -75,7 +76,7 @@ class AppDatabaseMigrationTest {
             }
         }
 
-        val db = Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.NAME)
+        val db = Room.databaseBuilder(context, AppDatabase::class.java, migrationDatabaseName)
             .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
             .build()
         try {
