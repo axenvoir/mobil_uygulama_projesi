@@ -30,14 +30,19 @@ class ReminderTimeChangeReceiverIntegrationTest {
                 WorkInfo.State.RUNNING,
                 WorkInfo.State.BLOCKED,
             )
-            val primary = workManager
-                .getWorkInfosForUniqueWork(ReminderWorker.UNIQUE_WORK_NAME)
-                .get(WORK_QUERY_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            val continuation = workManager
-                .getWorkInfosForUniqueWork(ReminderWorker.CONTINUATION_WORK_NAME)
-                .get(WORK_QUERY_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-
-            assertThat((primary + continuation).any { it.state in activeStates }).isTrue()
+            val deadlineNanos = System.nanoTime() + TimeUnit.SECONDS.toNanos(WORK_QUERY_TIMEOUT_SECONDS)
+            var hasActiveReminder = false
+            while (!hasActiveReminder && System.nanoTime() < deadlineNanos) {
+                val primary = workManager
+                    .getWorkInfosForUniqueWork(ReminderWorker.UNIQUE_WORK_NAME)
+                    .get(WORK_QUERY_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                val continuation = workManager
+                    .getWorkInfosForUniqueWork(ReminderWorker.CONTINUATION_WORK_NAME)
+                    .get(WORK_QUERY_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                hasActiveReminder = (primary + continuation).any { it.state in activeStates }
+                if (!hasActiveReminder) Thread.sleep(POLL_INTERVAL_MILLIS)
+            }
+            assertThat(hasActiveReminder).isTrue()
         } finally {
             cancelReminderWork(workManager)
         }
@@ -52,5 +57,6 @@ class ReminderTimeChangeReceiverIntegrationTest {
 
     private companion object {
         const val WORK_QUERY_TIMEOUT_SECONDS = 10L
+        const val POLL_INTERVAL_MILLIS = 50L
     }
 }

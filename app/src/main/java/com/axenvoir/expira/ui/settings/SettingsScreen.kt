@@ -1,11 +1,14 @@
 package com.axenvoir.expira.ui.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -15,11 +18,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -59,9 +65,14 @@ import com.axenvoir.expira.ads.AdSupportViewModel
 import com.axenvoir.expira.ads.RewardedAdState
 import com.axenvoir.expira.billing.BillingViewModel
 import com.axenvoir.expira.billing.UserTier
+import com.axenvoir.expira.domain.model.CosmeticPurchaseResult
+import com.axenvoir.expira.domain.model.SupportCosmeticCatalog
+import com.axenvoir.expira.domain.model.SupportWalletState
 import com.axenvoir.expira.ui.components.expiraTopAppBarColors
 import com.axenvoir.expira.ui.components.ExpiraSectionCard
+import com.axenvoir.expira.ui.theme.ExpiraPalettes
 import com.axenvoir.expira.ui.theme.ThemeMode
+import com.axenvoir.expira.ui.theme.expiraPalettePreviewColors
 import com.axenvoir.expira.ui.util.findActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,17 +85,24 @@ fun SettingsScreen(
 ) {
     val selected by viewModel.current.collectAsStateWithLifecycle()
     val isExporting by viewModel.isExporting.collectAsStateWithLifecycle()
+    val reminderHasTerminalFailure by viewModel.reminderHasTerminalFailure.collectAsStateWithLifecycle()
+    val isRetryingReminder by viewModel.isRetryingReminder.collectAsStateWithLifecycle()
+    val dynamicColor by viewModel.dynamicColor.collectAsStateWithLifecycle()
     val restoreResult by billingViewModel.restoreResult.collectAsStateWithLifecycle()
     val isCheckingPurchases by billingViewModel.isCheckingPurchases.collectAsStateWithLifecycle()
     val userTier by billingViewModel.userTier.collectAsStateWithLifecycle()
     val entitlementsChecked by billingViewModel.entitlementsChecked.collectAsStateWithLifecycle()
     val rewardedAdState by adSupportViewModel.rewardedAdState.collectAsStateWithLifecycle()
-    val supportPoints by adSupportViewModel.supportPoints.collectAsStateWithLifecycle()
+    val rewardSavePending by adSupportViewModel.rewardSavePending.collectAsStateWithLifecycle()
+    val supportWallet by viewModel.supportWallet.collectAsStateWithLifecycle()
+    val selectedPalette by viewModel.paletteId.collectAsStateWithLifecycle()
+    val pendingCosmeticId by viewModel.pendingCosmeticId.collectAsStateWithLifecycle()
     val privacyOptionsRequired by adSupportViewModel.privacyOptionsRequired.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = androidx.compose.ui.platform.LocalContext.current
     val resources = androidx.compose.ui.platform.LocalResources.current
     val adActivityUnavailableMessage = stringResource(R.string.support_ad_activity_unavailable)
+    val exportDefaultFilename = stringResource(R.string.export_default_filename)
     val exportDoneMessage = stringResource(R.string.export_done)
     val exportFailedMessage = stringResource(R.string.export_failed)
     val testNotificationSentMessage = stringResource(R.string.test_notification_sent)
@@ -94,6 +112,12 @@ fun SettingsScreen(
     val restoreUnavailableMessage = stringResource(R.string.restore_unavailable)
     val manageSubscriptionUnavailableMessage = stringResource(R.string.play_store_unavailable)
     val externalLinkUnavailableMessage = stringResource(R.string.external_link_unavailable)
+    val rewardSaveFailedMessage = stringResource(R.string.support_reward_save_failed)
+    val rewardRetryLabel = stringResource(R.string.support_reward_retry)
+    val cosmeticPurchasedMessage = stringResource(R.string.palette_unlocked)
+    val cosmeticInsufficientMessage = stringResource(R.string.palette_not_enough_points)
+    val cosmeticOwnedMessage = stringResource(R.string.palette_already_owned)
+    val cosmeticErrorMessage = stringResource(R.string.palette_unlock_failed)
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     fun withForegroundActivity(action: (android.app.Activity) -> Unit) {
         val activity = context.findActivity()
@@ -113,6 +137,29 @@ fun SettingsScreen(
                 amount,
                 amount,
             )
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+    androidx.compose.runtime.LaunchedEffect(resources, adSupportViewModel) {
+        adSupportViewModel.rewardSaveErrors.collect {
+            val result = snackbarHostState.showSnackbar(
+                message = rewardSaveFailedMessage,
+                actionLabel = rewardRetryLabel,
+                withDismissAction = true,
+            )
+            if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
+                adSupportViewModel.retryRewardSave()
+            }
+        }
+    }
+    androidx.compose.runtime.LaunchedEffect(viewModel, resources) {
+        viewModel.cosmeticPurchaseEvents.collect { result ->
+            val message = when (result) {
+                CosmeticPurchaseResult.PURCHASED -> cosmeticPurchasedMessage
+                CosmeticPurchaseResult.INSUFFICIENT_POINTS -> cosmeticInsufficientMessage
+                CosmeticPurchaseResult.ALREADY_OWNED -> cosmeticOwnedMessage
+                CosmeticPurchaseResult.UNKNOWN_ITEM -> cosmeticErrorMessage
+            }
             snackbarHostState.showSnackbar(message)
         }
     }
@@ -182,8 +229,8 @@ fun SettingsScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .widthIn(max = 720.dp)
+                    .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
             ) {
@@ -230,6 +277,34 @@ fun SettingsScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.test_notification)) }
+                    if (reminderHasTerminalFailure) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.reminder_worker_failed),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        FilledTonalButton(
+                            onClick = viewModel::retryReminderSchedule,
+                            enabled = !isRetryingReminder,
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                        ) {
+                            if (isRetryingReminder) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
+                            Text(
+                                stringResource(
+                                    if (isRetryingReminder) R.string.reminder_rescheduling
+                                    else R.string.reminder_retry_schedule,
+                                ),
+                            )
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 ExpiraSectionCard(title = stringResource(R.string.data_section)) {
@@ -240,7 +315,7 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     FilledTonalButton(
-                        onClick = { exportLauncher.launch("expira-verileri.csv") },
+                        onClick = { exportLauncher.launch(exportDefaultFilename) },
                         enabled = !isExporting,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
@@ -264,9 +339,11 @@ fun SettingsScreen(
                         entitlementsChecked = entitlementsChecked,
                         isCheckingPurchases = isCheckingPurchases,
                         rewardedAdState = rewardedAdState,
-                        supportPoints = supportPoints,
+                        rewardSavePending = rewardSavePending,
+                        wallet = supportWallet,
                         privacyOptionsRequired = privacyOptionsRequired,
                         onPrepareAd = { adSupportViewModel.prepareRewardedAd() },
+                        onRetryRewardSave = { adSupportViewModel.retryRewardSave() },
                         onRetryAd = { adSupportViewModel.retryRewardedAd() },
                         onShowAd = { withForegroundActivity(adSupportViewModel::showRewardedAd) },
                         onShowPrivacyOptions = {
@@ -309,13 +386,15 @@ fun SettingsScreen(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 ExpiraSectionCard(title = stringResource(R.string.appearance_section)) {
-                    val dynamicColor by viewModel.dynamicColor.collectAsStateWithLifecycle()
+                    val dynamicColorAvailable = android.os.Build.VERSION.SDK_INT >=
+                        android.os.Build.VERSION_CODES.S
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .toggleable(
                                 value = dynamicColor,
                                 onValueChange = viewModel::setDynamicColor,
+                                enabled = dynamicColorAvailable,
                                 role = Role.Switch,
                             )
                             .semantics(mergeDescendants = true) {},
@@ -335,6 +414,54 @@ fun SettingsScreen(
                         Switch(
                             checked = dynamicColor,
                             onCheckedChange = null,
+                            enabled = dynamicColorAvailable,
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                ExpiraSectionCard(title = stringResource(R.string.palette_shop_section)) {
+                    Text(
+                        text = stringResource(R.string.palette_shop_description),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PaletteShopItem(
+                        title = stringResource(R.string.palette_grove_name),
+                        description = stringResource(R.string.palette_grove_description),
+                        paletteId = ExpiraPalettes.GROVE,
+                        pointCost = null,
+                        owned = true,
+                        walletReady = supportWallet.isReady,
+                        spendablePoints = supportWallet.spendablePoints,
+                        selected = selectedPalette == ExpiraPalettes.GROVE && !dynamicColor,
+                        isPending = false,
+                        onClick = { viewModel.selectPalette(ExpiraPalettes.GROVE) },
+                    )
+                    SupportCosmeticCatalog.items.forEach { cosmetic ->
+                        val (titleRes, descriptionRes) = when (cosmetic.id) {
+                            SupportCosmeticCatalog.QUIET_DUSK_ID ->
+                                R.string.palette_quiet_dusk_name to R.string.palette_quiet_dusk_description
+                            SupportCosmeticCatalog.CITRUS_LEDGER_ID ->
+                                R.string.palette_citrus_ledger_name to R.string.palette_citrus_ledger_description
+                            else ->
+                                R.string.palette_berry_archive_name to R.string.palette_berry_archive_description
+                        }
+                        val owned = cosmetic.id in supportWallet.ownedCosmeticIds
+                        PaletteShopItem(
+                            title = stringResource(titleRes),
+                            description = stringResource(descriptionRes),
+                            paletteId = cosmetic.paletteId,
+                            pointCost = cosmetic.pointCost,
+                            owned = owned,
+                            walletReady = supportWallet.isReady,
+                            spendablePoints = supportWallet.spendablePoints,
+                            selected = selectedPalette == cosmetic.paletteId && !dynamicColor,
+                            isPending = pendingCosmeticId != null,
+                            onClick = {
+                                if (owned) viewModel.selectPalette(cosmetic.paletteId)
+                                else viewModel.purchaseCosmetic(cosmetic.id)
+                            },
                         )
                     }
                 }
@@ -394,9 +521,11 @@ private fun RewardedSupportSection(
     entitlementsChecked: Boolean,
     isCheckingPurchases: Boolean,
     rewardedAdState: RewardedAdState,
-    supportPoints: Int,
+    rewardSavePending: Boolean,
+    wallet: SupportWalletState,
     privacyOptionsRequired: Boolean,
     onPrepareAd: () -> Unit,
+    onRetryRewardSave: () -> Unit,
     onRetryAd: () -> Unit,
     onShowAd: () -> Unit,
     onShowPrivacyOptions: () -> Unit,
@@ -405,7 +534,7 @@ private fun RewardedSupportSection(
     onRefreshPurchases: () -> Unit,
     onManageSubscription: () -> Unit,
 ) {
-    if (supportPoints > 0) {
+    if (wallet.isReady) {
         Spacer(modifier = Modifier.height(8.dp))
         Surface(
             color = MaterialTheme.colorScheme.primaryContainer,
@@ -423,16 +552,30 @@ private fun RewardedSupportSection(
                 Text(
                     text = androidx.compose.ui.res.pluralStringResource(
                         R.plurals.support_points_total,
-                        supportPoints,
-                        supportPoints,
+                        wallet.spendablePoints,
+                        wallet.spendablePoints,
                     ),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = stringResource(R.string.palette_wallet_loading),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
-    if (supportPoints >= SUPPORTER_BADGE_POINTS) {
+    if (wallet.supporterBadgeUnlocked) {
         Spacer(modifier = Modifier.height(8.dp))
         Surface(
             color = MaterialTheme.colorScheme.tertiaryContainer,
@@ -461,7 +604,7 @@ private fun RewardedSupportSection(
             Text(
                 text = stringResource(
                     R.string.support_badge_progress,
-                    supportPoints.coerceAtLeast(0),
+                    wallet.lifetimeEarnedPoints.coerceAtLeast(0),
                 ),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -469,7 +612,7 @@ private fun RewardedSupportSection(
             Spacer(modifier = Modifier.height(6.dp))
             LinearProgressIndicator(
                 progress = {
-                    supportPoints.coerceIn(0, SUPPORTER_BADGE_POINTS).toFloat() /
+                    wallet.lifetimeEarnedPoints.coerceIn(0, SUPPORTER_BADGE_POINTS).toFloat() /
                         SUPPORTER_BADGE_POINTS
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -478,9 +621,24 @@ private fun RewardedSupportSection(
             )
         }
     }
+    if (rewardSavePending) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.support_reward_save_failed),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+        FilledTonalButton(
+            onClick = onRetryRewardSave,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+        ) {
+            Text(stringResource(R.string.support_reward_retry))
+        }
+    }
     Spacer(modifier = Modifier.height(12.dp))
 
     when {
+        rewardSavePending -> Unit
         userTier != UserTier.FREE -> {
             Text(
                 text = stringResource(R.string.support_thanks),
@@ -596,6 +754,128 @@ private fun RewardedSupportSection(
                 else R.string.support_restore,
             ),
         )
+    }
+}
+
+@Composable
+private fun PaletteShopItem(
+    title: String,
+    description: String,
+    paletteId: String,
+    pointCost: Int?,
+    owned: Boolean,
+    walletReady: Boolean,
+    spendablePoints: Int,
+    selected: Boolean,
+    isPending: Boolean,
+    onClick: () -> Unit,
+) {
+    val affordable = pointCost == null || spendablePoints >= pointCost
+    val actionLabel = when {
+        selected -> stringResource(R.string.palette_current)
+        isPending -> stringResource(R.string.palette_processing)
+        !owned && !walletReady -> stringResource(R.string.palette_wallet_loading)
+        owned -> stringResource(R.string.palette_apply)
+        else -> stringResource(R.string.palette_unlock)
+    }
+
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        ),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Surface(
+                    modifier = Modifier.size(width = 56.dp, height = 40.dp),
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        expiraPalettePreviewColors(paletteId).forEach { swatch ->
+                            Surface(
+                                modifier = Modifier.size(14.dp),
+                                shape = CircleShape,
+                                color = swatch,
+                            ) { }
+                        }
+                    }
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val compactCard = maxWidth < 420.dp
+                if (compactCard) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = if (pointCost == null) stringResource(R.string.palette_free)
+                            else stringResource(R.string.palette_cost, pointCost),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        FilledTonalButton(
+                            onClick = onClick,
+                            enabled = !selected && !isPending && (owned || (walletReady && affordable)),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                        ) {
+                            Text(actionLabel)
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            text = if (pointCost == null) stringResource(R.string.palette_free)
+                            else stringResource(R.string.palette_cost, pointCost),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        FilledTonalButton(
+                            onClick = onClick,
+                            enabled = !selected && !isPending && (owned || (walletReady && affordable)),
+                            modifier = Modifier.heightIn(min = 48.dp),
+                        ) {
+                            Text(actionLabel)
+                        }
+                    }
+                }
+            }
+            if (!owned && walletReady && pointCost != null && !affordable) {
+                Text(
+                    text = stringResource(R.string.palette_need_more_points),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 

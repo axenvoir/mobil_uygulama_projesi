@@ -31,8 +31,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.axenvoir.expira.R
 
@@ -63,6 +66,10 @@ fun OnboardingOverlay(
         ),
     )
     val page = pages[step]
+    val windowHeightPx = LocalWindowInfo.current.containerSize.height
+    val bodyMaxHeight = with(LocalDensity.current) { windowHeightPx.toDp() * 0.34f }
+        .coerceAtLeast(112.dp)
+        .coerceAtMost(240.dp)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -78,12 +85,19 @@ fun OnboardingOverlay(
                 }
             }
         },
-        title = { Text(stringResource(page.titleRes), fontWeight = FontWeight.SemiBold) },
+        title = {
+            Text(
+                text = stringResource(page.titleRes),
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
         text = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 320.dp)
+                    .heightIn(max = bodyMaxHeight)
                     .verticalScroll(rememberScrollState()),
             ) {
                 Row(
@@ -110,14 +124,20 @@ fun OnboardingOverlay(
             }
         },
         confirmButton = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (step > 0) {
-                    TextButton(onClick = { step-- }) {
-                        Text(stringResource(R.string.onboarding_back))
+                    TextButton(
+                        onClick = { step-- },
+                        modifier = Modifier.heightIn(min = 48.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.onboarding_back),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                 }
                 Button(
@@ -133,17 +153,26 @@ fun OnboardingOverlay(
                     },
                 ) {
                     Text(
-                        stringResource(
+                        text = stringResource(
                             if (step < pages.lastIndex) R.string.onboarding_next
                             else page.actionLabelRes ?: R.string.onboarding_done
-                        )
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.onboarding_skip))
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.heightIn(min = 48.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.onboarding_skip),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         },
     )

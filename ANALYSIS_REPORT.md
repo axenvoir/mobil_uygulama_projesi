@@ -1,8 +1,10 @@
-# Codebase Analysis Report
+# Historical Codebase Analysis Report (2.1.0 baseline)
+
+> Archived snapshot only. It is not the current release-readiness source. The current candidate is 2.2.0/versionCode 102; consult `PLAY_RELEASE_READINESS_CHECKLIST.md` and `AUTOMATED_TEST_PLAN.md` for the current migration and test coverage.
 
 ## Scope
 
-Static review of the Android app source and release configuration. This document describes the current repository state after the 2.1.0 release-candidate improvements; file counts are intentionally omitted because they change frequently.
+Static review of the Android app source and release configuration at the 2.1.0 release-candidate baseline; the findings below describe that historical snapshot, not later changes. File counts are intentionally omitted because they change frequently.
 
 ## Architecture and strengths
 

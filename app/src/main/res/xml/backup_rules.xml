@@ -2,7 +2,9 @@
 <full-backup-content>
     <!-- Keep the user database explicit; do not include any other database files. -->
     <include domain="database" path="skt_plus.db" />
-    <!-- Language/onboarding state is safe to restore; ad/consent preferences are not. -->
+    <!-- Restore selected app settings only; omit ad consent, reminder health, and retry IDs. -->
     <include domain="sharedpref" path="app_settings.xml" />
+    <!-- Preserve the pre-Room support balance until the one-time migration imports it. -->
+    <include domain="sharedpref" path="support_reward_preferences.xml" />
     <include domain="file" path="datastore/theme_prefs.preferences_pb" />
 </full-backup-content>

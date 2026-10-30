@@ -23,6 +23,7 @@ class ThemePreferences @Inject constructor(
 ) {
     private val themeModeKey = stringPreferencesKey("theme_mode")
     private val dynamicColorKey = booleanPreferencesKey("dynamic_color")
+    private val paletteIdKey = stringPreferencesKey("palette_id")
 
     val themeMode: Flow<ThemeMode> = context.themeDataStore.data.map { prefs ->
         when (prefs[themeModeKey]) {
@@ -34,6 +35,10 @@ class ThemePreferences @Inject constructor(
 
     val dynamicColor: Flow<Boolean> = context.themeDataStore.data.map { prefs ->
         prefs[dynamicColorKey] ?: false
+    }
+
+    val paletteId: Flow<String> = context.themeDataStore.data.map { prefs ->
+        ExpiraPalettes.normalize(prefs[paletteIdKey])
     }
 
     suspend fun setThemeMode(mode: ThemeMode) {
@@ -49,6 +54,13 @@ class ThemePreferences @Inject constructor(
     suspend fun setDynamicColor(enabled: Boolean) {
         context.themeDataStore.edit { prefs ->
             prefs[dynamicColorKey] = enabled
+        }
+    }
+
+    suspend fun selectPalette(id: String) {
+        context.themeDataStore.edit { prefs ->
+            prefs[paletteIdKey] = ExpiraPalettes.normalize(id)
+            prefs[dynamicColorKey] = false
         }
     }
 }

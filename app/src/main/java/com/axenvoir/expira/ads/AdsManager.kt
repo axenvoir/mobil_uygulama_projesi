@@ -3,13 +3,13 @@ package com.axenvoir.expira.ads
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import androidx.core.content.edit
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import com.axenvoir.expira.BuildConfig
 import com.axenvoir.expira.billing.BillingRepository
 import com.axenvoir.expira.billing.UserTier
+import com.axenvoir.expira.domain.repository.SupportRewardRepository
 import com.google.android.libraries.ads.mobile.sdk.MobileAds
 import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback
 import com.google.android.libraries.ads.mobile.sdk.common.AdRequest
@@ -23,11 +23,13 @@ import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.lang.ref.WeakReference
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,6 +40,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
@@ -48,6 +51,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 class AdsManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val billingRepository: BillingRepository,
+    private val supportRewardRepository: SupportRewardRepository,
+    private val pendingRewardStore: PendingRewardStore,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val initializationMutex = Mutex()
@@ -56,6 +61,8 @@ class AdsManager @Inject constructor(
     private var adRequestGeneration = 0L
     private var observedEligible = false
     private var userRequestedAd = false
+    private var pendingRewardEventId: String? = pendingRewardStore.readPendingEventId()
+    private var rewardSaveInFlight = false
 
     private var consentRequestInFlight = false
     private var consentFormInFlight = false
@@ -66,7 +73,6 @@ class AdsManager @Inject constructor(
     private var privacyActivity: WeakReference<Activity>? = null
 
     private val consentInformation = UserMessagingPlatform.getConsentInformation(context)
-    private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     private val _canRequestAds = MutableStateFlow(false)
     val canRequestAds: StateFlow<Boolean> = _canRequestAds.asStateFlow()
@@ -77,17 +83,30 @@ class AdsManager @Inject constructor(
     private val _state = MutableStateFlow(initialState())
     val state: StateFlow<RewardedAdState> = _state.asStateFlow()
 
-    private val _supportPoints = MutableStateFlow(preferences.getInt(KEY_SUPPORT_POINTS, 0))
-    val supportPoints: StateFlow<Int> = _supportPoints.asStateFlow()
-
     private val _rewardEvents = MutableSharedFlow<Int>(extraBufferCapacity = 1)
     val rewardEvents: SharedFlow<Int> = _rewardEvents.asSharedFlow()
 
+    private val _rewardSaveErrors = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val rewardSaveErrors: SharedFlow<Unit> = _rewardSaveErrors.asSharedFlow()
+
+    private val _rewardSavePending = MutableStateFlow(false)
+    val rewardSavePending: StateFlow<Boolean> = _rewardSavePending.asStateFlow()
+
     init {
+        scope.launch {
+            try {
+                supportRewardRepository.importLegacyBalanceIfNeeded()
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (exception: Exception) {
+                Log.e(TAG, "Legacy support balance could not be migrated", exception)
+            }
+        }
         scope.launch {
             billingRepository.entitlementState
                 .collect { entitlement -> onEligibilityChanged(entitlement.canShowAds) }
         }
+        pendingRewardEventId?.let(::persistEarnedReward)
     }
 
     /** Refreshes UMP consent on app launch without retaining or using a stale Activity. */
@@ -138,6 +157,7 @@ class AdsManager @Inject constructor(
 
     /** Requests an ad only after Play purchase state and consent permit it. */
     fun prepareRewardedAd() {
+        if (pendingRewardEventId != null || rewardSaveInFlight) return
         val eligible = currentEligibility()
         applyEligibilitySnapshot(eligible)
 
@@ -168,7 +188,7 @@ class AdsManager @Inject constructor(
 
     /** Explicit retry entry point; Play purchase state remains the source of truth. */
     fun retryRewardedAd() {
-        if (_state.value == RewardedAdState.SHOWING) return
+        if (_state.value == RewardedAdState.SHOWING || pendingRewardEventId != null) return
         clearLoadedAd()
         userRequestedAd = false
         _state.value = if (BuildConfig.ADS_ENABLED) {
@@ -180,6 +200,7 @@ class AdsManager @Inject constructor(
     }
 
     fun showRewardedAd(activity: Activity) {
+        if (pendingRewardEventId != null || rewardSaveInFlight) return
         val eligible = currentEligibility()
         applyEligibilitySnapshot(eligible)
         val ad = loadedAd
@@ -207,6 +228,7 @@ class AdsManager @Inject constructor(
         adRequestGeneration += 1
         userRequestedAd = false
         val rewardDelivered = AtomicBoolean(false)
+        val rewardEventId = UUID.randomUUID().toString()
         _state.value = RewardedAdState.SHOWING
         ad.adEventCallback = object : RewardedAdEventCallback {
             override fun onAdShowedFullScreenContent() = Unit
@@ -230,29 +252,57 @@ class AdsManager @Inject constructor(
         }
         runCatching {
             ad.show(activity) { rewardItem ->
-                // The SDK callback is the only path that can grant points. Re-check the current
-                // gates as well, so a purchase or consent change during playback cannot award a
-                // stale ad session.
-                if (
-                    rewardDelivered.compareAndSet(false, true) &&
-                    currentEligibility() &&
-                    _canRequestAds.value
-                ) {
-                    val amount = rewardItem.amount.coerceAtLeast(0)
-                    if (amount > 0) {
-                        val newTotal = (_supportPoints.value.toLong() + amount)
-                            .coerceAtMost(Int.MAX_VALUE.toLong())
-                            .toInt()
-                        preferences.edit { putInt(KEY_SUPPORT_POINTS, newTotal) }
-                        _supportPoints.value = newTotal
-                        _rewardEvents.tryEmit(amount)
+                // The SDK callback proves this one-shot session was completed. A later change to
+                // consent or Play entitlement must not erase a reward already earned by the user.
+                if (rewardDelivered.compareAndSet(false, true)) {
+                    if (rewardItem.amount != REWARD_POINTS_PER_AD) {
+                        Log.w(TAG, "Rewarded-ad amount differs from the fixed in-app reward")
                     }
+                    persistEarnedReward(rewardEventId)
                 }
             }
         }.onFailure { error ->
             Log.w(TAG, "Rewarded ad could not be opened", error)
             if (_state.value == RewardedAdState.SHOWING) {
                 _state.value = RewardedAdState.UNAVAILABLE
+            }
+        }
+    }
+
+    /** Retries only the exact SDK-confirmed reward event; the Room ledger prevents double credit. */
+    fun retryRewardSave() {
+        pendingRewardEventId?.let(::persistEarnedReward)
+    }
+
+    private fun persistEarnedReward(eventId: String) {
+        if (rewardSaveInFlight) return
+        pendingRewardEventId = eventId
+        _rewardSavePending.value = true
+        rewardSaveInFlight = true
+        scope.launch {
+            try {
+                val wasQueuedDurably = withContext(Dispatchers.IO) {
+                    pendingRewardStore.savePendingEventId(eventId)
+                }
+                if (!wasQueuedDurably) {
+                    Log.e(TAG, "Completed rewarded-ad event could not be durably queued")
+                    _rewardSaveErrors.tryEmit(Unit)
+                    return@launch
+                }
+                supportRewardRepository.grantCompletedAd(eventId)
+                if (pendingRewardEventId == eventId) {
+                    pendingRewardEventId = null
+                    pendingRewardStore.clearPendingEventId(eventId)
+                    _rewardSavePending.value = false
+                    _rewardEvents.tryEmit(REWARD_POINTS_PER_AD)
+                }
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (exception: Exception) {
+                Log.e(TAG, "Completed rewarded-ad points could not be saved", exception)
+                _rewardSaveErrors.tryEmit(Unit)
+            } finally {
+                rewardSaveInFlight = false
             }
         }
     }
@@ -611,8 +661,7 @@ class AdsManager @Inject constructor(
 
     companion object {
         private const val TAG = "ExpiraAds"
-        private const val PREFERENCES_NAME = "support_reward_preferences"
-        private const val KEY_SUPPORT_POINTS = "support_points"
+        private const val REWARD_POINTS_PER_AD = 1
         private const val SDK_INITIALIZATION_TIMEOUT_MS = 15_000L
     }
 }

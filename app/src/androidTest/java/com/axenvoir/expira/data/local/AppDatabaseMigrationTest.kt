@@ -41,7 +41,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_1_to_2_preserves_data_and_schema() = runBlocking {
+    fun migration_1_to_3_preserves_data_and_schema() = runBlocking {
         // Use the production database name so this models a restored Room file, not a
         // separate test-only filename that could hide backup/restore naming mistakes.
         migrationTestHelper.createDatabase(AppDatabase.NAME, 1).use { db ->
@@ -56,23 +56,31 @@ class AppDatabaseMigrationTest {
 
         migrationTestHelper.runMigrationsAndValidate(
             AppDatabase.NAME,
-            2,
+            3,
             true,
             AppDatabase.MIGRATION_1_2,
+            AppDatabase.MIGRATION_2_3,
         ).use { migratedDb ->
-            assertThat(migratedDb.version).isEqualTo(2)
+            assertThat(migratedDb.version).isEqualTo(3)
             migratedDb.query("SELECT identity_hash FROM room_master_table WHERE id = 42").use { cursor ->
                 assertThat(cursor.moveToFirst()).isTrue()
                 assertThat(cursor.getString(0)).isNotEmpty()
             }
+            migratedDb.query(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name IN " +
+                    "('support_wallet', 'support_reward_transactions', 'support_cosmetic_unlocks')",
+            ).use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getInt(0)).isEqualTo(3)
+            }
         }
 
         val db = Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.NAME)
-            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
             .build()
         try {
                 val readableDb = db.openHelper.readableDatabase
-                assertThat(readableDb.version).isEqualTo(2)
+                assertThat(readableDb.version).isEqualTo(3)
 
                 val productColumns = buildMap {
                     readableDb.query("PRAGMA table_info(products)").use { cursor ->

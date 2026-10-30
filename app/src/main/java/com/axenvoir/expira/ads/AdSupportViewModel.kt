@@ -11,8 +11,9 @@ class AdSupportViewModel @Inject constructor(
 ) : ViewModel() {
     val rewardedAdState = adsManager.state
     val privacyOptionsRequired = adsManager.privacyOptionsRequired
-    val supportPoints = adsManager.supportPoints
     val rewardEvents = adsManager.rewardEvents
+    val rewardSaveErrors = adsManager.rewardSaveErrors
+    val rewardSavePending = adsManager.rewardSavePending
 
     fun prepareRewardedAd() {
         adsManager.prepareRewardedAd()
@@ -20,6 +21,10 @@ class AdSupportViewModel @Inject constructor(
 
     fun retryRewardedAd() {
         adsManager.retryRewardedAd()
+    }
+
+    fun retryRewardSave() {
+        adsManager.retryRewardSave()
     }
 
     fun showRewardedAd(activity: Activity) {

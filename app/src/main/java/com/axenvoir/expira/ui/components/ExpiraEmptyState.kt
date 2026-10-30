@@ -105,8 +105,8 @@ fun ExpiraEmptyState(
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = 560.dp),
+                    .widthIn(max = 560.dp)
+                    .fillMaxWidth(),
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
@@ -115,16 +115,16 @@ fun ExpiraEmptyState(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = 560.dp),
+                    .widthIn(max = 560.dp)
+                    .fillMaxWidth(),
             )
             if (actionLabel != null && onAction != null) {
                 Spacer(modifier = Modifier.height(24.dp))
                 FilledTonalButton(
                     onClick = onAction,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .widthIn(max = 360.dp),
+                        .widthIn(max = 360.dp)
+                        .fillMaxWidth(),
                 ) {
                     Text(actionLabel)
                 }

@@ -131,7 +131,7 @@ fun NoteListScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            if (!isLoading) {
+            if (!isLoading && !loadFailed) {
                 FloatingActionButton(
                     onClick = onAddNote,
                 ) {
@@ -148,11 +148,11 @@ fun NoteListScreen(
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .widthIn(max = 800.dp)
+                    .fillMaxSize()
                     .align(Alignment.TopCenter),
             ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.fillMaxSize()) {
                     SearchBar(
                         query = query,
                         onQueryChange = viewModel::onQueryChange,
@@ -340,7 +340,13 @@ fun NoteListScreen(
         AlertDialog(
             onDismissRequest = { notePendingDelete = null },
             title = { Text(stringResource(R.string.delete_confirm)) },
-            text = { Text(note.title) },
+            text = {
+                Text(
+                    text = note.title,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {

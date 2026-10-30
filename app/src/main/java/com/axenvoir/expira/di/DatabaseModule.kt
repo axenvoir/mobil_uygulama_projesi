@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.axenvoir.expira.data.local.AppDatabase
 import com.axenvoir.expira.data.local.NoteDao
 import com.axenvoir.expira.data.local.ProductDao
+import com.axenvoir.expira.data.local.SupportRewardDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,7 +21,7 @@ object DatabaseModule {
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.NAME)
-            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
             .build()
 
     @Provides
@@ -28,4 +29,7 @@ object DatabaseModule {
 
     @Provides
     fun provideNoteDao(database: AppDatabase): NoteDao = database.noteDao()
+
+    @Provides
+    fun provideSupportRewardDao(database: AppDatabase): SupportRewardDao = database.supportRewardDao()
 }

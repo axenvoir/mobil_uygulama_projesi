@@ -87,7 +87,11 @@ ACTIVITY=com.axenvoir.expira/.MainActivity \
 - Sonucun tüketildikten sonra temizlenmesi.
 - Ödüllü reklam uygunluğunun yalnızca doğrulanmış ücretsiz kullanıcı snapshot’ında açılması; kontrol edilmemiş veya ücretli hak sahibi durumunda kapalı kalması.
 
-`SearchTextNormalizerTest.kt` Türkçe `İ/i/ı`, aksan ve boşluk normalizasyonunu; `NoteListViewModelTest.kt` Türkçe aksansız aramayı ve sabitlenmiş eski notun Son Eklenenler sırasını bozmamasını doğrular. Mevcut domain testleri ürün tarihleri, filtreler ve model davranışlarını da kapsar.
+`SearchTextNormalizerTest.kt` Türkçe `İ/i/ı`, aksan ve boşluk normalizasyonunu; `NoteListViewModelTest.kt`, `ProductListViewModelTest.kt` ve `ProductEditViewModelTest.kt` veri gözlem hatasının boş listeye dönüşmemesini ve Retry sonrası başarılı yüklemeyi doğrular. `CsvSnapshotLoaderTest.kt` kaynak okuma hatalarını, `CsvExporterTest.kt` CSV alan kaçışını/formül nötrleştirmesini, `ExpiraPaletteTest.kt` statik palet kontrastı/preview/fallback davranışını, `SupportCosmeticCatalogTest.kt` de katalog kimliği/fiyat bütünlüğünü doğrular. Mevcut domain testleri ürün tarihleri, filtreler ve model davranışlarını da kapsar.
+
+`PendingRewardStoreTest.kt`, ayrı bir store örneğinin aynı süreçte aynı SharedPreferences dosyasından bekleyen olay kimliğini okuyabildiğini ve eski bir olayın yeni olay anahtarını silemediğini doğrular. Bu test process-death ya da AdsManager/Room entegrasyonunu tek başına kanıtlamaz.
+
+`ThemePreferencesTest.kt`, adlandırılmış palet seçiminin DataStore üzerinden sistem dinamik renklerini aynı işlemde kapatmasını doğrular.
 
 ### Room migration testi
 
@@ -95,10 +99,12 @@ ACTIVITY=com.axenvoir.expira/.MainActivity \
 
 - Sürüm 1 veritabanını oluşturur.
 - Kategori, ürün ve not kayıtları ekler.
-- 1→2 migration çalıştırır.
+- 1→2→3 migration zincirini çalıştırır.
 - `storageLocation` sütunu/default değerini, Room identity hash'ini, benzersiz kategori indeksini ve foreign key kısıtını doğrular.
-- Mevcut ürün, kategori ilişkisi ve not verisinin korunduğunu doğrular.
+- Reward wallet, idempotent işlem günlüğü ve kozmetik sahipliği tablolarının oluştuğunu; mevcut ürün, kategori ilişkisi ve not verisinin korunduğunu doğrular.
 - İki repository üzerinden eşzamanlı kategori eklemesinin tek satır/ID oluşturduğunu doğrular.
+
+`SupportRewardWalletTest.kt` gerçek Room işlemlerinde eski bakiye içe aktarımını, yinelenen reklam callback'inde çift puan verilmemesini, yetersiz bakiyede satın almanın geri alınmasını, kozmetik palet satın alımını ve harcama sonrasında kalıcı ömür-boyu rozet durumunu doğrular.
 
 ### Compose smoke testleri
 
@@ -107,10 +113,11 @@ ACTIVITY=com.axenvoir.expira/.MainActivity \
 - İlk açılış onboarding ekranının kapatılabildiğini doğrular.
 - Ürünler ekranının görünür olduğunu doğrular.
 - Ürünler ve Notlar sekmelerinin görünür olduğunu doğrular.
+- Ayarlar içinden kozmetik palet mağazasının ve ücretsiz Grove paletinin erişilebilir olduğunu doğrular.
 
 ### Bildirim ve reklam senaryoları
 
-Şu anda `ReminderWorker` için ayrı bir deterministik `WorkerTest` yoktur. Cihaz smoke script’i paket/açılış ve izin durumunu kontrol eder; gerçek zamanlı zamanlama, Android 13+ izin reddi, cihaz yeniden başlatma ve bildirim tıklama davranışı gerçek cihazdaki manuel yayın kontrol listesinde doğrulanmalıdır. Ödüllü reklamların gösterim/ödül callback’i AdMob ve UMP test ortamına bağlı olduğundan burada otomatik ağ testi yapılmaz; debug build Google test reklam kimliklerini kullanır, release ise production ID’leri olmadan engellenir.
+Şu anda `ReminderWorker` için ayrı bir deterministik uçtan uca `WorkerTest` yoktur. `ReminderSchedulerGenerationTest.kt` generation değerinin eski değerden ilerlemesini ve yalnızca güncel tokenın geçerli sayılmasını; `ReminderHealthStoreTest.kt` ise ayrı store örneklerinin aynı süreçte paylaşılan yerel terminal-hata durumunu ve nesil koşullu temizlemeyi doğrular. `ReminderTimeChangeReceiverIntegrationTest.kt` zaman dilimi alıcısının ardından WorkManager'da etkin iş oluşmasını kontrol eder. Bu testler worker içindeki tüm eşzamanlı yarışları/işletim sistemi yeniden başlatmasını doğrulamaz. Cihaz smoke script’i paket/açılış ve izin durumunu kontrol eder; gerçek zamanlı zamanlama, Android 13+ izin reddi, cihaz yeniden başlatma ve bildirim tıklama davranışı gerçek cihazdaki manuel yayın kontrol listesinde doğrulanmalıdır. Ödüllü reklamların gösterim/ödül callback’i AdMob ve UMP test ortamına bağlı olduğundan burada otomatik ağ testi yapılmaz; debug build Google test reklam kimliklerini kullanır, release ise production ID’leri olmadan engellenir.
 
 ## Ön koşullar
 

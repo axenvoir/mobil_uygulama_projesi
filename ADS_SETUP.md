@@ -4,7 +4,8 @@
 
 - Reklam yalnızca kullanıcı **Reklamı hazırla** ve ardından **Reklamı izle** eylemlerini seçerse istenir/gösterilir; uygulama açılışında reklam yüklenmez.
 - Reklam izlemek isteğe bağlıdır. Reklamı kapatmak veya izlememek ürün, not, bildirim ya da başka temel özellikleri engellemez.
-- Reklamın tamamlandığı Google Mobile Ads ödül callback’iyle doğrulanır; callback gelmeden puan verilmez. Her tamamlanan reklam 1 puan verir; 5 puan uygulama içinde görünen kozmetik Destekçi rozetini açar. Puanlar cihazda saklanır; nakit değeri, devredilebilirliği veya uygulama dışı karşılığı yoktur.
+- Reklamın tamamlandığı Google Mobile Ads ödül callback’iyle doğrulanır; callback gelmeden puan verilmez. Her tamamlanan reklam 1 puan verir. Harcanabilir puanlarla Sakin Alacakaranlık (5), Narenciye Defteri (10) ve Böğürtlen Arşivi (15) kozmetik paletleri kalıcı olarak açılır; ömür boyu kazanılan 5 puan da harcama yapılsa bile kalıcı Destekçi rozetini açar.
+- Puanlar, işlem tekilleştirmesi ve bakiye/kozmetik sahipliği `skt_plus.db` içindeki Room cüzdanında saklanır; uygulamanın mevcut Android yedekleme ve cihaz aktarımı allowlist'i bu ana veritabanını içerir. Böylece puan bakiyesi ve açılmış paletler desteklenen/etkin yedekleme veya aktarımda veritabanıyla birlikte taşınabilir. Puanların nakit değeri veya uygulama dışı karşılığı yoktur ve devredilemez.
 - AdMob’da ödül miktarı **1**, ödül adı **Expira point** olarak ayarlanmalıdır; uygulama metinleri bu yapılandırmayı varsayar.
 - Önceden Google Play üzerinden alınmış reklamsız kullanım hakları kontrol edilir. Hakkı olan kullanıcıya reklam gösterilmez. Uygulama içindeki yeni abonelik/ürün satış ekranı kaldırılmıştır; eski satın alımların kontrolü ve geri yüklenmesi korunur.
 - Google UMP izin akışı reklam talebinden önce çalışır. İzin alınamayan, reklam yüklenemeyen veya kimlikleri bulunmayan durumda uygulama reklamsız çalışmaya devam eder.
@@ -67,6 +68,7 @@ Gerçek cihazda, kapalı testten yüklenmiş uygulama ve test hesabıyla aşağ�
 - Reklam tamamlanmadan kapatılırsa puan eklenmez; tamamlanan reklamda AdMob yapılandırmasındaki miktar (1) bir kez eklenir.
 - Puan sayacı uygulama yeniden açıldığında korunur.
 - Reklamı izlememek veya gizlilik izni vermemek ürün/not/bildirim işlevlerini kısıtlamaz.
+- Eski `support_points` bakiyesi ilk kullanımda yalnızca bir kez Room cüzdanına aktarılır; cüzdanı sıfırdan başlatmak veya uygulama verisini temizlemek puan/kozmetik kayıtlarını etkileyebilir.
 - Google Play geçmişi kontrol edilemezse reklam gösterilmez; bağlantı düzeldikten sonra **Satın alımları yeniden kontrol et** ile yeniden denenebilir.
 
 Ödüllü reklamların üretim sunumu AdMob hesabı, gerçek kimlikler, consent mesajları, ülke/cihaz uygunluğu ve reklam envanterine bağlıdır. Debug’de test reklamının görünmesi, kapalı testte gerçek reklam envanterinin hazır olduğu anlamına gelmez.
@@ -76,7 +78,7 @@ Gerçek cihazda, kapalı testten yüklenmiş uygulama ve test hesabıyla aşağ�
 - En son başarılı imzalı release workflow’u production AdMob ID secret’larının mevcut ve Google test ID’lerinden farklı olduğunu doğruladı. Bu doğrulama yalnızca secret/biçim kontrolüdür; AdMob uygulama eşleşmesini, UMP ülke ayarlarını, canlı reklam envanterini veya cihazda reklam dolumunu kanıtlamaz.
 - `EXPIRA_ADMOB_APP_ID` ve `EXPIRA_REWARDED_AD_UNIT_ID` değerleri GitHub Actions secrets’ta zaten yapılandırılmış görünüyor. Bunları sohbet veya commit içinde paylaşmayın; yalnızca döndürülürlerse secret’ları güncelleyin.
 - Kullanıcı tarafından sağlanan gizlilik politikası URL’si `https://axenvoir.github.io/`, destek adresi `axenvoir@yahoo.com` şeklindedir. URL kamuya açık olarak açılıyor; uygulamanın Ayarlar > Hakkında bölümünde gösterilir.
-- Gizlilik politikası 30 Ekim 2026’da Türkçe ve İngilizce olarak güncellendi ve GitHub Pages’te yayımlandı. Metin, Android uygulamasındaki Google Mobile Ads Next-Gen/UMP, eski Google Play satın alma hakları, yerel veriler, yedekleme/dışa aktarma, bildirim ve çökme kurtarma akışlarını açıklar; kodda bulunmayan özellik iddiaları kaldırılmıştır. SDK veya uygulama davranışı değiştiğinde bu metni yeniden gözden geçirin.
+- Gizlilik politikasının önceki Türkçe/İngilizce sürümü 30 Ekim 2026’da yayımlandı. 2.2.0 adayı için yerel taslak; Room cüzdanı ve palet yedeğini, bir defalık eski puan içe aktarımını, hatırlatıcı sağlık işaretini, geçici reklam-ödülü retry ID'sini ve özel kilit ekranı bildirim önizlemesini açıklar. Bu yeni taslak henüz kamuya yayımlanmadı; son içerik uygulama sahibince onaylanıp yayınlanmadan Play sürümü hazır sayılmaz. SDK veya uygulama davranışı değiştiğinde politika ve Data Safety beyanını yeniden gözden geçirin.
 - Play Console Data Safety ve reklam beyanları, kullanılan AdMob/UMP SDK’larının güncel veri uygulamalarına göre tamamlanmalıdır.
 
 

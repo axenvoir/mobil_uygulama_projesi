@@ -37,21 +37,29 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.axenvoir.expira.ui.theme.ExpiraPalettes
 import com.axenvoir.expira.ui.theme.ExpiraTheme
+import com.axenvoir.expira.ui.theme.PaletteOwnershipValidator
 import com.axenvoir.expira.ui.theme.ThemeMode
 import com.axenvoir.expira.ui.theme.ThemePreferences
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.flow.catch
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class CrashDisplayActivity : AppCompatActivity() {
     @Inject
     lateinit var themePreferences: ThemePreferences
 
+    @Inject
+    lateinit var paletteOwnershipValidator: PaletteOwnershipValidator
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         CrashReporter.consumeCrashMarker(this)
+        lifecycleScope.launch { paletteOwnershipValidator.validateSavedSelection() }
         enableEdgeToEdge()
         setContent {
             val themeModeFlow = remember(themePreferences) {
@@ -60,16 +68,21 @@ class CrashDisplayActivity : AppCompatActivity() {
             val dynamicColorFlow = remember(themePreferences) {
                 themePreferences.dynamicColor.catch { emit(false) }
             }
+            val paletteIdFlow = remember(themePreferences) {
+                themePreferences.paletteId.catch { emit(ExpiraPalettes.GROVE) }
+            }
             val themeMode by themeModeFlow
                 .collectAsStateWithLifecycle(initialValue = ThemeMode.SYSTEM)
             val dynamicColor by dynamicColorFlow
                 .collectAsStateWithLifecycle(initialValue = false)
+            val paletteId by paletteIdFlow
+                .collectAsStateWithLifecycle(initialValue = ExpiraPalettes.GROVE)
             val darkTheme = when (themeMode) {
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
                 ThemeMode.SYSTEM -> isSystemInDarkTheme()
             }
-            ExpiraTheme(darkTheme = darkTheme, dynamicColor = dynamicColor) {
+            ExpiraTheme(darkTheme = darkTheme, dynamicColor = dynamicColor, paletteId = paletteId) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,

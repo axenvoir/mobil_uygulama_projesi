@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
     <cloud-backup disableIfNoEncryptionCapabilities="true">
-        <!-- Products, notes, and custom categories; no other database files. -->
+        <!-- Products, notes, categories, the local reward wallet, and cosmetic unlocks. -->
         <include domain="database" path="skt_plus.db" />
         <!-- Restore only non-secret app settings, not ad/consent preferences. -->
         <include domain="sharedpref" path="app_settings.xml" />
+        <!-- Preserve the pre-Room support balance until its one-time wallet import. -->
+        <include domain="sharedpref" path="support_reward_preferences.xml" />
         <include domain="file" path="datastore/theme_prefs.preferences_pb" />
     </cloud-backup>
     <device-transfer>
-        <!-- Device transfer is explicit for the same user-data set. -->
+        <!-- The same user-data set; reminder health and temporary reward retry IDs are excluded. -->
         <include domain="database" path="skt_plus.db" />
         <include domain="sharedpref" path="app_settings.xml" />
+        <include domain="sharedpref" path="support_reward_preferences.xml" />
         <include domain="file" path="datastore/theme_prefs.preferences_pb" />
     </device-transfer>
 </data-extraction-rules>

@@ -3,6 +3,7 @@ package com.axenvoir.expira.ui.expiry
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
@@ -85,6 +88,7 @@ import com.axenvoir.expira.ui.components.expiraTopAppBarColors
 import com.axenvoir.expira.ui.components.CategoryAvatar
 import com.axenvoir.expira.ui.components.rememberLocalizedDateFormatter
 import com.axenvoir.expira.ui.main.SettingsIconButton
+import com.axenvoir.expira.ui.theme.LocalExpiraStatusColors
 import java.time.LocalDate
 import java.time.format.FormatStyle
 
@@ -170,8 +174,8 @@ fun ProductListScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
                     .widthIn(max = 800.dp)
+                    .fillMaxSize()
                     .align(Alignment.TopCenter),
             ) {
                 SearchBar(
@@ -350,6 +354,7 @@ fun ProductListScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
                     .navigationBarsPadding()
                     .padding(horizontal = 24.dp)
                     .padding(bottom = 24.dp),
@@ -359,8 +364,8 @@ fun ProductListScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Badge(
-                        containerColor = statusColor(status).copy(alpha = 0.14f),
-                        contentColor = statusColor(status),
+                        containerColor = statusContainerColor(status),
+                        contentColor = statusContentColor(status),
                     ) {
                         Text(
                             text = remainingDaysText(product.expiryDate, referenceDate),
@@ -436,28 +441,57 @@ fun ProductListScreen(
                     }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    FilledTonalButton(
-                        onClick = {
-                            productDetail = null
-                            onEditProduct(product.id)
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Icon(Icons.Filled.Edit, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.edit), maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    }
-                    OutlinedButton(
-                        onClick = {
-                            productDetail = null
-                            productPendingDelete = product
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Icon(Icons.Filled.Delete, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.delete), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                    if (maxWidth < 400.dp) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilledTonalButton(
+                                onClick = {
+                                    productDetail = null
+                                    onEditProduct(product.id)
+                                },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                            ) {
+                                Icon(Icons.Filled.Edit, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(stringResource(R.string.edit))
+                            }
+                            OutlinedButton(
+                                onClick = {
+                                    productDetail = null
+                                    productPendingDelete = product
+                                },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                            ) {
+                                Icon(Icons.Filled.Delete, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(stringResource(R.string.delete))
+                            }
+                        }
+                    } else {
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            FilledTonalButton(
+                                onClick = {
+                                    productDetail = null
+                                    onEditProduct(product.id)
+                                },
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                            ) {
+                                Icon(Icons.Filled.Edit, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(stringResource(R.string.edit), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            }
+                            OutlinedButton(
+                                onClick = {
+                                    productDetail = null
+                                    productPendingDelete = product
+                                },
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                            ) {
+                                Icon(Icons.Filled.Delete, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(stringResource(R.string.delete), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            }
+                        }
                     }
                 }
             }
@@ -589,6 +623,7 @@ private fun ExpiryOverviewCard(
                     count = freshCount,
                     label = stringResource(R.string.status_fresh),
                     color = statusColor(ExpiryStatus.FRESH),
+                    containerColor = statusContainerColor(ExpiryStatus.FRESH),
                     selected = selected == ProductFilter.FRESH,
                     modifier = Modifier.weight(1f),
                     onClick = { onFilterChange(ProductFilter.FRESH) },
@@ -597,6 +632,7 @@ private fun ExpiryOverviewCard(
                     count = expiringCount,
                     label = stringResource(R.string.status_expiring_soon),
                     color = statusColor(ExpiryStatus.EXPIRING_SOON),
+                    containerColor = statusContainerColor(ExpiryStatus.EXPIRING_SOON),
                     selected = selected == ProductFilter.EXPIRING_SOON,
                     modifier = Modifier.weight(1f),
                     onClick = { onFilterChange(ProductFilter.EXPIRING_SOON) },
@@ -605,6 +641,7 @@ private fun ExpiryOverviewCard(
                     count = expiredCount,
                     label = stringResource(R.string.status_expired),
                     color = statusColor(ExpiryStatus.EXPIRED),
+                    containerColor = statusContainerColor(ExpiryStatus.EXPIRED),
                     selected = selected == ProductFilter.EXPIRED,
                     modifier = Modifier.weight(1f),
                     onClick = { onFilterChange(ProductFilter.EXPIRED) },
@@ -619,6 +656,7 @@ private fun ExpiryOverviewMetric(
     count: Int,
     label: String,
     color: Color,
+    containerColor: Color,
     selected: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
@@ -632,7 +670,7 @@ private fun ExpiryOverviewMetric(
                 role = Role.RadioButton,
             ),
         shape = MaterialTheme.shapes.medium,
-        color = if (selected) color.copy(alpha = 0.14f) else Color.Transparent,
+        color = if (selected) containerColor else Color.Transparent,
         contentColor = if (selected) color else MaterialTheme.colorScheme.onSurfaceVariant,
     ) {
         Column(
@@ -658,10 +696,33 @@ private fun ExpiryOverviewMetric(
 }
 
 @Composable
-fun statusColor(status: ExpiryStatus): Color = when (status) {
-    ExpiryStatus.FRESH -> MaterialTheme.colorScheme.primary
-    ExpiryStatus.EXPIRING_SOON -> MaterialTheme.colorScheme.tertiary
-    ExpiryStatus.EXPIRED -> MaterialTheme.colorScheme.error
+fun statusColor(status: ExpiryStatus): Color {
+    val colors = LocalExpiraStatusColors.current
+    return when (status) {
+        ExpiryStatus.FRESH -> colors.fresh
+        ExpiryStatus.EXPIRING_SOON -> colors.expiring
+        ExpiryStatus.EXPIRED -> colors.expired
+    }
+}
+
+@Composable
+private fun statusContainerColor(status: ExpiryStatus): Color {
+    val colors = LocalExpiraStatusColors.current
+    return when (status) {
+        ExpiryStatus.FRESH -> colors.freshContainer
+        ExpiryStatus.EXPIRING_SOON -> colors.expiringContainer
+        ExpiryStatus.EXPIRED -> colors.expiredContainer
+    }
+}
+
+@Composable
+private fun statusContentColor(status: ExpiryStatus): Color {
+    val colors = LocalExpiraStatusColors.current
+    return when (status) {
+        ExpiryStatus.FRESH -> colors.onFreshContainer
+        ExpiryStatus.EXPIRING_SOON -> colors.onExpiringContainer
+        ExpiryStatus.EXPIRED -> colors.onExpiredContainer
+    }
 }
 
 @Composable
@@ -703,12 +764,17 @@ private fun ProductCard(
 ) {
     val mediumDateFormatter = rememberLocalizedDateFormatter(FormatStyle.MEDIUM)
     val status = expiryStatus(product.expiryDate, referenceDate)
+    val remaining = remainingDaysText(product.expiryDate, referenceDate)
     val quantityLabel = androidx.compose.ui.res.pluralStringResource(
         R.plurals.product_quantity,
         product.quantity.coerceAtLeast(0),
         product.quantity.coerceAtLeast(0),
     )
     val storageLocation = storageLocationLabel(product.storageLocation)
+    val inventoryDescription = buildString {
+        append(quantityLabel)
+        if (storageLocation.isNotBlank()) append(" · $storageLocation")
+    }
     ElevatedCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
@@ -716,82 +782,145 @@ private fun ProductCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp, pressedElevation = 3.dp),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                CategoryAvatar(name = product.categoryName)
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = product.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    if (product.categoryName.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(2.dp))
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val compact = maxWidth < 420.dp
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CategoryAvatar(name = product.categoryName)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = product.categoryName,
+                            text = product.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (product.categoryName.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = product.categoryName,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                    if (!compact) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Badge(
+                            containerColor = statusContainerColor(status),
+                            contentColor = statusContentColor(status),
+                            modifier = Modifier.widthIn(max = 140.dp),
+                        ) {
+                            Text(
+                                text = remaining,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                            )
+                        }
+                    }
+                }
+                if (compact) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Badge(
+                            containerColor = statusContainerColor(status),
+                            contentColor = statusContentColor(status),
+                        ) {
+                            Text(
+                                text = remaining,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                            )
+                        }
+                        Text(
+                            text = statusLabel(status),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
+                            modifier = Modifier.weight(1f),
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                Badge(
-                    containerColor = statusColor(status).copy(alpha = 0.14f),
-                    contentColor = statusColor(status),
-                    modifier = Modifier.widthIn(max = 116.dp),
-                ) {
-                    Text(
-                        text = remainingDaysText(product.expiryDate, referenceDate),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
-                    )
+                if (compact) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.DateRange,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = product.expiryDate.format(mediumDateFormatter),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        Text(
+                            text = inventoryDescription,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.DateRange,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = product.expiryDate.format(mediumDateFormatter),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1.3f),
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = inventoryDescription,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f),
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.End,
+                        )
+                    }
                 }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.DateRange,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(16.dp),
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = product.expiryDate.format(mediumDateFormatter),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = buildString {
-                        append(quantityLabel)
-                        if (storageLocation.isNotBlank()) append(" · $storageLocation")
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.End,
-                )
             }
         }
     }

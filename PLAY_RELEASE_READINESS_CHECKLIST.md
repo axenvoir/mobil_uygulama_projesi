@@ -54,11 +54,11 @@ Android 13 veya üzeri gerçek cihazda:
 ## 5. Veri, yedekleme ve cihaz uyumu
 
 - Ürün, kategori ve not oluşturma/düzenleme/silme/sabitleme akışlarını gerçek cihazda deneyin.
-- Room 1→2 migration testi eski şemadan ürün/not verisini korur; eski sürümden güncelleme senaryosunu kapalı test cihazında da doğrulayın.
+- Room 1→3 migration testi eski şemadan ürün/not verisini korur ve yeni cüzdan tablolarını doğrular; eski sürümden güncelleme senaryosunu kapalı test cihazında da doğrulayın.
 - İki eşzamanlı kategori oluşturma, CSV dışa aktarma ve paylaşma senaryolarını test edin.
 - CSV içinde formül gibi yorumlanabilecek kullanıcı girişlerinin güvenli biçimde dışa aktarıldığını kontrol edin.
-- Bulut yedekleme ve cihaz aktarımı testinde Room verisi ve kullanıcı tercihleri beklenen şekilde taşınır; crash marker ve geçici dosyalar yedeklenmez.
-- Android cloud backup, cihaz istemci tarafı şifreleme özelliği sağlayamıyorsa bilerek atlanır; bu kullanıcılar için bulut kurtarma garantisi verilmez. Aynı allowlist ile cihazdan cihaza aktarım ayrıca test edilmelidir.
+- Bulut yedekleme ve cihaz aktarımı testinde ürün/not/kategori verisi, Room içindeki destek puanı bakiyesi ve açılmış kozmetik paletler ile izin verilen kullanıcı tercihleri beklenen şekilde taşınır. Eski puan içe aktarımı için `support_reward_preferences.xml` geçici olarak allowlist'tedir; `reward_retry_preferences.xml`, crash marker, hatırlatıcı sağlık işareti ve geçici dosyalar yedeklenmez.
+- Android 12+ cloud-backup kuralı, OS istemci tarafı şifreleme yeteneği olmadığını bildirirse yedeklemeyi atlar. Android 11 ve altındaki legacy full-backup yolu aynı şifreleme yeteneği güvencesini sağlamaz; bu cihazlarda bulut yedekleme davranışını ayrıca değerlendirin. Device-to-device transfer aynı allowlist ile ayrıca test edilmelidir.
 - Beklenmedik kapanma sonrasında kullanıcıya ham stack trace gösterilmez ve uygulamaya devam edilebilir.
 
 ## 6. Erişilebilirlik ve cihaz matrisi
@@ -78,7 +78,7 @@ Android 13 veya üzeri gerçek cihazda:
 Aşağıdaki değerler geliştirici/uygulama sahibinden alınmadan uydurulmamalıdır:
 
 - Gizlilik politikası URL’si `https://axenvoir.github.io/` ve destek e-posta adresi `axenvoir@yahoo.com` olarak uygulama sahibinden alınmıştır; uygulamadaki Ayarlar > Hakkında bağlantılarının açıldığını doğrulayın.
-- Gizlilik politikası 30 Ekim 2026’da Türkçe ve İngilizce olarak güncellendi ve yayımlandı. Metin mevcut Android uygulamasının AdMob/UMP, eski Play satın alma hakları, yerel kayıtlar, yedekleme/dışa aktarma, bildirimler ve çökme kurtarma davranışlarıyla eşleştirildi. Yayın öncesi sayfanın güncel açıldığını ve uygulamadaki bağlantıların çalıştığını kontrol edin.
+- Önceki Türkçe/İngilizce gizlilik politikası 30 Ekim 2026’da yayımlandı; 2.2.0 adayı için Room cüzdanı/palet yedeği, bir defalık eski puan içe aktarımı, hatırlatıcı sağlık işareti, geçici ödül retry ID'si ve özel kilit ekranı önizlemesini açıklayan daha yeni bir yerel taslak henüz yayımlanmadı. Bu taslağı onaylayıp GitHub Pages'te yayınlayın; ardından canlı URL'yi ve uygulamadaki bağlantıyı doğrulayın.
 - Kullanım koşulları ve abonelik iptali açıklamaları, gerekiyorsa.
 - Türkçe ve İngilizce mağaza kısa/uzun açıklamaları, ekran görüntüleri ve feature graphic.
 - İçerik derecelendirmesi ve Play Console Data Safety formu.
@@ -88,10 +88,10 @@ Aşağıdaki değerler geliştirici/uygulama sahibinden alınmadan uydurulmamal�
 
 ## 8. Release son kontrolü
 
-- [ ] `versionCode` Play Console’da kullanılmamış, artan bir değer; bu kaynak ağacındaki aday kod `101`.
-- [ ] `versionName` yayın notlarıyla uyumlu; bu kaynak ağacındaki aday sürüm `2.1.0`.
+- [ ] `versionCode` Play Console’da kullanılmamış, artan bir değer; bu kaynak ağacındaki aday kod `102`.
+- [ ] `versionName` yayın notlarıyla uyumlu; bu kaynak ağacındaki aday sürüm `2.2.0`.
 - [ ] Release secrets: imzalama anahtarı/değerleri ve iki production AdMob ID’si tanımlı.
-- [ ] GitHub Actions’ta unit test, lint, debug build, migration/Compose instrumentation ve imzalı AAB işleri başarılı.
+- [ ] GitHub Actions’ta unit test, lint, debug build, 1→3 Room migration, reward-wallet ve Compose instrumentation ile imzalı AAB işleri başarılı.
 - [ ] İmzalı AAB kapalı test kanalına yüklendi; Play App Signing/sertifika ve cihaz uyumluluğu kontrol edildi.
 - [ ] R8 mapping dosyası saklandı.
 - [ ] Play Console pre-launch raporu, çökme/ANR ve reklam davranışı gözden geçirildi.

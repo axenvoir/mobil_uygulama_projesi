@@ -2,8 +2,10 @@ package com.axenvoir.expira.di
 
 import com.axenvoir.expira.data.repository.NoteRepositoryImpl
 import com.axenvoir.expira.data.repository.ProductRepositoryImpl
+import com.axenvoir.expira.data.repository.SupportRewardRepositoryImpl
 import com.axenvoir.expira.domain.repository.NoteRepository
 import com.axenvoir.expira.domain.repository.ProductRepository
+import com.axenvoir.expira.domain.repository.SupportRewardRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -21,4 +23,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindNoteRepository(impl: NoteRepositoryImpl): NoteRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSupportRewardRepository(impl: SupportRewardRepositoryImpl): SupportRewardRepository
 }

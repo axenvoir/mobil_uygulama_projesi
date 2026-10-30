@@ -96,6 +96,16 @@ class NotificationHelper @Inject constructor(
                 .setContentTitle(title)
                 .setContentText(text)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(details))
+                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                .setPublicVersion(
+                    NotificationCompat.Builder(context, CHANNEL_ID)
+                        .setSmallIcon(R.drawable.ic_notification)
+                        .setContentTitle(context.getString(R.string.notification_title))
+                        .setContentText(context.getString(R.string.notification_private_content))
+                        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                        .build(),
+                )
+                .setOnlyAlertOnce(true)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
                 .build()
@@ -103,6 +113,9 @@ class NotificationHelper @Inject constructor(
             true
         } catch (exception: SecurityException) {
             Log.w(TAG, "Notification permission was revoked before delivery", exception)
+            false
+        } catch (exception: Exception) {
+            Log.e(TAG, "Notification could not be delivered", exception)
             false
         }
     }
