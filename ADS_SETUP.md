@@ -71,11 +71,12 @@ Gerçek cihazda, kapalı testten yüklenmiş uygulama ve test hesabıyla aşağ�
 
 Ödüllü reklamların üretim sunumu AdMob hesabı, gerçek kimlikler, consent mesajları, ülke/cihaz uygunluğu ve reklam envanterine bağlıdır. Debug’de test reklamının görünmesi, kapalı testte gerçek reklam envanterinin hazır olduğu anlamına gelmez.
 
-## Henüz kullanıcıdan gerekenler
+## Güncel durum ve yayın için kullanıcıdan gerekenler
 
-- Yukarıdaki iki AdMob ID’yi oluşturup GitHub Actions repository secrets’a eklemek.
-- Google Play mağaza kaydında kullanılacak gizlilik politikası URL’si ve destek e-posta adresini sağlamak; bunlar olmadan sahte değer eklenmemelidir.
-- Play Console Data Safety yanıtlarını ve mağaza beyanlarını, üretimde kullanılan AdMob/UMP SDK’larının güncel veri uygulamalarına göre tamamlamak.
+- En son başarılı imzalı release workflow’u production AdMob ID secret’larının mevcut ve Google test ID’lerinden farklı olduğunu doğruladı. Bu doğrulama yalnızca secret/biçim kontrolüdür; AdMob uygulama eşleşmesini, UMP ülke ayarlarını, canlı reklam envanterini veya cihazda reklam dolumunu kanıtlamaz.
+- `EXPIRA_ADMOB_APP_ID` ve `EXPIRA_REWARDED_AD_UNIT_ID` değerleri GitHub Actions secrets’ta zaten yapılandırılmış görünüyor. Bunları sohbet veya commit içinde paylaşmayın; yalnızca döndürülürlerse secret’ları güncelleyin.
+- Uygulama sahibi, Google Play mağaza kaydında ve uygulamada gösterilecek kesin **HTTPS gizlilik politikası URL’sini** ve destek e-posta adresini sağlamalıdır. Sahte veya tahmin edilmiş değer eklenmemelidir.
+- Play Console Data Safety ve reklam beyanları, kullanılan AdMob/UMP SDK’larının güncel veri uygulamalarına göre tamamlanmalıdır.
 
 
 > **Yerel script notu:** `./scripts/run_automated_tests.sh --release`, kimlikleri doğrulamak için özellikle `EXPIRA_ADMOB_APP_ID` ve `EXPIRA_REWARDED_AD_UNIT_ID` ortam değişkenlerinin tanımlı olmasını ister. `~/.gradle/gradle.properties` kullanıyorsanız scripti çalıştırmadan önce bu iki değişkeni de dışa aktarın.
