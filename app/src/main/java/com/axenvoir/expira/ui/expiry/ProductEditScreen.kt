@@ -138,7 +138,10 @@ fun ProductEditScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            Surface(color = MaterialTheme.colorScheme.surface) {
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                tonalElevation = 3.dp,
+            ) {
                 Button(
                     onClick = viewModel::save,
                     modifier = Modifier
@@ -212,8 +215,8 @@ fun ProductEditScreen(
                         .padding(innerPadding)
                         .imePadding()
                         .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                        .padding(horizontal = 20.dp, vertical = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     ExpiraSectionCard(title = stringResource(R.string.product_basic_info)) {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -223,6 +226,7 @@ fun ProductEditScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 label = { Text(stringResource(R.string.product_name)) },
                                 placeholder = { Text(stringResource(R.string.name_placeholder)) },
+                                shape = MaterialTheme.shapes.large,
                                 isError = uiState.error is ProductEditError.EmptyName,
                                 supportingText = if (uiState.error is ProductEditError.EmptyName) {
                                     { Text(emptyNameText) }
@@ -239,6 +243,7 @@ fun ProductEditScreen(
                                 onValueChange = viewModel::onQuantityChange,
                                 modifier = Modifier.fillMaxWidth(),
                                 label = { Text(stringResource(R.string.quantity)) },
+                                shape = MaterialTheme.shapes.large,
                                 isError = uiState.error is ProductEditError.InvalidQuantity,
                                 supportingText = if (uiState.error is ProductEditError.InvalidQuantity) {
                                     { Text(invalidQuantityText) }
@@ -279,6 +284,7 @@ fun ProductEditScreen(
                             onValueChange = viewModel::onNewCategoryNameChange,
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text(stringResource(R.string.new_category)) },
+                            shape = MaterialTheme.shapes.large,
                             isError = uiState.error is ProductEditError.MissingCategory,
                             supportingText = if (uiState.error is ProductEditError.MissingCategory) {
                                 { Text(missingCategoryText) }

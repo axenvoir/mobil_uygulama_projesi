@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -80,17 +82,22 @@ fun ExpiraEmptyState(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            Surface(
                 modifier = Modifier
-                    .size(80.dp)
-                    .align(Alignment.CenterHorizontally)
+                    .size(72.dp)
                     .scale(scale)
                     .alpha(alpha),
-            )
-            Spacer(modifier = Modifier.height(20.dp))
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.padding(20.dp),
+                )
+            }
+            Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineSmall,
@@ -113,7 +120,7 @@ fun ExpiraEmptyState(
             )
             if (actionLabel != null && onAction != null) {
                 Spacer(modifier = Modifier.height(24.dp))
-                Button(
+                FilledTonalButton(
                     onClick = onAction,
                     modifier = Modifier
                         .fillMaxWidth()

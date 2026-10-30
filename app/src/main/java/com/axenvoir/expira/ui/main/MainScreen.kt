@@ -14,7 +14,9 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -25,8 +27,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -96,7 +101,7 @@ fun MainScreen() {
         Row {
             if (showNavigation) {
                 NavigationRail(
-                    containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 ) {
                     tabs.forEach { tab ->
                         val selected = currentDestination?.hierarchy?.any { it.route == tab.screen.route } == true
@@ -114,7 +119,10 @@ fun MainScreen() {
                     }
                 }
             }
-            Scaffold(contentWindowInsets = WindowInsets(0, 0, 0, 0)) { innerPadding ->
+            Scaffold(
+                containerColor = MaterialTheme.colorScheme.background,
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            ) { innerPadding ->
                 AppNavHost(
                     navController = navController,
                     modifier = Modifier
@@ -125,25 +133,35 @@ fun MainScreen() {
         }
     } else {
         Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 if (showNavigation) {
-                    NavigationBar(
-                        containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+                    Surface(
+                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerLow,
+                        tonalElevation = 2.dp,
                     ) {
-                        tabs.forEach { tab ->
-                            val selected = currentDestination?.hierarchy?.any { it.route == tab.screen.route } == true
-                            NavigationBarItem(
-                                selected = selected,
-                                onClick = { onTabClick(tab.screen) },
-                                icon = { Icon(tab.icon, contentDescription = null) },
-                                label = { Text(stringResource(tab.labelRes)) },
-                                colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
-                                    selectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.onPrimaryContainer,
-                                    selectedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-                                    indicatorColor = androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer,
-                                ),
-                            )
+                        NavigationBar(
+                            containerColor = Color.Transparent,
+                            tonalElevation = 0.dp,
+                        ) {
+                            tabs.forEach { tab ->
+                                val selected = currentDestination?.hierarchy?.any { it.route == tab.screen.route } == true
+                                NavigationBarItem(
+                                    selected = selected,
+                                    onClick = { onTabClick(tab.screen) },
+                                    icon = { Icon(tab.icon, contentDescription = null) },
+                                    label = { Text(stringResource(tab.labelRes)) },
+                                    colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
+                                        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                    ),
+                                )
+                            }
                         }
                     }
                 }

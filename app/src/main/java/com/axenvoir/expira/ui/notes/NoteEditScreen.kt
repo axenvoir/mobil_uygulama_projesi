@@ -228,8 +228,8 @@ fun NoteEditScreen(
                     .padding(innerPadding)
                     .imePadding()
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                    .padding(horizontal = 20.dp, vertical = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 ExpiraSectionCard(title = stringResource(R.string.note_basic_info)) {
                     OutlinedTextField(
@@ -238,6 +238,7 @@ fun NoteEditScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .focusRequester(titleFocusRequester),
+                        shape = MaterialTheme.shapes.large,
                         label = { Text(stringResource(R.string.note_title)) },
                         placeholder = { Text(stringResource(R.string.note_title_placeholder)) },
                         isError = error is NoteEditError.EmptyTitle || titleOverLimit ||
@@ -285,6 +286,7 @@ fun NoteEditScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 160.dp, max = 480.dp),
+                        shape = MaterialTheme.shapes.large,
                         label = { Text(stringResource(R.string.note_content)) },
                         placeholder = { Text(stringResource(R.string.note_content_placeholder)) },
                         isError = contentOverLimit || error is NoteEditError.ContentTooLong,

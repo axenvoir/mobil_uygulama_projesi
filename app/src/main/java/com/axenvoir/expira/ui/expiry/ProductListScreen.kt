@@ -19,25 +19,29 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
+import androidx.compose.material3.Badge
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -90,6 +94,8 @@ private enum class ProductEmptyReason {
     FILTER_EMPTY,
 }
 
+// Keep the existing ViewModel-owned String query; do not create a second TextFieldState for presentation.
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductListScreen(
@@ -168,9 +174,12 @@ fun ProductListScreen(
                     .widthIn(max = 800.dp)
                     .align(Alignment.TopCenter),
             ) {
-                OutlinedTextField(
-                    value = uiState.query,
-                    onValueChange = viewModel::onQueryChange,
+                SearchBar(
+                    query = uiState.query,
+                    onQueryChange = viewModel::onQueryChange,
+                    onSearch = viewModel::onQueryChange,
+                    active = false,
+                    onActiveChange = {},
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -178,7 +187,7 @@ fun ProductListScreen(
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Filled.Search,
-                            contentDescription = stringResource(R.string.search_products),
+                            contentDescription = null,
                         )
                     },
                     trailingIcon = if (uiState.query.isNotEmpty()) {
@@ -193,9 +202,8 @@ fun ProductListScreen(
                     } else {
                         null
                     },
-                    singleLine = true,
                     shape = MaterialTheme.shapes.extraLarge,
-                )
+                ) { }
 
                 Box(
                     modifier = Modifier
@@ -254,10 +262,10 @@ fun ProductListScreen(
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(
                                 start = 16.dp,
                                 end = 16.dp,
-                                top = 8.dp,
+                                top = 16.dp,
                                 bottom = 96.dp,
                             ),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
                         ) {
                             item(key = "expiry-overview", contentType = "overview") {
                                 ExpiryOverviewCard(
@@ -323,7 +331,22 @@ fun ProductListScreen(
     productDetail?.let { product ->
         val fullDateFormatter = rememberLocalizedDateFormatter(FormatStyle.FULL)
         val status = expiryStatus(product.expiryDate, referenceDate)
-        ModalBottomSheet(onDismissRequest = { productDetail = null }) {
+        val quantityDescription = androidx.compose.ui.res.pluralStringResource(
+            R.plurals.product_quantity,
+            product.quantity.coerceAtLeast(0),
+            product.quantity.coerceAtLeast(0),
+        )
+        val location = storageLocationLabel(product.storageLocation)
+        val inventoryDescription = if (location.isBlank()) {
+            quantityDescription
+        } else {
+            "$quantityDescription · $location"
+        }
+        ModalBottomSheet(
+            onDismissRequest = { productDetail = null },
+            shape = MaterialTheme.shapes.extraLarge,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -331,25 +354,28 @@ fun ProductListScreen(
                     .padding(horizontal = 24.dp)
                     .padding(bottom = 24.dp),
             ) {
-                Surface(
-                    color = statusColor(status).copy(alpha = 0.12f),
-                    shape = MaterialTheme.shapes.large,
-                    modifier = Modifier.fillMaxWidth(),
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = statusLabel(status),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = statusColor(status),
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
+                    Badge(
+                        containerColor = statusColor(status).copy(alpha = 0.14f),
+                        contentColor = statusColor(status),
+                    ) {
                         Text(
                             text = remainingDaysText(product.expiryDate, referenceDate),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 2,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
                         )
                     }
+                    Text(
+                        text = statusLabel(status),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
@@ -369,31 +395,57 @@ fun ProductListScreen(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = product.expiryDate.format(fullDateFormatter),
-                    style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = remainingDaysText(product.expiryDate, referenceDate),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = statusColor(status),
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
                 Spacer(modifier = Modifier.height(20.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    androidx.compose.material3.Button(
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.large,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    ),
+                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Filled.DateRange,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = product.expiryDate.format(fullDateFormatter),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Text(
+                                    text = stringResource(R.string.expiry_date),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                        Text(
+                            text = inventoryDescription,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    FilledTonalButton(
                         onClick = {
                             productDetail = null
                             onEditProduct(product.id)
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.weight(1f),
                     ) {
+                        Icon(Icons.Filled.Edit, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.edit), maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                     OutlinedButton(
@@ -401,8 +453,10 @@ fun ProductListScreen(
                             productDetail = null
                             productPendingDelete = product
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.weight(1f),
                     ) {
+                        Icon(Icons.Filled.Delete, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.delete), maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
@@ -474,13 +528,13 @@ private fun ExpiryOverviewCard(
     modifier: Modifier = Modifier,
     onFilterChange: (ProductFilter) -> Unit,
 ) {
-    Card(
+    ElevatedCard(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(16.dp).selectableGroup()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -494,11 +548,13 @@ private fun ExpiryOverviewCard(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Surface(
-                    modifier = Modifier.selectable(
-                        selected = selected == ProductFilter.ALL,
-                        onClick = { onFilterChange(ProductFilter.ALL) },
-                        role = Role.RadioButton,
-                    ),
+                    modifier = Modifier
+                        .heightIn(min = 48.dp)
+                        .selectable(
+                            selected = selected == ProductFilter.ALL,
+                            onClick = { onFilterChange(ProductFilter.ALL) },
+                            role = Role.RadioButton,
+                        ),
                     shape = MaterialTheme.shapes.small,
                     color = if (selected == ProductFilter.ALL) {
                         MaterialTheme.colorScheme.primaryContainer
@@ -524,10 +580,10 @@ private fun ExpiryOverviewCard(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 ExpiryOverviewMetric(
                     count = freshCount,
@@ -653,17 +709,17 @@ private fun ProductCard(
         product.quantity.coerceAtLeast(0),
     )
     val storageLocation = storageLocationLabel(product.storageLocation)
-    Card(
+    ElevatedCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp, pressedElevation = 2.dp),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp, pressedElevation = 3.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(20.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 CategoryAvatar(name = product.categoryName)
@@ -688,24 +744,23 @@ private fun ProductCard(
                     }
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Surface(
-                    color = statusColor(status).copy(alpha = 0.13f),
+                Badge(
+                    containerColor = statusColor(status).copy(alpha = 0.14f),
                     contentColor = statusColor(status),
-                    shape = MaterialTheme.shapes.medium,
                     modifier = Modifier.widthIn(max = 116.dp),
                 ) {
                     Text(
                         text = remainingDaysText(product.expiryDate, referenceDate),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
-                        maxLines = 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp),
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,

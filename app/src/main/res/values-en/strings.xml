@@ -17,7 +17,6 @@
     <string name="notes_filter_all">All</string>
     <string name="notes_filter_pinned">Pinned</string>
     <string name="notes_filter_recent">Recently updated</string>
-    <string name="note_pinned">Pinned</string>
     <string name="empty_pinned_notes_title">No pinned notes</string>
     <string name="empty_pinned_notes">Pin important notes to find them easily later.</string>
     <string name="empty_recent_notes_title">No recent notes</string>
@@ -163,9 +162,6 @@
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
-    <string name="onboarding_icon_date_range">Expiry tracking</string>
-    <string name="onboarding_icon_settings">Settings</string>
-    <string name="onboarding_icon_edit">Edit</string>
     <string name="support_legacy_ad_free">Your existing ad-free entitlement from Google Play remains active.</string>
     <string name="support_manage_subscription">Manage Google Play subscription</string>
     <string name="support_entitlement_checking">We check Google Play purchases before showing ads so existing ad-free plans remain honored. If the check does not finish, check your connection and Google Play, then retry.</string>

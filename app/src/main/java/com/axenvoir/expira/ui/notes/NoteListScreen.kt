@@ -28,7 +28,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
+import androidx.compose.material3.Badge
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -36,11 +36,12 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -75,6 +76,8 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
+// Keep the existing ViewModel-owned String query; do not create a second TextFieldState for presentation.
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteListScreen(
@@ -111,6 +114,7 @@ fun NoteListScreen(
     val scrollBehavior = androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             androidx.compose.material3.MediumTopAppBar(
@@ -149,9 +153,12 @@ fun NoteListScreen(
                     .align(Alignment.TopCenter),
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    OutlinedTextField(
-                        value = query,
-                        onValueChange = viewModel::onQueryChange,
+                    SearchBar(
+                        query = query,
+                        onQueryChange = viewModel::onQueryChange,
+                        onSearch = viewModel::onQueryChange,
+                        active = false,
+                        onActiveChange = {},
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -159,7 +166,7 @@ fun NoteListScreen(
                         leadingIcon = {
                             Icon(
                                 Icons.Filled.Search,
-                                contentDescription = stringResource(R.string.search_notes),
+                                contentDescription = null,
                             )
                         },
                         trailingIcon = if (query.isNotBlank()) {
@@ -172,9 +179,8 @@ fun NoteListScreen(
                                 }
                             }
                         } else null,
-                        singleLine = true,
                         shape = MaterialTheme.shapes.extraLarge,
-                    )
+                    ) { }
                     if (!isLoading && !loadFailed && notes.isNotEmpty()) {
                         Row(
                             modifier = Modifier
@@ -182,11 +188,16 @@ fun NoteListScreen(
                                 .padding(horizontal = 16.dp, vertical = 2.dp),
                             horizontalArrangement = Arrangement.End,
                         ) {
-                            Text(
-                                text = pluralStringResource(R.plurals.notes_count, notes.size, notes.size),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            Badge(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            ) {
+                                Text(
+                                    text = pluralStringResource(R.plurals.notes_count, notes.size, notes.size),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                                )
+                            }
                         }
                     }
                     Row(
@@ -219,7 +230,7 @@ fun NoteListScreen(
                             colors = expiraChipColors(),
                         )
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     if (loadFailed) {
                         Box(
                             modifier = Modifier
@@ -272,6 +283,8 @@ fun NoteListScreen(
                                     icon = Icons.Filled.Edit,
                                     title = stringResource(R.string.empty_notes_title),
                                     subtitle = stringResource(R.string.empty_notes),
+                                    actionLabel = stringResource(R.string.add_note),
+                                    onAction = onAddNote,
                                 )
 
                                 filter == NoteFilter.PINNED -> ExpiraEmptyState(
@@ -302,10 +315,10 @@ fun NoteListScreen(
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(
                                 start = 16.dp,
                                 end = 16.dp,
-                                top = 8.dp,
+                                top = 16.dp,
                                 bottom = 96.dp,
                             ),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
                         ) {
                             items(notes, key = { it.id }, contentType = { "note" }) { note ->
                                 NoteCard(
@@ -379,7 +392,7 @@ private fun NoteCard(
     onDelete: () -> Unit,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
-    Card(
+    ElevatedCard(
         onClick = onClick,
         shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(
@@ -389,9 +402,9 @@ private fun NoteCard(
                 MaterialTheme.colorScheme.surfaceContainer
             },
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp, pressedElevation = 2.dp),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp, pressedElevation = 3.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = note.title,
@@ -401,14 +414,6 @@ private fun NoteCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                if (note.isPinned) {
-                    Text(
-                        text = stringResource(R.string.note_pinned),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                }
                 IconButton(onClick = onTogglePin) {
                     Icon(
                         imageVector = Icons.Filled.Star,
@@ -448,7 +453,7 @@ private fun NoteCard(
                 }
             }
             if (note.content.isNotBlank()) {
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = note.content.trim(),
                     style = MaterialTheme.typography.bodyMedium,
@@ -457,7 +462,7 @@ private fun NoteCard(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,

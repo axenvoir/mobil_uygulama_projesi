@@ -17,7 +17,6 @@
     <string name="notes_filter_all">Tümü</string>
     <string name="notes_filter_pinned">Sabitlenenler</string>
     <string name="notes_filter_recent">Son güncellenenler</string>
-    <string name="note_pinned">Sabitlendi</string>
     <string name="empty_pinned_notes_title">Sabitlenmiş not yok</string>
     <string name="empty_pinned_notes">Önemli notlarınızı daha sonra kolayca bulmak için sabitleyin.</string>
     <string name="empty_recent_notes_title">Yeni not yok</string>
@@ -129,9 +128,6 @@
     <string name="create_new_note">Yeni not oluştur</string>
     <string name="clear_notes_search">Not aramasını temizle</string>
     <string name="empty_notes_search_subtitle">Aramanızı değiştirin veya temizleyin.</string>
-    <string name="onboarding_icon_date_range">Takip</string>
-    <string name="onboarding_icon_settings">Ayarlar</string>
-    <string name="onboarding_icon_edit">Düzenle</string>
     <string name="onboarding_title_1">Ürünlerini ekle</string>
     <string name="onboarding_text_1">Son kullanma tarihlerini takip et, yaklaşanları kaçırma</string>
     <string name="onboarding_title_2">Günlük hatırlatma</string>

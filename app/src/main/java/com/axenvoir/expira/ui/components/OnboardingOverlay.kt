@@ -1,10 +1,17 @@
 package com.axenvoir.expira.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -14,6 +21,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -56,20 +64,19 @@ fun OnboardingOverlay(
     )
     val page = pages[step]
 
-    val pageContentDescription = when (page.icon) {
-        Icons.Filled.DateRange -> stringResource(R.string.onboarding_icon_date_range)
-        Icons.Filled.Settings -> stringResource(R.string.onboarding_icon_settings)
-        Icons.Filled.Edit -> stringResource(R.string.onboarding_icon_edit)
-        else -> null
-    }
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = {
-            Icon(
-                page.icon,
-                contentDescription = pageContentDescription,
-                tint = MaterialTheme.colorScheme.primary,
-            )
+            Surface(
+                modifier = Modifier.size(56.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(page.icon, contentDescription = null, modifier = Modifier.size(28.dp))
+                }
+            }
         },
         title = { Text(stringResource(page.titleRes), fontWeight = FontWeight.SemiBold) },
         text = {
@@ -79,6 +86,26 @@ fun OnboardingOverlay(
                     .heightIn(max = 320.dp)
                     .verticalScroll(rememberScrollState()),
             ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    pages.indices.forEach { index ->
+                        if (index > 0) Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            modifier = Modifier.size(
+                                width = if (index == step) 24.dp else 8.dp,
+                                height = 8.dp,
+                            ),
+                            shape = CircleShape,
+                            color = if (index == step) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.surfaceVariant,
+                        ) { }
+                    }
+                }
                 Text(stringResource(page.textRes))
             }
         },
