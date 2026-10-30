@@ -78,11 +78,11 @@ Android 13 veya üzeri gerçek cihazda:
 Aşağıdaki değerler geliştirici/uygulama sahibinden alınmadan uydurulmamalıdır:
 
 - Gizlilik politikası URL’si `https://axenvoir.github.io/` ve destek e-posta adresi `axenvoir@yahoo.com` olarak uygulama sahibinden alınmıştır; uygulamadaki Ayarlar > Hakkında bağlantılarının açıldığını doğrulayın.
-- Mevcut gizlilik politikası metni AdMob/UMP reklam ve izin SDK’larını ve Google Play satın alma haklarının işlenmesini açıklamıyor; ayrıca Android uygulamasında kullanılmayan Expo EAS Update ve iOS ifadeleri içeriyor. Metin gerçek Android veri akışlarına göre düzeltilip yeniden kontrol edilmeden global yayına çıkmayın.
+- Gizlilik politikası 30 Ekim 2026’da Türkçe ve İngilizce olarak güncellendi ve yayımlandı. Metin mevcut Android uygulamasının AdMob/UMP, eski Play satın alma hakları, yerel kayıtlar, yedekleme/dışa aktarma, bildirimler ve çökme kurtarma davranışlarıyla eşleştirildi. Yayın öncesi sayfanın güncel açıldığını ve uygulamadaki bağlantıların çalıştığını kontrol edin.
 - Kullanım koşulları ve abonelik iptali açıklamaları, gerekiyorsa.
 - Türkçe ve İngilizce mağaza kısa/uzun açıklamaları, ekran görüntüleri ve feature graphic.
 - İçerik derecelendirmesi ve Play Console Data Safety formu.
-- Data Safety ve gizlilik politikası, kullanılan AdMob/UMP sürümlerinin ve Play Billing’in güncel veri uygulamalarını doğru yansıtmalı.
+- Play Console Data Safety ve gizlilik politikası, kullanılan AdMob/UMP sürümlerinin ve Play Billing’in güncel veri uygulamalarını doğru yansıtmalı; SDK veya uygulama davranışı değişirse ikisini de güncelleyin.
 - Kapalı test kullanıcılarına uygulama ve gerekli Play ürünleri/özellikleri erişilebilir.
 - Play Console’un güncel hedef API şartı ve hedef ülke gereklilikleri, yayın günü yeniden kontrol edilmeli.
 
