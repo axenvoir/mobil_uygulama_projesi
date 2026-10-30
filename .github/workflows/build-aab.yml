@@ -197,10 +197,10 @@ jobs:
 
       - name: Decode release keystore
         env:
-          KEYSTORE_BASE64: ${{ secrets.PLAY_PRODUCTION_KEYSTORE_BASE64 }}
+          KEYSTORE_BASE64: ${{ secrets.PLAY_PRODUCTION_KEYSTORE_BASE64 || secrets.KEYSTORE_BASE64 }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::error::PLAY_PRODUCTION_KEYSTORE_BASE64 is not configured in the play-production environment"
+            echo "::error::Set PLAY_PRODUCTION_KEYSTORE_BASE64 in the play-production environment or provide the existing KEYSTORE_BASE64 repository secret"
             exit 1
           fi
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > release.jks

@@ -16,7 +16,7 @@ Uygulama içindeki yeni abonelik/tek seferlik satış ekranı kaldırılmıştı
 
 Kurulum adımları ve ID biçimleri [`ADS_SETUP.md`](ADS_SETUP.md) içinde yer alır.
 
-- [ ] AdMob ve signing değerleri yalnızca `play-production` GitHub Actions Environment secrets'ında `PLAY_PRODUCTION_ADMOB_APP_ID`, `PLAY_PRODUCTION_REWARDED_AD_UNIT_ID`, `PLAY_PRODUCTION_KEYSTORE_BASE64`, `PLAY_PRODUCTION_KEYSTORE_PASSWORD`, `PLAY_PRODUCTION_KEY_ALIAS` ve `PLAY_PRODUCTION_KEY_PASSWORD` adlarıyla yapılandırıldı; eski repository-level kopyalar kaldırıldı.
+- [ ] AdMob ID'leri ve keystore parolası/alias bilgileri `play-production` GitHub Actions Environment secrets'ında `PLAY_PRODUCTION_*` adlarıyla yapılandırıldı. Keystore Base64 için `PLAY_PRODUCTION_KEYSTORE_BASE64` tercih edilir; onaylı geçici uyumluluk yolu olarak mevcut `KEYSTORE_BASE64` repository secret'ı da kullanılabilir. Bu repository secret daha geniş kapsamlı olduğundan environment secret doğrulandıktan sonra kaldırılmalıdır.
 - AdMob ödül türü `Expira point`, miktarı `1` olarak yapılandırılmış.
 - Tamamlanan her reklamda bir puan, beş puanda uygulama içi kozmetik Destekçi rozeti görünür; ödül metni, uygulama içi davranış ve AdMob yapılandırması birbiriyle eşleşiyor.
 - Release workflow’u gerçek kimlikleri kullanıyor; Google test ID’leri release için kabul edilmiyor.
@@ -92,7 +92,7 @@ Aşağıdaki değerler geliştirici/uygulama sahibinden alınmadan uydurulmamal�
 - [ ] `versionCode` Play Console’da kullanılmamış, artan bir değer; kullanıcı `102`’nin yüklendiğini doğruladığı için kaynak ağacındaki yeni aday kod `103`’tür.
 - [ ] `versionName` yayın notlarıyla uyumlu; bu kaynak ağacındaki yeni aday sürüm `2.2.1`.
 - [ ] Release secrets: imzalama anahtarı/değerleri ve iki production AdMob ID’si tanımlı.
-- [ ] `play-production` environment oluşturuldu; required reviewer, yalnız `v*` deployment kuralı ve release environment secrets doğrulandı. `v*` tag'leri için yetkisiz create/update/delete işlemlerini önleyen GitHub ruleset etkin.
+- [ ] `play-production` environment oluşturuldu; required reviewer, yalnız `v*` deployment kuralı ve release environment secrets doğrulandı. `KEYSTORE_BASE64` repository secret yedeği geçici kullanılıyorsa kapsam riski kabul edildi ve environment secret'a geçiş sonrası kaldırılacak. `v*` tag'leri için yetkisiz create/update/delete işlemlerini önleyen GitHub ruleset etkin.
 - [ ] `main` branch protection ve doğrudan push/bypass kuralları ekip yapısına göre belirlendi ve GitHub'da uygulandı.
 - [ ] GitHub Actions main push'unda yalnız verify çalışıyor; release job'ı elle seçilen `versionName` tag'i ve birebir yazılan onay girdisi olmadan çalışmıyor. Tag çalıştırma anındaki tam `main` HEAD commit'ini gösteriyor. Protected environment onayı başarıyla test edildi.
 - [ ] GitHub Actions’ta unit test, lint, debug build, 1→3 Room migration, reward-wallet ve Compose instrumentation işleri başarılı; signed release artifact'i yalnız korumalı elle dispatch sonrasında üretildi.

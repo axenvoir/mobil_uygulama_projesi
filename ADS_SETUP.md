@@ -24,7 +24,7 @@ AdMob kimlikleri uygulama parolası değildir; yine de bunları kaynak koda veya
 
 ## 2. GitHub Actions release environment ve secrets
 
-Release için `play-production` adlı GitHub Actions Environment oluşturun. Bu environment'a en az bir required reviewer ekleyin, yalnız `v*` tag'lerinin deploy edebilmesine izin verin ve aşağıdaki değerleri **environment secrets** olarak tanımlayın. Ayrıca `v*` tag'lerini yetkisiz oluşturma, değiştirme ve silmeye karşı koruyan bir repository ruleset kurun. Workflow yalnızca `PLAY_PRODUCTION_*` secret adlarını okur; eski repository-level secret kopyaları bilerek kullanılmaz. `main` push'ları yalnızca verify işini çalıştırır; imzalı release yalnızca seçilen tag'de `workflow_dispatch` ile ve tag adını ayrıca doğrulayarak başlatılır.
+Release için `play-production` adlı GitHub Actions Environment oluşturun. Bu environment'a en az bir required reviewer ekleyin, yalnız `v*` tag'lerinin deploy edebilmesine izin verin ve aşağıdaki `PLAY_PRODUCTION_*` değerlerini **environment secrets** olarak tanımlayın. Ayrıca `v*` tag'lerini yetkisiz oluşturma, değiştirme ve silmeye karşı koruyan bir repository ruleset kurun. Onaylı geçiş kolaylığı olarak, imzalı release işi `PLAY_PRODUCTION_KEYSTORE_BASE64` ortam secret'ı yoksa yalnızca keystore Base64 için eski `KEYSTORE_BASE64` repository secret'ına geri döner; diğer imzalama ve AdMob değerleri yalnızca environment secret'larından okunur. Repository-level secret daha geniş workflow kapsamına sahip olduğundan bu yedek yolu geçicidir; ortam secret'ı doğrulandıktan sonra eski repository secret'ını kaldırın. `main` push'ları yalnızca verify işini çalıştırır; imzalı release yalnızca seçilen tag'de `workflow_dispatch` ile ve tag adını ayrıca doğrulayarak başlatılır.
 
 **Kontrol tarihi 30 Ekim 2026:** depo henüz `play-production` environment veya repository ruleset içermiyor; `main` dalında branch protection da görünmüyor. YAML'da bir environment adı kullanmak tek başına onay kuralı oluşturmaz; GitHub, bulunmayan environment'ı koruma kuralı olmadan otomatik oluşturabilir. Environment required-reviewer ve yalnız `v*` deployment kuralı ile tag ruleset yapılandırılmadan release dispatch etmeyin.
 
@@ -32,14 +32,14 @@ Release için `play-production` adlı GitHub Actions Environment oluşturun. Bu 
 |---|---|
 | `PLAY_PRODUCTION_ADMOB_APP_ID` | AdMob Android App ID (`~` içeren) |
 | `PLAY_PRODUCTION_REWARDED_AD_UNIT_ID` | Rewarded reklam birimi ID’si (`/` içeren) |
-| `PLAY_PRODUCTION_KEYSTORE_BASE64` | Play App Signing’e yükleme için kullanılan release JKS keystore dosyasının Base64 içeriği |
+| `PLAY_PRODUCTION_KEYSTORE_BASE64` | Play App Signing’e yükleme için kullanılan release JKS keystore dosyasının Base64 içeriği; tercih edilen secret adı. Geçiş sırasında mevcut `KEYSTORE_BASE64` repository secret'ı yedek olarak kullanılabilir. |
 | `PLAY_PRODUCTION_KEYSTORE_PASSWORD` | JKS keystore parolası |
 | `PLAY_PRODUCTION_KEY_ALIAS` | Keystore içindeki imza anahtarının alias adı |
 | `PLAY_PRODUCTION_KEY_PASSWORD` | İmza anahtarının parolası |
 
-`PLAY_PRODUCTION_KEYSTORE_BASE64` değerini JKS dosyasının Base64 kodlamasından oluşturun (Linux: `base64 -w0 expira-release.jks`; macOS: `base64 < expira-release.jks | tr -d '\n'`). Ham keystore’u veya parolaları repoya eklemeyin; yalnızca `play-production` environment secret alanlarına girin.
+`PLAY_PRODUCTION_KEYSTORE_BASE64` değerini JKS dosyasının Base64 kodlamasından oluşturun (Linux: `base64 -w0 expira-release.jks`; macOS: `base64 < expira-release.jks | tr -d '\n'`). Ham keystore’u veya parolaları repoya eklemeyin. Tercihen bütün `PLAY_PRODUCTION_*` değerlerini `play-production` environment secrets alanlarına girin; geçici `KEYSTORE_BASE64` repository secret yedeğini yalnızca mevcut değeri başka yere güvenli biçimde taşıyamıyorsanız kullanın.
 
-Release workflow’u AdMob ID biçimlerini doğrular, Google test kimlikleriyle release üretimini durdurur ve environment secrets olmadan imzalı APK/AAB üretmez. Release tag'i `app/build.gradle.kts` içindeki `versionName` ile eşleşmeli ve **o anki tam `main` HEAD commit'ini** göstermelidir; daha eski bir commit'in tag'i release üretemez. `play-production` environment onayından sonra release artifact işi çalışır. Bu değerler eklenmemişse **verify** işi (unit test, lint, debug build ve instrumentation) çalışabilir; release artifact işi bilerek hata verir.
+Release workflow’u AdMob ID biçimlerini doğrular, Google test kimlikleriyle release üretimini durdurur ve gereken imzalama/AdMob secret'ları olmadan imzalı APK/AAB üretmez. Keystore Base64 için environment secret tercih edilir; mevcut `KEYSTORE_BASE64` repository secret'ı yalnızca yedek seçenektir. Release tag'i `app/build.gradle.kts` içindeki `versionName` ile eşleşmeli ve **o anki tam `main` HEAD commit'ini** göstermelidir; daha eski bir commit'in tag'i release üretemez. `play-production` environment onayından sonra release artifact işi çalışır. Secret'lar eksikse **verify** işi (unit test, lint, debug build ve instrumentation) çalışabilir; release artifact işi bilerek hata verir.
 
 ## 3. Yerel release derlemesi
 
