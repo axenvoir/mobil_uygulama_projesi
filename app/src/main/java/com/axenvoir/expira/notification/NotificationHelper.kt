@@ -44,8 +44,8 @@ class NotificationHelper @Inject constructor(
             ) == PackageManager.PERMISSION_GRANTED) &&
             NotificationManagerCompat.from(context).areNotificationsEnabled()
 
-    fun showExpiryReminder(count: Int, topNames: List<String>) {
-        if (count <= 0 || !canPostNotifications()) return
+    fun showExpiryReminder(count: Int, topNames: List<String>): Boolean {
+        if (count <= 0) return false
         val countText = context.resources.getQuantityString(
             R.plurals.notification_text,
             count,
@@ -58,45 +58,52 @@ class NotificationHelper @Inject constructor(
                 append(name)
             }
         }
-        showNotification(
+        return showNotification(
+            notificationId = NOTIFICATION_ID,
             title = context.getString(R.string.notification_title),
             text = countText,
             details = details,
         )
     }
 
-    fun showTestNotification() {
-        showNotification(
+    fun showTestNotification(): Boolean = showNotification(
+            notificationId = TEST_NOTIFICATION_ID,
             title = context.getString(R.string.notification_test_title),
             text = context.getString(R.string.notification_test_text),
         )
-    }
 
     @SuppressLint("MissingPermission")
-    private fun showNotification(title: String, text: String, details: String = text) {
-        if (!canPostNotifications()) return
-        createChannel()
-        val openAppIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            0,
-            openAppIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(details))
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .build()
-        try {
-            NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+    private fun showNotification(
+        notificationId: Int,
+        title: String,
+        text: String,
+        details: String = text,
+    ): Boolean {
+        return try {
+            if (!canPostNotifications()) return false
+            createChannel()
+            val openAppIntent = Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                0,
+                openAppIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+            val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(details))
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build()
+            NotificationManagerCompat.from(context).notify(notificationId, notification)
+            true
         } catch (exception: SecurityException) {
             Log.w(TAG, "Notification permission was revoked before delivery", exception)
+            false
         }
     }
 
@@ -104,5 +111,6 @@ class NotificationHelper @Inject constructor(
         private const val TAG = "NotificationHelper"
         const val CHANNEL_ID = "expiry_reminders"
         const val NOTIFICATION_ID = 1001
+        const val TEST_NOTIFICATION_ID = 1002
     }
 }

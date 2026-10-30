@@ -29,12 +29,7 @@ class SettingsViewModel @Inject constructor(
     private val _isExporting = MutableStateFlow(false)
     val isExporting: StateFlow<Boolean> = _isExporting.asStateFlow()
 
-    fun sendTestNotification(): Boolean {
-        notificationHelper.createChannel()
-        if (!notificationHelper.canPostNotifications()) return false
-        notificationHelper.showTestNotification()
-        return true
-    }
+    fun sendTestNotification(): Boolean = notificationHelper.showTestNotification()
 
     suspend fun exportCsv(context: android.content.Context, uri: android.net.Uri): Result<Unit> {
         if (!exportMutex.tryLock()) {
