@@ -43,12 +43,13 @@ class MainActivity : AppCompatActivity() {
     private val crashRecoveryLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) {
-        adsManager.requestConsentAtLaunch(this)
+        startPostRecoveryStartupTasks()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
+        val crashedLastRun = CrashReporter.consumeCrashMarker(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             splash.setOnExitAnimationListener { provider ->
                 provider.iconView?.let { iconView ->
@@ -67,7 +68,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        notificationHelper.createChannel()
         languageManager.applyOnStartup()
         enableEdgeToEdge()
         setContent {
@@ -82,11 +82,16 @@ class MainActivity : AppCompatActivity() {
                 MainScreen()
             }
         }
-        reminderScheduler.scheduleDailyReminder()
-        if (CrashReporter.consumeCrashMarker(this)) {
+        if (crashedLastRun) {
             crashRecoveryLauncher.launch(Intent(this, CrashDisplayActivity::class.java))
         } else {
-            adsManager.requestConsentAtLaunch(this)
+            startPostRecoveryStartupTasks()
         }
+    }
+
+    private fun startPostRecoveryStartupTasks() {
+        notificationHelper.createChannel()
+        reminderScheduler.scheduleDailyReminder()
+        adsManager.requestConsentAtLaunch(this)
     }
 }
