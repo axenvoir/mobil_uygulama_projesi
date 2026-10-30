@@ -4,6 +4,7 @@
 
 - Reklam yalnızca kullanıcı **Reklamı hazırla** ve ardından **Reklamı izle** eylemlerini seçerse istenir/gösterilir; uygulama açılışında reklam yüklenmez.
 - Reklam izlemek isteğe bağlıdır. Reklamı kapatmak veya izlememek ürün, not, bildirim ya da başka temel özellikleri engellemez.
+- Reklam daveti yalnızca gereken eylemi ve kazanılacak puanı açıklar; işletmeyi desteklemek için reklam izleme çağrısı yapılmaz.
 - Reklamın tamamlandığı Google Mobile Ads ödül callback’iyle doğrulanır; callback gelmeden puan verilmez. Her tamamlanan reklam 1 puan verir. Harcanabilir puanlarla Sakin Alacakaranlık (5), Narenciye Defteri (10) ve Böğürtlen Arşivi (15) kozmetik paletleri kalıcı olarak açılır; ömür boyu kazanılan 5 puan da harcama yapılsa bile kalıcı Destekçi rozetini açar.
 - Puanlar, işlem tekilleştirmesi ve bakiye/kozmetik sahipliği `skt_plus.db` içindeki Room cüzdanında saklanır; uygulamanın mevcut Android yedekleme ve cihaz aktarımı allowlist'i bu ana veritabanını içerir. Böylece puan bakiyesi ve açılmış paletler desteklenen/etkin yedekleme veya aktarımda veritabanıyla birlikte taşınabilir. Puanların nakit değeri veya uygulama dışı karşılığı yoktur ve devredilemez.
 - AdMob’da ödül miktarı **1**, ödül adı **Expira point** olarak ayarlanmalıdır; uygulama metinleri bu yapılandırmayı varsayar.
@@ -21,22 +22,24 @@
 
 AdMob kimlikleri uygulama parolası değildir; yine de bunları kaynak koda veya Git commit’lerine yazmayın. Uygulama, Google’ın test reklam kimliklerini yalnızca `debug` yapısında kullanır. Gerçek reklam kimliklerini debug testinde kullanmayın ve kendi canlı reklamlarınıza tıklamayın.
 
-## 2. GitHub Actions için gerekli secrets
+## 2. GitHub Actions release environment ve secrets
 
-Depo ayarlarında **Settings → Secrets and variables → Actions → New repository secret** yolunu açıp aşağıdaki iki değeri ekleyin:
+Release için `play-production` adlı GitHub Actions Environment oluşturun. Bu environment'a en az bir required reviewer ekleyin, yalnız `v*` tag'lerinin deploy edebilmesine izin verin ve aşağıdaki değerleri **environment secrets** olarak tanımlayın. Ayrıca `v*` tag'lerini yetkisiz oluşturma, değiştirme ve silmeye karşı koruyan bir repository ruleset kurun. Workflow yalnızca `PLAY_PRODUCTION_*` secret adlarını okur; eski repository-level secret kopyaları bilerek kullanılmaz. `main` push'ları yalnızca verify işini çalıştırır; imzalı release yalnızca seçilen tag'de `workflow_dispatch` ile ve tag adını ayrıca doğrulayarak başlatılır.
+
+**Kontrol tarihi 30 Ekim 2026:** depo henüz `play-production` environment veya repository ruleset içermiyor; `main` dalında branch protection da görünmüyor. YAML'da bir environment adı kullanmak tek başına onay kuralı oluşturmaz; GitHub, bulunmayan environment'ı koruma kuralı olmadan otomatik oluşturabilir. Environment required-reviewer ve yalnız `v*` deployment kuralı ile tag ruleset yapılandırılmadan release dispatch etmeyin.
 
 | Secret adı | Değer |
 |---|---|
-| `EXPIRA_ADMOB_APP_ID` | AdMob Android App ID (`~` içeren) |
-| `EXPIRA_REWARDED_AD_UNIT_ID` | Rewarded reklam birimi ID’si (`/` içeren) |
-| `KEYSTORE_BASE64` | Play App Signing’e yükleme için kullanılan release JKS keystore dosyasının Base64 içeriği |
-| `KEYSTORE_PASSWORD` | JKS keystore parolası |
-| `KEY_ALIAS` | Keystore içindeki imza anahtarının alias adı |
-| `KEY_PASSWORD` | İmza anahtarının parolası |
+| `PLAY_PRODUCTION_ADMOB_APP_ID` | AdMob Android App ID (`~` içeren) |
+| `PLAY_PRODUCTION_REWARDED_AD_UNIT_ID` | Rewarded reklam birimi ID’si (`/` içeren) |
+| `PLAY_PRODUCTION_KEYSTORE_BASE64` | Play App Signing’e yükleme için kullanılan release JKS keystore dosyasının Base64 içeriği |
+| `PLAY_PRODUCTION_KEYSTORE_PASSWORD` | JKS keystore parolası |
+| `PLAY_PRODUCTION_KEY_ALIAS` | Keystore içindeki imza anahtarının alias adı |
+| `PLAY_PRODUCTION_KEY_PASSWORD` | İmza anahtarının parolası |
 
-`KEYSTORE_BASE64` değerini JKS dosyasının Base64 kodlamasından oluşturun (Linux: `base64 -w0 expira-release.jks`; macOS: `base64 < expira-release.jks | tr -d '\n'`). Ham keystore’u veya parolaları repoya eklemeyin; GitHub secret alanlarına girin.
+`PLAY_PRODUCTION_KEYSTORE_BASE64` değerini JKS dosyasının Base64 kodlamasından oluşturun (Linux: `base64 -w0 expira-release.jks`; macOS: `base64 < expira-release.jks | tr -d '\n'`). Ham keystore’u veya parolaları repoya eklemeyin; yalnızca `play-production` environment secret alanlarına girin.
 
-Release workflow’u AdMob ID biçimlerini doğrular, Google test kimlikleriyle release üretimini durdurur ve listelenen imzalama secret’ları olmadan imzalı APK/AAB üretmez. Bu değerler eklenmemişse **verify** işi (unit test, lint, debug build ve instrumentation) çalışabilir; release artifact işi bilerek hata verir.
+Release workflow’u AdMob ID biçimlerini doğrular, Google test kimlikleriyle release üretimini durdurur ve environment secrets olmadan imzalı APK/AAB üretmez. Release tag'i `app/build.gradle.kts` içindeki `versionName` ile eşleşmeli ve **o anki tam `main` HEAD commit'ini** göstermelidir; daha eski bir commit'in tag'i release üretemez. `play-production` environment onayından sonra release artifact işi çalışır. Bu değerler eklenmemişse **verify** işi (unit test, lint, debug build ve instrumentation) çalışabilir; release artifact işi bilerek hata verir.
 
 ## 3. Yerel release derlemesi
 
@@ -76,9 +79,9 @@ Gerçek cihazda, kapalı testten yüklenmiş uygulama ve test hesabıyla aşağ�
 ## Güncel durum ve yayın için kullanıcıdan gerekenler
 
 - En son başarılı imzalı release workflow’u production AdMob ID secret’larının mevcut ve Google test ID’lerinden farklı olduğunu doğruladı. Bu doğrulama yalnızca secret/biçim kontrolüdür; AdMob uygulama eşleşmesini, UMP ülke ayarlarını, canlı reklam envanterini veya cihazda reklam dolumunu kanıtlamaz.
-- `EXPIRA_ADMOB_APP_ID` ve `EXPIRA_REWARDED_AD_UNIT_ID` değerleri GitHub Actions secrets’ta zaten yapılandırılmış görünüyor. Bunları sohbet veya commit içinde paylaşmayın; yalnızca döndürülürlerse secret’ları güncelleyin.
+- Önceki başarılı imzalı CI çalışması, o run'da repository secrets biçim kontrollerinin geçtiğini gösterdi; bu canlı AdMob serve/fill testi değildir. Güvenli release için imzalama ve AdMob değerlerini `play-production` environment secrets'a taşıyın ve eski repository secret kopyalarını kaldırmadan önce yeni environment yapılandırmasını doğrulayın. Gizli değerleri sohbet/commit içinde paylaşmayın.
 - Kullanıcı tarafından sağlanan gizlilik politikası URL’si `https://axenvoir.github.io/`, destek adresi `axenvoir@yahoo.com` şeklindedir. URL kamuya açık olarak açılıyor; uygulamanın Ayarlar > Hakkında bölümünde gösterilir.
-- Gizlilik politikasının önceki Türkçe/İngilizce sürümü 30 Ekim 2026’da yayımlandı. 2.2.0 adayı için yerel taslak; Room cüzdanı ve palet yedeğini, bir defalık eski puan içe aktarımını, hatırlatıcı sağlık işaretini, geçici reklam-ödülü retry ID'sini ve özel kilit ekranı bildirim önizlemesini açıklar. Bu yeni taslak henüz kamuya yayımlanmadı; son içerik uygulama sahibince onaylanıp yayınlanmadan Play sürümü hazır sayılmaz. SDK veya uygulama davranışı değiştiğinde politika ve Data Safety beyanını yeniden gözden geçirin.
+- Türkçe/İngilizce gizlilik politikası, Room cüzdanı ve palet yedeği, bir defalık eski puan içe aktarımı, hatırlatıcı sağlık işareti, geçici reklam-ödülü retry ID'si ve özel kilit ekranı bildirim önizlemesi dahil olacak şekilde 30 Ekim 2026'da `a066ff9` commit'iyle yayımlandı ve canlı URL doğrulandı. İzin akışı veya veri uygulaması değişirse politika ve Data Safety beyanını yeniden gözden geçirin.
 - Play Console Data Safety ve reklam beyanları, kullanılan AdMob/UMP SDK’larının güncel veri uygulamalarına göre tamamlanmalıdır.
 
 

@@ -16,12 +16,12 @@ Uygulama içindeki yeni abonelik/tek seferlik satış ekranı kaldırılmıştı
 
 Kurulum adımları ve ID biçimleri [`ADS_SETUP.md`](ADS_SETUP.md) içinde yer alır.
 
-- AdMob App ID ve Rewarded Ad Unit ID, GitHub Actions repository secrets’a `EXPIRA_ADMOB_APP_ID` ve `EXPIRA_REWARDED_AD_UNIT_ID` adlarıyla eklenmiş.
+- [ ] AdMob ve signing değerleri yalnızca `play-production` GitHub Actions Environment secrets'ında `PLAY_PRODUCTION_ADMOB_APP_ID`, `PLAY_PRODUCTION_REWARDED_AD_UNIT_ID`, `PLAY_PRODUCTION_KEYSTORE_BASE64`, `PLAY_PRODUCTION_KEYSTORE_PASSWORD`, `PLAY_PRODUCTION_KEY_ALIAS` ve `PLAY_PRODUCTION_KEY_PASSWORD` adlarıyla yapılandırıldı; eski repository-level kopyalar kaldırıldı.
 - AdMob ödül türü `Expira point`, miktarı `1` olarak yapılandırılmış.
 - Tamamlanan her reklamda bir puan, beş puanda uygulama içi kozmetik Destekçi rozeti görünür; ödül metni, uygulama içi davranış ve AdMob yapılandırması birbiriyle eşleşiyor.
 - Release workflow’u gerçek kimlikleri kullanıyor; Google test ID’leri release için kabul edilmiyor.
 - UMP consent mesajı, gerekli ülkeler/bölgeler ve gizlilik seçenekleri AdMob hesabında yapılandırılmış.
-- Ücretsiz kullanıcı reklamı yalnızca kendisi isterse hazırlar ve başlatır. Reklamı izlememek/kapamak uygulamanın temel işlevlerini kısıtlamaz.
+- Ücretsiz kullanıcı reklamı yalnızca kendisi isterse hazırlar ve başlatır. Reklam daveti yalnızca eylemi ve 1 puan ödülünü açıklar; işletmeyi destekleme çağrısı yoktur. Reklamı izlememek/kapamak uygulamanın temel işlevlerini kısıtlamaz.
 - Önceden reklamsız hak kazanmış kullanıcıya reklam gösterilmiyor.
 - Tamamlanmayan reklama puan verilmiyor; tamamlanan reklama bir kez puan ekleniyor ve uygulama yeniden açıldığında sayaç korunuyor.
 - Beşinci puan verildiğinde Destekçi rozeti görünür; reklama puan vermek zorunlu olmadığı gibi temel özellikleri de etkilemiyor.
@@ -44,7 +44,9 @@ Her senaryoyu kapalı testten yüklenen uygulamada ve lisans test hesabıyla den
 
 Android 13 veya üzeri gerçek cihazda:
 
-- Bildirim izni reddedilirse uygulama çökmez; test bildirimi sonucu kullanıcıya açıklanır.
+- Hatırlatıcılar bölümündeki **Hatırlatıcıları etkinleştir** eylemi bildirimin kullanım nedenini açıklar ve Android 13+ runtime iznini yalnız bu açık kullanıcı eyleminde ister.
+- İzin reddedilirse uygulama çökmez; kullanıcıya sistem bildirim ayarlarına gitme eylemi gösterilir. Test bildirimi kendi ayrı eyleminde kalır ve izni örtük biçimde istemez.
+- İzin ilk redden sonra Settings'ten açıldığında hatırlatıcı planı yeniden kurulur; izin tekrar kapatılıp açıldığında schedule recover davranışı doğrulanır.
 - Test bildirimi ve yaklaşan son kullanma tarihi bildirimi gelir.
 - Bildirim içindeki ürün adı ve gün bilgisi seçilen dilde gösterilir.
 - Bildirime dokununca uygulama açılır.
@@ -77,8 +79,7 @@ Android 13 veya üzeri gerçek cihazda:
 
 Aşağıdaki değerler geliştirici/uygulama sahibinden alınmadan uydurulmamalıdır:
 
-- Gizlilik politikası URL’si `https://axenvoir.github.io/` ve destek e-posta adresi `axenvoir@yahoo.com` olarak uygulama sahibinden alınmıştır; uygulamadaki Ayarlar > Hakkında bağlantılarının açıldığını doğrulayın.
-- Önceki Türkçe/İngilizce gizlilik politikası 30 Ekim 2026’da yayımlandı; 2.2.0 adayı için Room cüzdanı/palet yedeği, bir defalık eski puan içe aktarımı, hatırlatıcı sağlık işareti, geçici ödül retry ID'si ve özel kilit ekranı önizlemesini açıklayan daha yeni bir yerel taslak henüz yayımlanmadı. Bu taslağı onaylayıp GitHub Pages'te yayınlayın; ardından canlı URL'yi ve uygulamadaki bağlantıyı doğrulayın.
+- Gizlilik politikası URL’si `https://axenvoir.github.io/` ve destek e-posta adresi `axenvoir@yahoo.com` olarak uygulama sahibinden alınmıştır; uygulamadaki Ayarlar > Hakkında bağlantılarının açıldığını doğrulayın. Bilingual policy commit `a066ff9` ile yayımlandı ve canlı sayfa doğrulandı.
 - Kullanım koşulları ve abonelik iptali açıklamaları, gerekiyorsa.
 - Türkçe ve İngilizce mağaza kısa/uzun açıklamaları, ekran görüntüleri ve feature graphic.
 - İçerik derecelendirmesi ve Play Console Data Safety formu.
@@ -91,7 +92,10 @@ Aşağıdaki değerler geliştirici/uygulama sahibinden alınmadan uydurulmamal�
 - [ ] `versionCode` Play Console’da kullanılmamış, artan bir değer; bu kaynak ağacındaki aday kod `102`.
 - [ ] `versionName` yayın notlarıyla uyumlu; bu kaynak ağacındaki aday sürüm `2.2.0`.
 - [ ] Release secrets: imzalama anahtarı/değerleri ve iki production AdMob ID’si tanımlı.
-- [ ] GitHub Actions’ta unit test, lint, debug build, 1→3 Room migration, reward-wallet ve Compose instrumentation ile imzalı AAB işleri başarılı.
+- [ ] `play-production` environment oluşturuldu; required reviewer, yalnız `v*` deployment kuralı ve release environment secrets doğrulandı. `v*` tag'leri için yetkisiz create/update/delete işlemlerini önleyen GitHub ruleset etkin.
+- [ ] `main` branch protection ve doğrudan push/bypass kuralları ekip yapısına göre belirlendi ve GitHub'da uygulandı.
+- [ ] GitHub Actions main push'unda yalnız verify çalışıyor; release job'ı elle seçilen `versionName` tag'i ve birebir yazılan onay girdisi olmadan çalışmıyor. Tag çalıştırma anındaki tam `main` HEAD commit'ini gösteriyor. Protected environment onayı başarıyla test edildi.
+- [ ] GitHub Actions’ta unit test, lint, debug build, 1→3 Room migration, reward-wallet ve Compose instrumentation işleri başarılı; signed release artifact'i yalnız korumalı elle dispatch sonrasında üretildi.
 - [ ] İmzalı AAB kapalı test kanalına yüklendi; Play App Signing/sertifika ve cihaz uyumluluğu kontrol edildi.
 - [ ] R8 mapping dosyası saklandı.
 - [ ] Play Console pre-launch raporu, çökme/ANR ve reklam davranışı gözden geçirildi.

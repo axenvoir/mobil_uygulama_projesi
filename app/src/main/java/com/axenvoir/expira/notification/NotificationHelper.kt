@@ -36,13 +36,24 @@ class NotificationHelper @Inject constructor(
         manager.createNotificationChannel(channel)
     }
 
-    fun canPostNotifications(): Boolean =
-        (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+    fun canPostNotifications(): Boolean {
+        val hasRuntimePermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.POST_NOTIFICATIONS,
-            ) == PackageManager.PERMISSION_GRANTED) &&
-            NotificationManagerCompat.from(context).areNotificationsEnabled()
+            ) == PackageManager.PERMISSION_GRANTED
+        if (!hasRuntimePermission || !NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+            return false
+        }
+
+        val manager = context.getSystemService(NotificationManager::class.java) ?: return false
+        return try {
+            manager.getNotificationChannel(CHANNEL_ID)?.importance != NotificationManager.IMPORTANCE_NONE
+        } catch (exception: RuntimeException) {
+            Log.w(TAG, "Could not inspect notification channel state", exception)
+            false
+        }
+    }
 
     fun showExpiryReminder(count: Int, topNames: List<String>): Boolean {
         if (count <= 0) return false

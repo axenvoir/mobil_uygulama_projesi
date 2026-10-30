@@ -107,6 +107,7 @@ fun SettingsScreen(
     val exportFailedMessage = stringResource(R.string.export_failed)
     val testNotificationSentMessage = stringResource(R.string.test_notification_sent)
     val notificationsBlockedMessage = stringResource(R.string.notifications_blocked)
+    val remindersPermissionEnabledMessage = stringResource(R.string.reminders_permission_enabled)
     val openSettingsLabel = stringResource(R.string.open_settings)
     val restoreSuccessMessage = stringResource(R.string.restore_success)
     val restoreUnavailableMessage = stringResource(R.string.restore_unavailable)
@@ -188,7 +189,12 @@ fun SettingsScreen(
     val notificationPermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
     ) { granted ->
-        showNotificationResult(granted && viewModel.sendTestNotification())
+        if (granted && viewModel.canPostNotifications()) {
+            viewModel.retryReminderSchedule()
+            scope.launch { snackbarHostState.showSnackbar(remindersPermissionEnabledMessage) }
+        } else {
+            showNotificationResult(false)
+        }
     }
     val exportLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         contract = androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/csv"),
@@ -271,10 +277,30 @@ fun SettingsScreen(
                                 notificationPermissionLauncher.launch(
                                     android.Manifest.permission.POST_NOTIFICATIONS,
                                 )
+                            } else if (!viewModel.canPostNotifications()) {
+                                showNotificationResult(false)
                             } else {
-                                showNotificationResult(viewModel.sendTestNotification())
+                                viewModel.retryReminderSchedule()
+                                scope.launch { snackbarHostState.showSnackbar(remindersPermissionEnabledMessage) }
                             }
                         },
+                        enabled = !isRetryingReminder,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    ) {
+                        if (isRetryingReminder) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.reminder_rescheduling))
+                        } else {
+                            Text(stringResource(R.string.enable_reminders))
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    FilledTonalButton(
+                        onClick = { showNotificationResult(viewModel.sendTestNotification()) },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.test_notification)) }
                     if (reminderHasTerminalFailure) {

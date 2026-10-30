@@ -77,6 +77,8 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun canPostNotifications(): Boolean = notificationHelper.canPostNotifications()
+
     fun sendTestNotification(): Boolean = notificationHelper.showTestNotification()
 
     suspend fun exportCsv(context: android.content.Context, uri: android.net.Uri): Result<Unit> {

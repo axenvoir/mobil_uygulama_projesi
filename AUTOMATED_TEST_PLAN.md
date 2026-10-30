@@ -38,13 +38,13 @@ Bu seçenek `adb` ile bağlı ve yetkili cihazı doğrular, ardından yalnızca 
 
 1. Android SDK içinde `sdkmanager` bulunursa lisansları kabul eder; araç PATH’te yoksa kurulu SDK konumlarında arar ve bulunamadığında runner’ın önceden kabul edilmiş lisanslarına dayanıp Gradle SDK doğrulamasını sürdürür.
 2. `:app:testDebugUnitTest`, `:app:lintDebug` ve `:app:assembleDebug` görevlerini çalıştırır.
-3. KVM’i etkinleştirir ve doğrulanmış `reactivecircus/android-emulator-runner@v2.38.0` action’ı ile API 35 `google_apis` x86_64 emülatörünü boot eder.
+3. KVM’i etkinleştirir ve doğrulanmış immutable-SHA pinli `reactivecircus/android-emulator-runner` action’ı ile API 35 `google_apis` x86_64 emülatörünü boot eder.
 4. Emülatör hazır olduğunda `./gradlew --no-daemon :app:connectedDebugAndroidTest` komutunu çalıştırır; Room migration ve Compose smoke testleri bu instrumentation aşamasında koşar.
 5. Testler başarısız olsa bile HTML/XML instrumentation raporlarını ve hata seviyesindeki emulator logcat’i `expira-connected-test-results` artifact’inde saklar.
 
 Room 2.8.5 migration test serializer’ı ile AndroidX’in getirdiği eski serializer BOM’u arasındaki ABI çakışmasını önlemek için yalnızca debug ve instrumentation classpath’lerinde kotlinx.serialization ailesi 1.8.1’e hizalanır; release runtime bundan etkilenmez.
 
-Emülatörün boot edilmesi, SDK/lisans kurulumu veya Gradle instrumentation görevi hata verirse workflow başarılı kabul edilmez. Release job’ı `verify` işinin tamamlanmasına bağlıdır; imzalama secret’ları ve production AdMob kimlikleri (`EXPIRA_ADMOB_APP_ID`, `EXPIRA_REWARDED_AD_UNIT_ID`) yoksa release artifact’leri bilerek üretilmez. Ayrıntı: `ADS_SETUP.md`.
+Emülatörün boot edilmesi, SDK/lisans kurulumu veya Gradle instrumentation görevi hata verirse workflow başarılı kabul edilmez. Bütün GitHub Actions kullanımları upstream'ten doğrulanmış tam commit SHA'larına pinlidir. Main push'unda yalnızca verify işi çalışır; release artifacts işi sadece `workflow_dispatch` ile, `vMAJOR.MINOR.PATCH` tag'i seçilip tag adı input alanına tekrar yazıldığında, tag `versionName` ile eşleştiğinde ve tag tam güncel `main` HEAD'ini gösterdiğinde devam eder. İş ayrıca `play-production` environment required-reviewer onayını bekler. Bu environment şu anda GitHub'da oluşturulmamışsa, workflow'daki ad tek başına protection kuralı oluşturmaz; release öncesi environment'ı reviewer, `v*` deployment policy ve environment secrets ile yapılandırın. GitHub repository ruleset ile `v*` tag'lerini değişiklik/silinmeye karşı korumak ve `main` branch protection tercihini ayrıca uygulamak gerekir. Ayrıntı: `ADS_SETUP.md`.
 
 Release doğrulaması için:
 
@@ -113,11 +113,12 @@ ACTIVITY=com.axenvoir.expira/.MainActivity \
 - İlk açılış onboarding ekranının kapatılabildiğini doğrular.
 - Ürünler ekranının görünür olduğunu doğrular.
 - Ürünler ve Notlar sekmelerinin görünür olduğunu doğrular.
+- Ayarlar'da **Hatırlatıcıları etkinleştir** eyleminin görünür olduğunu doğrular; bu smoke test sistem izin penceresini açmaz.
 - Ayarlar içinden kozmetik palet mağazasının ve ücretsiz Grove paletinin erişilebilir olduğunu doğrular.
 
 ### Bildirim ve reklam senaryoları
 
-Şu anda `ReminderWorker` için ayrı bir deterministik uçtan uca `WorkerTest` yoktur. `ReminderSchedulerGenerationTest.kt` generation değerinin eski değerden ilerlemesini ve yalnızca güncel tokenın geçerli sayılmasını; `ReminderHealthStoreTest.kt` ise ayrı store örneklerinin aynı süreçte paylaşılan yerel terminal-hata durumunu ve nesil koşullu temizlemeyi doğrular. `ReminderTimeChangeReceiverIntegrationTest.kt` zaman dilimi alıcısının ardından WorkManager'da etkin iş oluşmasını kontrol eder. Bu testler worker içindeki tüm eşzamanlı yarışları/işletim sistemi yeniden başlatmasını doğrulamaz. Cihaz smoke script’i paket/açılış ve izin durumunu kontrol eder; gerçek zamanlı zamanlama, Android 13+ izin reddi, cihaz yeniden başlatma ve bildirim tıklama davranışı gerçek cihazdaki manuel yayın kontrol listesinde doğrulanmalıdır. Ödüllü reklamların gösterim/ödül callback’i AdMob ve UMP test ortamına bağlı olduğundan burada otomatik ağ testi yapılmaz; debug build Google test reklam kimliklerini kullanır, release ise production ID’leri olmadan engellenir.
+Şu anda `ReminderWorker` için ayrı bir deterministik uçtan uca `WorkerTest` yoktur. `ReminderSchedulerGenerationTest.kt` generation değerinin eski değerden ilerlemesini ve yalnızca güncel tokenın geçerli sayılmasını; `ReminderHealthStoreTest.kt` ise ayrı store örneklerinin aynı süreçte paylaşılan yerel terminal-hata durumunu ve nesil koşullu temizlemeyi doğrular. `ReminderTimeChangeReceiverIntegrationTest.kt` zaman dilimi alıcısının ardından WorkManager'da etkin iş oluşmasını kontrol eder. Bu testler worker içindeki tüm eşzamanlı yarışları/işletim sistemi yeniden başlatmasını veya gerçek permission dialog sonucunu doğrulamaz. Cihaz smoke script’i paket/açılış ve izin durumunu kontrol eder; Android 13+ izin verme/reddetme, kullanıcı eylemi sonrası tekrar izin verme, notification app/channel ayarları, yeniden başlatma ve bildirim tıklama davranışı gerçek cihazdaki manuel yayın kontrol listesinde doğrulanmalıdır. Ödüllü reklamların gösterim/ödül callback’i AdMob ve UMP test ortamına bağlı olduğundan burada otomatik ağ testi yapılmaz; debug build Google test reklam kimliklerini kullanır, release ise production ID’leri olmadan engellenir.
 
 ## Ön koşullar
 

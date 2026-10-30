@@ -5,8 +5,12 @@ on:
     branches: [main]
   push:
     branches: [main]
-    tags: ['v*']
   workflow_dispatch:
+    inputs:
+      confirm_release_tag:
+        description: Type the exact version tag selected for this release (for example v2.3.0)
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -21,10 +25,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Set up Java 17
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
           distribution: temurin
           java-version: '17'
@@ -69,7 +73,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Run connectedDebugAndroidTest on API 35 emulator
-        uses: reactivecircus/android-emulator-runner@v2.38.0
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
           api-level: 35
           target: google_apis
@@ -81,7 +85,7 @@ jobs:
 
       - name: Upload connected test reports
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: expira-connected-test-results
           path: |
@@ -91,7 +95,7 @@ jobs:
           retention-days: 14
 
       - name: Upload debug APK
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: expira-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
@@ -100,7 +104,7 @@ jobs:
 
       - name: Upload lint report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: expira-lint-report
           path: app/build/reports/lint-results-debug.html
@@ -109,21 +113,53 @@ jobs:
 
   release-artifacts:
     name: Signed release APK and AAB
-    if: github.event_name != 'pull_request'
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      startsWith(github.ref, 'refs/tags/v') &&
+      inputs.confirm_release_tag == github.ref_name
     needs: verify
     runs-on: ubuntu-latest
+    environment:
+      name: play-production
     env:
       ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
 
       - name: Set up Java 17
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Verify confirmed release tag
+        shell: bash
+        env:
+          CONFIRMED_RELEASE_TAG: ${{ inputs.confirm_release_tag }}
+        run: |
+          if [[ ! "$GITHUB_REF" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release artifacts may only be created from a stable vMAJOR.MINOR.PATCH tag"
+            exit 1
+          fi
+          if [[ "$CONFIRMED_RELEASE_TAG" != "$GITHUB_REF_NAME" ]]; then
+            echo "::error::The manually confirmed tag does not match the selected workflow ref"
+            exit 1
+          fi
+          app_version="$(sed -nE 's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*\"([^\"]+)\".*/\1/p' app/build.gradle.kts | head -n 1)"
+          if [[ -z "$app_version" || "$GITHUB_REF_NAME" != "v$app_version" ]]; then
+            echo "::error::The release tag must match app/build.gradle.kts versionName"
+            exit 1
+          fi
+          git fetch --no-tags origin main
+          main_sha="$(git rev-parse FETCH_HEAD)"
+          if [[ "$GITHUB_SHA" != "$main_sha" ]]; then
+            echo "::error::The release tag must point to the exact current main commit"
+            exit 1
+          fi
 
       - name: Verify Android SDK and accept licenses
         run: |
@@ -161,19 +197,19 @@ jobs:
 
       - name: Decode release keystore
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_BASE64: ${{ secrets.PLAY_PRODUCTION_KEYSTORE_BASE64 }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::error::KEYSTORE_BASE64 is not configured"
+            echo "::error::PLAY_PRODUCTION_KEYSTORE_BASE64 is not configured in the play-production environment"
             exit 1
           fi
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > release.jks
 
       - name: Create signing properties
         env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_PASSWORD: ${{ secrets.PLAY_PRODUCTION_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.PLAY_PRODUCTION_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.PLAY_PRODUCTION_KEY_PASSWORD }}
         run: |
           if [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
             echo "::error::One or more release-signing secrets are not configured"
@@ -206,11 +242,11 @@ jobs:
 
       - name: Verify production AdMob IDs
         env:
-          EXPIRA_ADMOB_APP_ID: ${{ secrets.EXPIRA_ADMOB_APP_ID }}
-          EXPIRA_REWARDED_AD_UNIT_ID: ${{ secrets.EXPIRA_REWARDED_AD_UNIT_ID }}
+          EXPIRA_ADMOB_APP_ID: ${{ secrets.PLAY_PRODUCTION_ADMOB_APP_ID }}
+          EXPIRA_REWARDED_AD_UNIT_ID: ${{ secrets.PLAY_PRODUCTION_REWARDED_AD_UNIT_ID }}
         run: |
           if [ -z "$EXPIRA_ADMOB_APP_ID" ] || [ -z "$EXPIRA_REWARDED_AD_UNIT_ID" ]; then
-            echo "::error::Add EXPIRA_ADMOB_APP_ID and EXPIRA_REWARDED_AD_UNIT_ID repository secrets before building a release artifact"
+            echo "::error::Add PLAY_PRODUCTION_ADMOB_APP_ID and PLAY_PRODUCTION_REWARDED_AD_UNIT_ID to play-production environment secrets before building a release artifact"
             exit 1
           fi
           if ! [[ "$EXPIRA_ADMOB_APP_ID" =~ ^ca-app-pub-[0-9]{16}~[0-9]{10}$ ]] || \
@@ -227,11 +263,11 @@ jobs:
       - name: Build signed release APK and AAB
         run: ./gradlew --no-daemon :app:assembleRelease :app:bundleRelease
         env:
-          EXPIRA_ADMOB_APP_ID: ${{ secrets.EXPIRA_ADMOB_APP_ID }}
-          EXPIRA_REWARDED_AD_UNIT_ID: ${{ secrets.EXPIRA_REWARDED_AD_UNIT_ID }}
+          EXPIRA_ADMOB_APP_ID: ${{ secrets.PLAY_PRODUCTION_ADMOB_APP_ID }}
+          EXPIRA_REWARDED_AD_UNIT_ID: ${{ secrets.PLAY_PRODUCTION_REWARDED_AD_UNIT_ID }}
 
       - name: Upload signed AAB
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: expira-release-aab
           path: app/build/outputs/bundle/release/app-release.aab
@@ -239,7 +275,7 @@ jobs:
           retention-days: 30
 
       - name: Upload signed APK
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: expira-release-apk
           path: app/build/outputs/apk/release/app-release.apk
@@ -247,7 +283,7 @@ jobs:
           retention-days: 30
 
       - name: Upload R8 mapping
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: expira-r8-mapping
           path: app/build/outputs/mapping/release/mapping.txt

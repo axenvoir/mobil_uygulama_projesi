@@ -62,6 +62,9 @@ class ExpiraSmokeTest {
 
         rule.onNodeWithContentDescription(rule.activity.getString(R.string.settings_title))
             .performClick()
+        rule.onNodeWithText(rule.activity.getString(R.string.enable_reminders))
+            .performScrollTo()
+            .assertIsDisplayed()
         rule.onNodeWithText(rule.activity.getString(R.string.palette_shop_section))
             .performScrollTo()
             .assertIsDisplayed()
