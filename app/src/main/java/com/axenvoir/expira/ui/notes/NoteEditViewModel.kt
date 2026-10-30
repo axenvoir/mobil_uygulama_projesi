@@ -217,10 +217,6 @@ class NoteEditViewModel @Inject constructor(
         }
     }
 
-    fun consumeError() {
-        _error.value = null
-    }
-
 }
 
 sealed interface NoteEditError {

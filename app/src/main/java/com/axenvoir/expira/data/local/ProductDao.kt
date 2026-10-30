@@ -91,9 +91,6 @@ interface ProductDao {
         """
     )
     suspend fun topExpiringNames(todayEpochDay: Long, thresholdDays: Long): List<ExpiringItem>
-
-    @Query("SELECT expiryEpochDay FROM products WHERE id = :id")
-    suspend fun findExpiryEpochDayById(id: Long): Long?
 }
 
 data class ExpiringItem(val name: String, val daysLeft: Long)

@@ -109,7 +109,7 @@ class ReminderScheduler @Inject constructor(
                 nextRun = now.toLocalDate().plusDays(1).atTime(targetTime).atZone(now.zone)
             }
             val delay = Duration.between(now, nextRun)
-            return if (delay.isNegative) Duration.ZERO else delay
+            return delay
         }
 
         internal fun computeInitialDelay(

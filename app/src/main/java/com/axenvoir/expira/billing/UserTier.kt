@@ -6,6 +6,3 @@ enum class UserTier {
     PREMIUM,
     LIFETIME,
 }
-
-val UserTier.isAdFree: Boolean
-    get() = this != UserTier.FREE
