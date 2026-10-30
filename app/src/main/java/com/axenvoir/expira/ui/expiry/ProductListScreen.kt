@@ -57,6 +57,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -283,13 +284,14 @@ fun ProductListScreen(
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxSize()
-                                                    .background(MaterialTheme.colorScheme.errorContainer),
+                                                    .clip(MaterialTheme.shapes.extraLarge)
+                                                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                                                 contentAlignment = Alignment.CenterEnd,
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Filled.Delete,
                                                     contentDescription = stringResource(R.string.delete),
-                                                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                                                    tint = MaterialTheme.colorScheme.error,
                                                     modifier = Modifier.padding(end = 24.dp),
                                                 )
                                             }
