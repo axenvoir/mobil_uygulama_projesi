@@ -8,6 +8,8 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+val roomTestSerializationVersion = libs.versions.serialization.get()
+
 val keystoreProperties = Properties().apply {
     val keystoreFile = rootProject.file("keystore.properties")
     if (keystoreFile.exists()) {
@@ -134,6 +136,23 @@ ksp {
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
+    }
+}
+
+configurations.configureEach {
+    if (name in setOf(
+            "debugCompileClasspath",
+            "debugRuntimeClasspath",
+            "debugAndroidTestCompileClasspath",
+            "debugAndroidTestRuntimeClasspath",
+        )
+    ) {
+        resolutionStrategy.force(
+            "org.jetbrains.kotlinx:kotlinx-serialization-core:$roomTestSerializationVersion",
+            "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:$roomTestSerializationVersion",
+            "org.jetbrains.kotlinx:kotlinx-serialization-json:$roomTestSerializationVersion",
+            "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$roomTestSerializationVersion",
+        )
     }
 }
 

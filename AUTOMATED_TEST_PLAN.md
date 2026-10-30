@@ -42,6 +42,8 @@ Bu seçenek `adb` ile bağlı ve yetkili cihazı doğrular, ardından yalnızca 
 4. Emülatör hazır olduğunda `./gradlew --no-daemon :app:connectedDebugAndroidTest` komutunu çalıştırır; Room migration ve Compose smoke testleri bu instrumentation aşamasında koşar.
 5. Testler başarısız olsa bile HTML/XML instrumentation raporlarını ve hata seviyesindeki emulator logcat’i `expira-connected-test-results` artifact’inde saklar.
 
+Room 2.8.5 migration test serializer’ı ile AndroidX’in getirdiği eski serializer BOM’u arasındaki ABI çakışmasını önlemek için yalnızca debug ve instrumentation classpath’lerinde kotlinx.serialization ailesi 1.8.1’e hizalanır; release runtime bundan etkilenmez.
+
 Emülatörün boot edilmesi, SDK/lisans kurulumu veya Gradle instrumentation görevi hata verirse workflow başarılı kabul edilmez. Release job’ı `verify` işinin tamamlanmasına bağlıdır; imzalama secret’ları ve production AdMob kimlikleri (`EXPIRA_ADMOB_APP_ID`, `EXPIRA_REWARDED_AD_UNIT_ID`) yoksa release artifact’leri bilerek üretilmez. Ayrıntı: `ADS_SETUP.md`.
 
 Release doğrulaması için:
