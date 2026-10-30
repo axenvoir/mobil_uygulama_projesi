@@ -4,12 +4,14 @@ import android.content.Context
 import android.net.Uri
 import com.axenvoir.expira.domain.model.Note
 import com.axenvoir.expira.domain.model.Product
+import java.io.Writer
 import java.time.Instant
 import java.time.format.DateTimeFormatter
-import java.io.Writer
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Singleton
 class CsvExporter @Inject constructor() {
@@ -19,8 +21,8 @@ class CsvExporter @Inject constructor() {
         uri: Uri,
         products: List<Product>,
         notes: List<Note>,
-    ): Result<Unit> {
-        return try {
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
             context.contentResolver.openOutputStream(uri)?.use { stream ->
                 stream.writer(Charsets.UTF_8).use { writer ->
                     writer.write('\uFEFF'.code)
@@ -37,7 +39,7 @@ class CsvExporter @Inject constructor() {
                             "content",
                             "pinned",
                             "updated_at",
-                        )
+                        ),
                     )
                     products.forEach { product ->
                         writer.appendCsvRow(
@@ -52,7 +54,7 @@ class CsvExporter @Inject constructor() {
                                 "",
                                 "",
                                 "",
-                            )
+                            ),
                         )
                     }
                     notes.forEach { note ->
@@ -68,7 +70,7 @@ class CsvExporter @Inject constructor() {
                                 note.content,
                                 note.isPinned.toString(),
                                 Instant.ofEpochMilli(note.updatedAt).toString(),
-                            )
+                            ),
                         )
                     }
                 }

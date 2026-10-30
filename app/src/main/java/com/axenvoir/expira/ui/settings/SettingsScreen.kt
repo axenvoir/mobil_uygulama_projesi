@@ -71,6 +71,7 @@ fun SettingsScreen(
     adSupportViewModel: AdSupportViewModel = hiltViewModel(),
 ) {
     val selected by viewModel.current.collectAsStateWithLifecycle()
+    val isExporting by viewModel.isExporting.collectAsStateWithLifecycle()
     val restoreResult by billingViewModel.restoreResult.collectAsStateWithLifecycle()
     val userTier by billingViewModel.userTier.collectAsStateWithLifecycle()
     val entitlementsChecked by billingViewModel.entitlementsChecked.collectAsStateWithLifecycle()
@@ -236,8 +237,20 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(10.dp))
                     FilledTonalButton(
                         onClick = { exportLauncher.launch("expira-verileri.csv") },
+                        enabled = !isExporting,
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(R.string.export_csv)) }
+                    ) {
+                        if (isExporting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.exporting_csv))
+                        } else {
+                            Text(stringResource(R.string.export_csv))
+                        }
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
                 Spacer(modifier = Modifier.height(16.dp))

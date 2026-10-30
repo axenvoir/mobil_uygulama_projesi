@@ -138,6 +138,7 @@
     <string name="onboarding_back">Geri</string>
     <string name="onboarding_next">İleri</string>
     <string name="export_csv">Verileri CSV olarak dışa aktar</string>
+    <string name="exporting_csv">Veriler dışa aktarılıyor…</string>
     <string name="export_done">Dışa aktarıldı</string>
     <string name="export_failed">Dışa aktarma başarısız</string>
     <string name="data_section">Veriler</string>

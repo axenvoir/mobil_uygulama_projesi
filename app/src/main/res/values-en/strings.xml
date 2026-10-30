@@ -129,6 +129,7 @@
     <string name="onboarding_back">Back</string>
     <string name="onboarding_next">Next</string>
     <string name="export_csv">Export data as CSV</string>
+    <string name="exporting_csv">Exporting data…</string>
     <string name="export_done">Exported</string>
     <string name="export_failed">Export failed</string>
     <string name="data_section">Data</string>
