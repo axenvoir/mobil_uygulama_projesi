@@ -8,6 +8,7 @@ interface BillingRepository {
     val userTier: StateFlow<UserTier>
     val entitlementsChecked: StateFlow<Boolean>
     fun refreshEntitlements()
+    suspend fun refreshEntitlementsAwait(): Boolean
     suspend fun restorePurchases(): Boolean
 }
 

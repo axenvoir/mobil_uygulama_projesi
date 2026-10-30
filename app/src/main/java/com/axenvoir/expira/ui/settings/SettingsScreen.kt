@@ -73,6 +73,7 @@ fun SettingsScreen(
     val selected by viewModel.current.collectAsStateWithLifecycle()
     val isExporting by viewModel.isExporting.collectAsStateWithLifecycle()
     val restoreResult by billingViewModel.restoreResult.collectAsStateWithLifecycle()
+    val isCheckingPurchases by billingViewModel.isCheckingPurchases.collectAsStateWithLifecycle()
     val userTier by billingViewModel.userTier.collectAsStateWithLifecycle()
     val entitlementsChecked by billingViewModel.entitlementsChecked.collectAsStateWithLifecycle()
     val rewardedAdState by adSupportViewModel.rewardedAdState.collectAsStateWithLifecycle()
@@ -258,6 +259,7 @@ fun SettingsScreen(
                     RewardedSupportSection(
                         userTier = userTier,
                         entitlementsChecked = entitlementsChecked,
+                        isCheckingPurchases = isCheckingPurchases,
                         rewardedAdState = rewardedAdState,
                         supportPoints = supportPoints,
                         privacyOptionsRequired = privacyOptionsRequired,
@@ -349,6 +351,7 @@ fun SettingsScreen(
 private fun RewardedSupportSection(
     userTier: UserTier,
     entitlementsChecked: Boolean,
+    isCheckingPurchases: Boolean,
     rewardedAdState: RewardedAdState,
     supportPoints: Int,
     privacyOptionsRequired: Boolean,
@@ -462,8 +465,16 @@ private fun RewardedSupportSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(modifier = Modifier.height(8.dp))
-            FilledTonalButton(onClick = onRefreshPurchases) {
-                Text(stringResource(R.string.support_check_purchases))
+            FilledTonalButton(
+                onClick = onRefreshPurchases,
+                enabled = !isCheckingPurchases,
+            ) {
+                Text(
+                    stringResource(
+                        if (isCheckingPurchases) R.string.support_purchases_checking
+                        else R.string.support_check_purchases,
+                    ),
+                )
             }
         }
         else -> {
@@ -535,8 +546,16 @@ private fun RewardedSupportSection(
     Spacer(modifier = Modifier.height(4.dp))
     TextButton(
         onClick = onRestorePurchases,
+        enabled = !isCheckingPurchases,
         modifier = Modifier.fillMaxWidth(),
-    ) { Text(stringResource(R.string.support_restore)) }
+    ) {
+        Text(
+            stringResource(
+                if (isCheckingPurchases) R.string.support_purchases_checking
+                else R.string.support_restore,
+            ),
+        )
+    }
 }
 
 private const val SUPPORTER_BADGE_POINTS = 5

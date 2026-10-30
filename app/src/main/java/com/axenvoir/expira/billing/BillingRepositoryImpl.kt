@@ -60,6 +60,8 @@ class BillingRepositoryImpl @Inject constructor(
         billingManager.refreshPurchases()
     }
 
+    override suspend fun refreshEntitlementsAwait(): Boolean = billingManager.refreshPurchasesAwait()
+
     override suspend fun restorePurchases(): Boolean = billingManager.refreshPurchasesAwait()
 
     private companion object {

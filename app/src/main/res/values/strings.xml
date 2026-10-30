@@ -152,6 +152,7 @@
     <string name="support_section">Support Expira</string>
     <string name="support_description">Complete an optional rewarded ad to support Expira and earn one in-app point. Watching is entirely optional.</string>
     <string name="support_restore">Restore previous purchases</string>
+    <string name="support_purchases_checking">Checking purchases…</string>
     <string name="restore_success">Purchases checked.</string>
     <string name="restore_unavailable">Purchases cannot be checked right now.</string>
     <string name="support_thanks">Thanks for your support!</string>

@@ -111,6 +111,7 @@
     <string name="support_section">Expira’yı destekle</string>
     <string name="support_description">İsteğe bağlı bir ödüllü reklamı tamamlayarak Expira’yı destekleyebilir ve 1 uygulama içi puan kazanabilirsiniz. Reklam izlemek tamamen isteğe bağlıdır.</string>
     <string name="support_restore">Önceki satın alımları geri yükle</string>
+    <string name="support_purchases_checking">Satın alımlar kontrol ediliyor…</string>
     <string name="restore_success">Satın alımlar kontrol edildi.</string>
     <string name="restore_unavailable">Satın alımlar şu anda kontrol edilemiyor.</string>
     <string name="support_thanks">Desteğiniz için teşekkürler!</string>
