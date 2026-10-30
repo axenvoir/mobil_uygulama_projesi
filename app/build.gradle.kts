@@ -39,8 +39,8 @@ android {
         applicationId = "com.expira.app.tr"
         minSdk = 26
         targetSdk = 37
-        versionCode = 102
-        versionName = "2.2.0"
+        versionCode = 103
+        versionName = "2.2.1"
         manifestPlaceholders["admobAppId"] = ""
         buildConfigField("String", "ADMOB_APP_ID", "\"\"")
         buildConfigField("String", "REWARDED_AD_UNIT_ID", "\"\"")

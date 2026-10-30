@@ -1,6 +1,6 @@
 # Historical Codebase Analysis Report (2.1.0 baseline)
 
-> Archived snapshot only. It is not the current release-readiness source. The current candidate is 2.2.0/versionCode 102; consult `PLAY_RELEASE_READINESS_CHECKLIST.md` and `AUTOMATED_TEST_PLAN.md` for the current migration and test coverage.
+> Archived snapshot only. It is not the current release-readiness source. At the time this report was prepared, the candidate was 2.2.0/versionCode 102; consult `PLAY_RELEASE_READINESS_CHECKLIST.md` and `AUTOMATED_TEST_PLAN.md` for the current migration and test coverage.
 
 ## Scope
 

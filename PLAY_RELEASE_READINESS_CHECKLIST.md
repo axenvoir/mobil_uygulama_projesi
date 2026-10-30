@@ -89,8 +89,8 @@ Aşağıdaki değerler geliştirici/uygulama sahibinden alınmadan uydurulmamal�
 
 ## 8. Release son kontrolü
 
-- [ ] `versionCode` Play Console’da kullanılmamış, artan bir değer; bu kaynak ağacındaki aday kod `102`.
-- [ ] `versionName` yayın notlarıyla uyumlu; bu kaynak ağacındaki aday sürüm `2.2.0`.
+- [ ] `versionCode` Play Console’da kullanılmamış, artan bir değer; kullanıcı `102`’nin yüklendiğini doğruladığı için kaynak ağacındaki yeni aday kod `103`’tür.
+- [ ] `versionName` yayın notlarıyla uyumlu; bu kaynak ağacındaki yeni aday sürüm `2.2.1`.
 - [ ] Release secrets: imzalama anahtarı/değerleri ve iki production AdMob ID’si tanımlı.
 - [ ] `play-production` environment oluşturuldu; required reviewer, yalnız `v*` deployment kuralı ve release environment secrets doğrulandı. `v*` tag'leri için yetkisiz create/update/delete işlemlerini önleyen GitHub ruleset etkin.
 - [ ] `main` branch protection ve doğrudan push/bypass kuralları ekip yapısına göre belirlendi ve GitHub'da uygulandı.
