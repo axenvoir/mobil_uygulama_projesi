@@ -150,12 +150,12 @@ jobs:
               process.wait()
           sys.exit(process.returncode)
           PY
-            if [ ! -d "$ANDROID_HOME/platforms/android-37" ]; then
-              "$SDKMANAGER" "platforms;android-37"
+            if [ ! -d "$ANDROID_HOME/platforms/android-37.0" ]; then
+              "$SDKMANAGER" --install "platforms;android-37.0"
             fi
           fi
-          if [ ! -d "$ANDROID_HOME/platforms/android-37" ]; then
-            echo "::error::Android SDK platform 37 is not installed on this runner"
+          if [ ! -d "$ANDROID_HOME/platforms/android-37.0" ]; then
+            echo "::error::Android SDK platform 37.0 is not installed on this runner"
             exit 1
           fi
 
