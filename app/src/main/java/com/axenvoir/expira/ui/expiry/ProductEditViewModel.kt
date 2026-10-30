@@ -9,13 +9,15 @@ import com.axenvoir.expira.domain.repository.ProductRepository
 import com.axenvoir.expira.ui.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -84,25 +86,26 @@ class ProductEditViewModel @Inject constructor(
     private val categoriesLoaded = MutableStateFlow(false)
     private val _editRecordMissing = MutableStateFlow(false)
     private val _loadFailed = MutableStateFlow(false)
+    private val _categoriesLoadFailed = MutableStateFlow(false)
     private val _saved = MutableStateFlow(false)
     private val _isSaving = MutableStateFlow(false)
+    private val categories = MutableStateFlow<List<Category>>(emptyList())
+    private var categoryObservationJob: Job? = null
 
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
-    private val categories = productRepository.observeCategories().onEach {
-        categoriesLoaded.value = true
-    }
     private val formStatus = combine(
         loaded,
         categoriesLoaded,
         _editRecordMissing,
         _loadFailed,
-    ) { isLoaded, areCategoriesLoaded, recordMissing, loadFailed ->
+        _categoriesLoadFailed,
+    ) { isLoaded, areCategoriesLoaded, recordMissing, loadFailed, categoriesLoadFailed ->
         FormStatus(
-            isHydrated = isLoaded && areCategoriesLoaded && !loadFailed,
+            isHydrated = isLoaded && areCategoriesLoaded && !loadFailed && !categoriesLoadFailed,
             editRecordMissing = recordMissing,
-            loadFailed = loadFailed,
+            loadFailed = loadFailed || categoriesLoadFailed,
         )
     }
     private val formInput = combine(
@@ -173,6 +176,7 @@ class ProductEditViewModel @Inject constructor(
     )
 
     init {
+        observeCategories()
         if (isEditMode) {
             loadExistingProduct()
         } else {
@@ -183,6 +187,30 @@ class ProductEditViewModel @Inject constructor(
 
     fun retryLoad() {
         if (isEditMode && _loadFailed.value) loadExistingProduct()
+        if (_categoriesLoadFailed.value) observeCategories()
+    }
+
+    private fun observeCategories() {
+        categoryObservationJob?.cancel()
+        categoriesLoaded.value = false
+        _categoriesLoadFailed.value = false
+        categoryObservationJob = viewModelScope.launch {
+            var hasEmitted = false
+            try {
+                productRepository.observeCategories().collect { categoryList ->
+                    hasEmitted = true
+                    categories.value = categoryList
+                    categoriesLoaded.value = true
+                }
+                if (!hasEmitted) {
+                    _categoriesLoadFailed.value = true
+                }
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (_: Exception) {
+                _categoriesLoadFailed.value = true
+            }
+        }
     }
 
     private fun loadExistingProduct() {
@@ -260,6 +288,7 @@ class ProductEditViewModel @Inject constructor(
             !loaded.value ||
             !categoriesLoaded.value ||
             _loadFailed.value ||
+            _categoriesLoadFailed.value ||
             _editRecordMissing.value
         ) {
             return

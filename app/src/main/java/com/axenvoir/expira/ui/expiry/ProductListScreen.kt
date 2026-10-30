@@ -146,7 +146,7 @@ fun ProductListScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            if (!uiState.isLoading && uiState.allProducts.isNotEmpty()) {
+            if (!uiState.isLoading && !uiState.loadFailed && uiState.allProducts.isNotEmpty()) {
                 FloatingActionButton(onClick = onAddProduct) {
                     Icon(
                         imageVector = Icons.Filled.Add,
@@ -202,7 +202,15 @@ fun ProductListScreen(
                         .fillMaxWidth()
                         .weight(1f),
                 ) {
-                    if (uiState.isLoading) {
+                    if (uiState.loadFailed) {
+                        ExpiraEmptyState(
+                            icon = Icons.Filled.DateRange,
+                            title = stringResource(R.string.products_load_failed_title),
+                            subtitle = stringResource(R.string.products_load_failed_message),
+                            actionLabel = stringResource(R.string.try_again),
+                            onAction = viewModel::retryLoad,
+                        )
+                    } else if (uiState.isLoading) {
                         Column(
                             modifier = Modifier.align(Alignment.Center),
                             horizontalAlignment = Alignment.CenterHorizontally,

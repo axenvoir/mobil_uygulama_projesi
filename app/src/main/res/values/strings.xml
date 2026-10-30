@@ -184,8 +184,12 @@
     <string name="products_loading">Loading products…</string>
     <string name="notes_loading">Loading notes…</string>
     <string name="note_loading">Loading note…</string>
-    <string name="product_load_failed_title">Couldn’t load product</string>
-    <string name="product_load_failed_message">The product couldn’t be opened. Your saved data hasn’t been changed. Try again.</string>
+    <string name="products_load_failed_title">Couldn’t load products</string>
+    <string name="products_load_failed_message">Your products couldn’t be loaded. Your saved data hasn’t been changed. Try again.</string>
+    <string name="notes_load_failed_title">Couldn’t load notes</string>
+    <string name="notes_load_failed_message">Your notes couldn’t be loaded. Your saved data hasn’t been changed. Try again.</string>
+    <string name="product_load_failed_title">Couldn’t load product form</string>
+    <string name="product_load_failed_message">The product or required categories couldn’t be loaded. Your saved data hasn’t been changed. Try again.</string>
     <string name="note_load_failed_title">Couldn’t load note</string>
     <string name="note_load_failed_message">The note couldn’t be opened. Your saved data hasn’t been changed. Try again.</string>
     <string name="try_again">Try again</string>

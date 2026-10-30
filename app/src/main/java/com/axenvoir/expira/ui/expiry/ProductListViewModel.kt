@@ -6,13 +6,17 @@ import com.axenvoir.expira.domain.model.ExpiryStatus
 import com.axenvoir.expira.domain.model.Product
 import com.axenvoir.expira.domain.repository.ProductRepository
 import com.axenvoir.expira.domain.util.expiryStatus
+import com.axenvoir.expira.domain.util.normalizeSearchText
 import com.axenvoir.expira.domain.util.todayFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
-import com.axenvoir.expira.domain.util.normalizeSearchText
+import java.time.LocalDate
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -34,11 +38,18 @@ data class ProductListUiState(
     val filter: ProductFilter = ProductFilter.ALL,
     val query: String = "",
     val hasActiveSearch: Boolean = false,
-    val currentDate: java.time.LocalDate = java.time.LocalDate.now(),
+    val currentDate: LocalDate = LocalDate.now(),
     val freshCount: Int = 0,
     val expiringCount: Int = 0,
     val expiredCount: Int = 0,
     val isLoading: Boolean = true,
+    val loadFailed: Boolean = false,
+)
+
+private data class ProductSourceState(
+    val products: List<Product> = emptyList(),
+    val isLoading: Boolean = true,
+    val loadFailed: Boolean = false,
 )
 
 @HiltViewModel
@@ -49,19 +60,19 @@ class ProductListViewModel @Inject constructor(
     private val searchQuery = MutableStateFlow("")
     val query: StateFlow<String> = searchQuery.asStateFlow()
 
+    private val sourceState = MutableStateFlow(ProductSourceState())
+    private var observationJob: Job? = null
+
     private val _error = MutableStateFlow(false)
     val error: StateFlow<Boolean> = _error.asStateFlow()
 
-    /**
-     * combine cannot emit until observeAll has produced its first list. This makes
-     * the initial loading state reliable without mutating another flow from onEach.
-     */
     val uiState: StateFlow<ProductListUiState> = combine(
-        productRepository.observeAll(),
+        sourceState,
         filter,
         searchQuery,
         todayFlow(),
-    ) { allProducts, selectedFilter, queryText, today ->
+    ) { source, selectedFilter, queryText, today ->
+        val allProducts = source.products
         val normalizedQuery = normalizeSearchText(queryText)
         val searched = if (normalizedQuery.isEmpty()) {
             allProducts
@@ -105,13 +116,47 @@ class ProductListViewModel @Inject constructor(
             freshCount = freshCount,
             expiringCount = expiringCount,
             expiredCount = expiredCount,
-            isLoading = false,
+            isLoading = source.isLoading,
+            loadFailed = source.loadFailed,
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = ProductListUiState(),
     )
+
+    init {
+        observeProducts()
+    }
+
+    fun retryLoad() {
+        observeProducts()
+    }
+
+    private fun observeProducts() {
+        observationJob?.cancel()
+        sourceState.value = sourceState.value.copy(isLoading = true, loadFailed = false)
+        observationJob = viewModelScope.launch {
+            var hasEmitted = false
+            try {
+                productRepository.observeAll().collect { products ->
+                    hasEmitted = true
+                    sourceState.value = ProductSourceState(
+                        products = products,
+                        isLoading = false,
+                        loadFailed = false,
+                    )
+                }
+                if (!hasEmitted) {
+                    sourceState.value = sourceState.value.copy(isLoading = false, loadFailed = true)
+                }
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (_: Exception) {
+                sourceState.value = sourceState.value.copy(isLoading = false, loadFailed = true)
+            }
+        }
+    }
 
     fun onFilterChange(newFilter: ProductFilter) {
         filter.value = newFilter
@@ -127,7 +172,7 @@ class ProductListViewModel @Inject constructor(
             runCatching { productRepository.deleteById(product.id) }
                 .onSuccess { onDeleted() }
                 .onFailure {
-                    if (it is kotlinx.coroutines.CancellationException) {
+                    if (it is CancellationException) {
                         throw it
                     }
                     _error.value = true
@@ -139,7 +184,7 @@ class ProductListViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { productRepository.upsert(product) }
                 .onFailure {
-                    if (it is kotlinx.coroutines.CancellationException) {
+                    if (it is CancellationException) {
                         throw it
                     }
                     _error.value = true
@@ -150,5 +195,4 @@ class ProductListViewModel @Inject constructor(
     fun consumeError() {
         _error.value = false
     }
-
 }

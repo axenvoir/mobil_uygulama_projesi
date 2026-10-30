@@ -79,6 +79,7 @@ fun NoteListScreen(
     val query by viewModel.query.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val loadFailed by viewModel.loadFailed.collectAsStateWithLifecycle()
     val hasAnyNotes by viewModel.hasAnyNotes.collectAsStateWithLifecycle()
     val event by viewModel.events.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -164,7 +165,7 @@ fun NoteListScreen(
                         singleLine = true,
                         shape = MaterialTheme.shapes.extraLarge,
                     )
-                    if (!isLoading && notes.isNotEmpty()) {
+                    if (!isLoading && !loadFailed && notes.isNotEmpty()) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -205,7 +206,22 @@ fun NoteListScreen(
                         )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
-                    if (isLoading) {
+                    if (loadFailed) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            ExpiraEmptyState(
+                                icon = Icons.Filled.Edit,
+                                title = stringResource(R.string.notes_load_failed_title),
+                                subtitle = stringResource(R.string.notes_load_failed_message),
+                                actionLabel = stringResource(R.string.try_again),
+                                onAction = viewModel::retryLoad,
+                            )
+                        }
+                    } else if (isLoading) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()

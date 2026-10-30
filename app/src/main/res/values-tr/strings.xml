@@ -184,8 +184,12 @@
     <string name="products_loading">Ürünler yükleniyor…</string>
     <string name="notes_loading">Notlar yükleniyor…</string>
     <string name="note_loading">Not yükleniyor…</string>
-    <string name="product_load_failed_title">Ürün açılamadı</string>
-    <string name="product_load_failed_message">Ürün bilgisi açılamadı. Kaydedilmiş verileriniz değiştirilmedi. Yeniden deneyin.</string>
+    <string name="products_load_failed_title">Ürünler yüklenemedi</string>
+    <string name="products_load_failed_message">Ürünleriniz yüklenemedi. Kaydedilmiş verileriniz değiştirilmedi. Yeniden deneyin.</string>
+    <string name="notes_load_failed_title">Notlar yüklenemedi</string>
+    <string name="notes_load_failed_message">Notlarınız yüklenemedi. Kaydedilmiş verileriniz değiştirilmedi. Yeniden deneyin.</string>
+    <string name="product_load_failed_title">Ürün formu yüklenemedi</string>
+    <string name="product_load_failed_message">Ürün veya gerekli kategoriler yüklenemedi. Kaydedilmiş verileriniz değiştirilmedi. Yeniden deneyin.</string>
     <string name="note_load_failed_title">Not açılamadı</string>
     <string name="note_load_failed_message">Notunuz açılamadı. Kaydedilmiş verileriniz değiştirilmedi. Yeniden deneyin.</string>
     <string name="try_again">Yeniden dene</string>

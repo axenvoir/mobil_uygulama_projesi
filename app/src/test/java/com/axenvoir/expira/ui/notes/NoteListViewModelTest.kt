@@ -5,9 +5,15 @@ import androidx.lifecycle.ViewModelStore
 import com.axenvoir.expira.domain.model.Note
 import com.axenvoir.expira.domain.repository.NoteRepository
 import com.google.common.truth.Truth.assertThat
+import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -83,6 +89,32 @@ class NoteListViewModelTest {
         }
     }
 
+    @Test
+    fun observationFailureCanBeRetried() = runTest {
+        val repository = RetryableNoteRepository()
+        val viewModel = NoteListViewModel(repository)
+        val store = ViewModelStore().apply { put("note-list", viewModel) }
+        try {
+            val failureCollection = backgroundScope.launch { viewModel.loadFailed.collect {} }
+            val loadingCollection = backgroundScope.launch { viewModel.isLoading.collect {} }
+            advanceUntilIdle()
+
+            assertThat(viewModel.loadFailed.value).isTrue()
+            assertThat(viewModel.isLoading.value).isFalse()
+
+            viewModel.retryLoad()
+            advanceUntilIdle()
+
+            assertThat(repository.observationCount).isAtLeast(2)
+            assertThat(viewModel.loadFailed.value).isFalse()
+            assertThat(viewModel.isLoading.value).isFalse()
+            failureCollection.cancel()
+            loadingCollection.cancel()
+        } finally {
+            store.clear()
+        }
+    }
+
     private class FakeNoteRepository(notes: List<Note>) : NoteRepository {
         private val values = MutableStateFlow(notes)
 
@@ -102,5 +134,25 @@ class NoteListViewModelTest {
         override suspend fun setPinned(id: Long, isPinned: Boolean) {
             values.value = values.value.map { if (it.id == id) it.copy(isPinned = isPinned) else it }
         }
+    }
+
+    private class RetryableNoteRepository : NoteRepository {
+        var observationCount = 0
+            private set
+
+        override fun observeAll(): Flow<List<Note>> = flow {
+            observationCount += 1
+            if (observationCount == 1) throw IOException("Simulated local data read failure")
+            emit(emptyList())
+            awaitCancellation()
+        }
+
+        override fun observeById(id: Long): Flow<Note?> = flowOf(null)
+
+        override suspend fun upsert(note: Note): Long = note.id
+
+        override suspend fun deleteById(id: Long) = Unit
+
+        override suspend fun setPinned(id: Long, isPinned: Boolean) = Unit
     }
 }

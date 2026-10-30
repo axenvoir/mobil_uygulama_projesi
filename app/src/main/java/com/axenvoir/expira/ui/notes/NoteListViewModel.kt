@@ -6,18 +6,25 @@ import com.axenvoir.expira.domain.model.Note
 import com.axenvoir.expira.domain.repository.NoteRepository
 import com.axenvoir.expira.domain.util.normalizeSearchText
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private data class NoteSourceState(
+    val notes: List<Note> = emptyList(),
+    val isLoading: Boolean = true,
+    val loadFailed: Boolean = false,
+)
 
 @HiltViewModel
 class NoteListViewModel @Inject constructor(
@@ -33,41 +40,31 @@ class NoteListViewModel @Inject constructor(
     private val selectedFilter = MutableStateFlow(NoteFilter.ALL)
     val filter: StateFlow<NoteFilter> = selectedFilter.asStateFlow()
 
-    private val loaded = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = loaded
-        .map { !it }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = true,
-        )
+    private val sourceState = MutableStateFlow(NoteSourceState())
+    private var observationJob: Job? = null
 
-    private val allNotes = noteRepository.observeAll()
-        .onEach { loaded.value = true }
-        .shareIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            replay = 1,
-        )
+    val isLoading: StateFlow<Boolean> = sourceState
+        .map { it.isLoading }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
 
-    val hasAnyNotes: StateFlow<Boolean> = allNotes
-        .map { it.isNotEmpty() }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = false,
-        )
+    val loadFailed: StateFlow<Boolean> = sourceState
+        .map { it.loadFailed }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    val hasAnyNotes: StateFlow<Boolean> = sourceState
+        .map { it.notes.isNotEmpty() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     val notes: StateFlow<List<Note>> = combine(
-        allNotes,
+        sourceState,
         searchQuery,
         selectedFilter,
-    ) { sourceNotes, query, filter ->
+    ) { source, query, filter ->
         val normalizedQuery = normalizeSearchText(query)
         val filteredByType = when (filter) {
-            NoteFilter.ALL -> sourceNotes
-            NoteFilter.PINNED -> sourceNotes.filter { it.isPinned }
-            NoteFilter.RECENT -> sourceNotes.sortedByDescending { it.updatedAt }.take(20)
+            NoteFilter.ALL -> source.notes
+            NoteFilter.PINNED -> source.notes.filter { it.isPinned }
+            NoteFilter.RECENT -> source.notes.sortedByDescending { it.updatedAt }.take(20)
         }
         val filtered = if (normalizedQuery.isBlank()) filteredByType
         else filteredByType.filter { note ->
@@ -85,6 +82,39 @@ class NoteListViewModel @Inject constructor(
         initialValue = emptyList(),
     )
 
+    init {
+        observeNotes()
+    }
+
+    fun retryLoad() {
+        observeNotes()
+    }
+
+    private fun observeNotes() {
+        observationJob?.cancel()
+        sourceState.value = sourceState.value.copy(isLoading = true, loadFailed = false)
+        observationJob = viewModelScope.launch {
+            var hasEmitted = false
+            try {
+                noteRepository.observeAll().collect { notes ->
+                    hasEmitted = true
+                    sourceState.value = NoteSourceState(
+                        notes = notes,
+                        isLoading = false,
+                        loadFailed = false,
+                    )
+                }
+                if (!hasEmitted) {
+                    sourceState.value = sourceState.value.copy(isLoading = false, loadFailed = true)
+                }
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (_: Exception) {
+                sourceState.value = sourceState.value.copy(isLoading = false, loadFailed = true)
+            }
+        }
+    }
+
     fun onQueryChange(query: String) {
         searchQuery.value = query
     }
@@ -96,7 +126,7 @@ class NoteListViewModel @Inject constructor(
     fun togglePinned(note: Note) {
         viewModelScope.launch {
             runCatching { noteRepository.setPinned(id = note.id, isPinned = !note.isPinned) }
-                .onFailure { if (it is kotlinx.coroutines.CancellationException) throw it else _events.value = NoteListEvent.Error }
+                .onFailure { if (it is CancellationException) throw it else _events.value = NoteListEvent.Error }
         }
     }
 
@@ -105,7 +135,7 @@ class NoteListViewModel @Inject constructor(
             runCatching { noteRepository.deleteById(note.id) }
                 .onSuccess { onDeleted() }
                 .onFailure {
-                    if (it is kotlinx.coroutines.CancellationException) throw it
+                    if (it is CancellationException) throw it
                     _events.value = NoteListEvent.Error
                 }
         }
@@ -115,7 +145,7 @@ class NoteListViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { noteRepository.upsert(note) }
                 .onFailure {
-                    if (it is kotlinx.coroutines.CancellationException) throw it
+                    if (it is CancellationException) throw it
                     _events.value = NoteListEvent.Error
                 }
         }
