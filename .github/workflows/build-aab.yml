@@ -77,15 +77,7 @@ jobs:
           profile: pixel_7_pro
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 4096
           disable-animations: true
-          script: |
-            set +e
-            ./gradlew --no-daemon :app:connectedDebugAndroidTest --stacktrace --console=plain
-            TEST_STATUS=$?
-            if [ "$TEST_STATUS" -ne 0 ]; then
-              mkdir -p app/build/reports/androidTests/connected/debug
-              adb logcat -d -v threadtime '*:E' > app/build/reports/androidTests/connected/debug/ci-logcat-errors.txt || true
-            fi
-            exit "$TEST_STATUS"
+          script: ./gradlew --no-daemon :app:connectedDebugAndroidTest --stacktrace --console=plain || { test_status=$?; mkdir -p app/build/reports/androidTests/connected/debug; adb logcat -d -v threadtime '*:E' > app/build/reports/androidTests/connected/debug/ci-logcat-errors.txt || true; exit "$test_status"; }
 
       - name: Upload connected test reports
         if: always()
