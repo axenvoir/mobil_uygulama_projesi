@@ -54,14 +54,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.expira.R
+import com.axenvoir.expira.domain.util.systemTodayFlow
+import com.axenvoir.expira.notification.SystemTimeChangeEvents
 import com.axenvoir.expira.ui.components.ExpiraEmptyState
 import com.axenvoir.expira.ui.components.ExpiraSectionCard
 import com.axenvoir.expira.ui.components.ExpiraSelectChip
 import com.axenvoir.expira.ui.components.expiraTopAppBarColors
+import com.axenvoir.expira.ui.components.rememberLocalizedDateFormatter
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -76,7 +78,9 @@ fun ProductEditScreen(
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
     val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    val referenceDate = remember { LocalDate.now() }
+    val referenceDate by systemTodayFlow(SystemTimeChangeEvents.changes)
+        .collectAsStateWithLifecycle(initialValue = LocalDate.now())
+    val mediumDateFormatter = rememberLocalizedDateFormatter(FormatStyle.MEDIUM)
     var showDatePicker by remember { mutableStateOf(false) }
     var showPastDateWarning by remember { mutableStateOf(false) }
     var pendingPastDate by remember { mutableStateOf<LocalDate?>(null) }
@@ -349,9 +353,8 @@ fun ProductEditScreen(
                             )
                             Spacer(modifier = Modifier.size(8.dp))
                             Text(
-                                text = uiState.expiryDate?.format(
-                                    DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM),
-                                ) ?: stringResource(R.string.pick_date),
+                                text = uiState.expiryDate?.format(mediumDateFormatter)
+                                    ?: stringResource(R.string.pick_date),
                                 modifier = Modifier.weight(1f),
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,

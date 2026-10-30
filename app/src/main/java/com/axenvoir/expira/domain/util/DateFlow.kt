@@ -1,15 +1,18 @@
 package com.axenvoir.expira.domain.util
 
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.isActive
 import java.time.Clock
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.isActive
 
 /**
  * Emits the current local date and then emits again at each following local
@@ -27,6 +30,22 @@ fun todayFlow(
         delay(millisUntilNextMidnight(now))
     }
 }
+
+/**
+ * Re-evaluates the system zone and local date after a wall-clock or timezone
+ * event, then resumes midnight updates in the newly active zone.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+internal fun systemTodayFlow(
+    timeChanges: Flow<Unit>,
+    zoneProvider: () -> ZoneId = { ZoneId.systemDefault() },
+    clockProvider: (ZoneId) -> Clock = { zoneId -> Clock.system(zoneId) },
+): Flow<LocalDate> = timeChanges
+    .onStart { emit(Unit) }
+    .flatMapLatest {
+        val zoneId = zoneProvider()
+        todayFlow(clock = clockProvider(zoneId), zoneId = zoneId)
+    }
 
 /** Convenience overload for callers that only need to select a zone. */
 fun todayFlow(zoneId: ZoneId): Flow<LocalDate> =

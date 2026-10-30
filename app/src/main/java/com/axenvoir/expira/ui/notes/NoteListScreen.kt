@@ -64,10 +64,16 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.axenvoir.expira.R
 import com.axenvoir.expira.domain.model.Note
+import com.axenvoir.expira.domain.util.systemTodayFlow
+import com.axenvoir.expira.notification.SystemTimeChangeEvents
 import com.axenvoir.expira.ui.components.ExpiraEmptyState
 import com.axenvoir.expira.ui.components.expiraChipColors
 import com.axenvoir.expira.ui.main.SettingsIconButton
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,6 +84,8 @@ fun NoteListScreen(
     viewModel: NoteListViewModel = hiltViewModel(),
 ) {
     val notes by viewModel.notes.collectAsStateWithLifecycle()
+    val referenceDate by systemTodayFlow(SystemTimeChangeEvents.changes)
+        .collectAsStateWithLifecycle(initialValue = LocalDate.now())
     val query by viewModel.query.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
@@ -302,6 +310,7 @@ fun NoteListScreen(
                             items(notes, key = { it.id }, contentType = { "note" }) { note ->
                                 NoteCard(
                                     note = note,
+                                    referenceDate = referenceDate,
                                     onClick = { onEditNote(note.id) },
                                     onTogglePin = { viewModel.togglePinned(note) },
                                     onDelete = { notePendingDelete = note },
@@ -349,12 +358,11 @@ fun NoteListScreen(
 }
 
 @Composable
-private fun relativeUpdatedAt(timestamp: Long): String {
-    val now = System.currentTimeMillis()
-    val days = java.time.temporal.ChronoUnit.DAYS.between(
-        java.time.Instant.ofEpochMilli(timestamp).atZone(java.time.ZoneId.systemDefault()).toLocalDate(),
-        java.time.Instant.ofEpochMilli(now).atZone(java.time.ZoneId.systemDefault()).toLocalDate(),
-    )
+private fun relativeUpdatedAt(timestamp: Long, referenceDate: LocalDate): String {
+    val updatedDate = Instant.ofEpochMilli(timestamp)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
+    val days = ChronoUnit.DAYS.between(updatedDate, referenceDate)
     return when {
         days <= 0L -> stringResource(R.string.relative_today)
         days == 1L -> stringResource(R.string.relative_yesterday)
@@ -365,6 +373,7 @@ private fun relativeUpdatedAt(timestamp: Long): String {
 @Composable
 private fun NoteCard(
     note: Note,
+    referenceDate: LocalDate,
     onClick: () -> Unit,
     onTogglePin: () -> Unit,
     onDelete: () -> Unit,
@@ -454,7 +463,7 @@ private fun NoteCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = relativeUpdatedAt(note.updatedAt),
+                    text = relativeUpdatedAt(note.updatedAt, referenceDate),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),

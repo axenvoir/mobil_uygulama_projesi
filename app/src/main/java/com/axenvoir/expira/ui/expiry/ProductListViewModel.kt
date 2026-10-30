@@ -7,7 +7,8 @@ import com.axenvoir.expira.domain.model.Product
 import com.axenvoir.expira.domain.repository.ProductRepository
 import com.axenvoir.expira.domain.util.expiryStatus
 import com.axenvoir.expira.domain.util.normalizeSearchText
-import com.axenvoir.expira.domain.util.todayFlow
+import com.axenvoir.expira.domain.util.systemTodayFlow
+import com.axenvoir.expira.notification.SystemTimeChangeEvents
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
 import kotlinx.coroutines.CancellationException
@@ -70,7 +71,7 @@ class ProductListViewModel @Inject constructor(
         sourceState,
         filter,
         searchQuery,
-        todayFlow(),
+        systemTodayFlow(SystemTimeChangeEvents.changes),
     ) { source, selectedFilter, queryText, today ->
         val allProducts = source.products
         val normalizedQuery = normalizeSearchText(queryText)

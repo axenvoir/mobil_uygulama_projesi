@@ -3,7 +3,12 @@ package com.axenvoir.expira.domain.util
 import com.axenvoir.expira.domain.model.ExpiryStatus
 import com.axenvoir.expira.notification.ReminderScheduler
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.time.Clock
@@ -114,6 +119,34 @@ class DateUtilsTest {
 
         assertThat(ReminderScheduler.computeInitialDelay(now, hour = 9, minute = 0))
             .isEqualTo(Duration.ofHours(23))
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `system date flow recomputes in the new zone after a clock-change event`() = runTest {
+        val timeChanges = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+        val instant = Instant.parse("2025-06-15T23:30:00Z")
+        val zones = listOf(ZoneId.of("UTC"), ZoneId.of("Asia/Tokyo"))
+        var zoneIndex = 0
+        val observedDates = mutableListOf<LocalDate>()
+        val job = launch {
+            systemTodayFlow(
+                timeChanges = timeChanges,
+                zoneProvider = { zones[zoneIndex++] },
+                clockProvider = { zone -> Clock.fixed(instant, zone) },
+            ).collect { observedDates += it }
+        }
+
+        runCurrent()
+        assertThat(observedDates).containsExactly(LocalDate.of(2025, 6, 15)).inOrder()
+
+        timeChanges.emit(Unit)
+        runCurrent()
+        assertThat(observedDates)
+            .containsExactly(LocalDate.of(2025, 6, 15), LocalDate.of(2025, 6, 16))
+            .inOrder()
+
+        job.cancelAndJoin()
     }
 
     @Test

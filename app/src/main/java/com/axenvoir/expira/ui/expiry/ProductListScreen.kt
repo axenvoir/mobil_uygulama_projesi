@@ -79,9 +79,9 @@ import com.axenvoir.expira.domain.util.expiryStatus
 import com.axenvoir.expira.ui.components.ExpiraEmptyState
 import com.axenvoir.expira.ui.components.expiraTopAppBarColors
 import com.axenvoir.expira.ui.components.CategoryAvatar
+import com.axenvoir.expira.ui.components.rememberLocalizedDateFormatter
 import com.axenvoir.expira.ui.main.SettingsIconButton
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 private enum class ProductEmptyReason {
@@ -321,6 +321,7 @@ fun ProductListScreen(
     }
 
     productDetail?.let { product ->
+        val fullDateFormatter = rememberLocalizedDateFormatter(FormatStyle.FULL)
         val status = expiryStatus(product.expiryDate, referenceDate)
         ModalBottomSheet(onDismissRequest = { productDetail = null }) {
             Column(
@@ -370,9 +371,7 @@ fun ProductListScreen(
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = product.expiryDate.format(
-                        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL),
-                    ),
+                    text = product.expiryDate.format(fullDateFormatter),
                     style = MaterialTheme.typography.bodyLarge,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -646,6 +645,7 @@ private fun ProductCard(
     referenceDate: LocalDate,
     onClick: () -> Unit,
 ) {
+    val mediumDateFormatter = rememberLocalizedDateFormatter(FormatStyle.MEDIUM)
     val status = expiryStatus(product.expiryDate, referenceDate)
     val quantityLabel = androidx.compose.ui.res.pluralStringResource(
         R.plurals.product_quantity,
@@ -718,9 +718,7 @@ private fun ProductCard(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = product.expiryDate.format(
-                        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM),
-                    ),
+                    text = product.expiryDate.format(mediumDateFormatter),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
