@@ -75,7 +75,8 @@ Gerçek cihazda, kapalı testten yüklenmiş uygulama ve test hesabıyla aşağ�
 
 - En son başarılı imzalı release workflow’u production AdMob ID secret’larının mevcut ve Google test ID’lerinden farklı olduğunu doğruladı. Bu doğrulama yalnızca secret/biçim kontrolüdür; AdMob uygulama eşleşmesini, UMP ülke ayarlarını, canlı reklam envanterini veya cihazda reklam dolumunu kanıtlamaz.
 - `EXPIRA_ADMOB_APP_ID` ve `EXPIRA_REWARDED_AD_UNIT_ID` değerleri GitHub Actions secrets’ta zaten yapılandırılmış görünüyor. Bunları sohbet veya commit içinde paylaşmayın; yalnızca döndürülürlerse secret’ları güncelleyin.
-- Uygulama sahibi, Google Play mağaza kaydında ve uygulamada gösterilecek kesin **HTTPS gizlilik politikası URL’sini** ve destek e-posta adresini sağlamalıdır. Sahte veya tahmin edilmiş değer eklenmemelidir.
+- Kullanıcı tarafından sağlanan gizlilik politikası URL’si `https://axenvoir.github.io/`, destek adresi `axenvoir@yahoo.com` şeklindedir. URL kamuya açık olarak açılıyor; uygulamanın Ayarlar > Hakkında bölümünde gösterilir.
+- Yayın öncesi politika metni uygulamayla eşleştirilmelidir: mevcut sayfa AdMob/UMP reklam ve izin SDK’larından ya da Google Play satın alma haklarının işlenmesinden söz etmiyor; ayrıca mevcut Android uygulama kodunda bulunmayan Expo EAS Update ve iOS ifadeleri içeriyor. Bu farklar giderilip veri beyanları doğrulanmadan global yayına hazır kabul etmeyin.
 - Play Console Data Safety ve reklam beyanları, kullanılan AdMob/UMP SDK’larının güncel veri uygulamalarına göre tamamlanmalıdır.
 
 

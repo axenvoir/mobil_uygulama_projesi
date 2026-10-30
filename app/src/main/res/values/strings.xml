@@ -111,6 +111,9 @@
     <string name="test_notification">Show test notification</string>
     <string name="test_notification_sent">Test notification sent</string>
     <string name="version_label">Version</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="contact_support">Contact support · axenvoir@yahoo.com</string>
+    <string name="external_link_unavailable">Couldn’t open the link. Check that a compatible app is installed.</string>
     <string name="edit">Edit</string>
     <string name="edit_record_missing_title">Record not found</string>
     <string name="product_edit_record_missing_message">This product no longer exists. Would you like to create a new product?</string>

@@ -118,6 +118,9 @@
     <string name="test_notification">Test bildirimi göster</string>
     <string name="test_notification_sent">Test bildirimi gönderildi</string>
     <string name="version_label">Sürüm</string>
+    <string name="privacy_policy">Gizlilik politikası</string>
+    <string name="contact_support">Destekle iletişime geç · axenvoir@yahoo.com</string>
+    <string name="external_link_unavailable">Bağlantı açılamadı. Uyumlu bir uygulamanın yüklü olduğunu kontrol edin.</string>
     <string name="edit">Düzenle</string>
     <string name="edit_record_missing_title">Kayıt bulunamadı</string>
     <string name="product_edit_record_missing_message">Bu ürün artık mevcut değil. Yeni bir ürün oluşturmak ister misiniz?</string>

@@ -91,6 +91,7 @@ fun SettingsScreen(
     val restoreSuccessMessage = stringResource(R.string.restore_success)
     val restoreUnavailableMessage = stringResource(R.string.restore_unavailable)
     val manageSubscriptionUnavailableMessage = stringResource(R.string.play_store_unavailable)
+    val externalLinkUnavailableMessage = stringResource(R.string.external_link_unavailable)
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     fun withForegroundActivity(action: (android.app.Activity) -> Unit) {
         val activity = context.findActivity()
@@ -341,6 +342,44 @@ fun SettingsScreen(
                         text = "${stringResource(R.string.version_label)}: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
                         style = MaterialTheme.typography.bodyMedium,
                     )
+                    TextButton(
+                        onClick = {
+                            runCatching {
+                                context.startActivity(
+                                    android.content.Intent(
+                                        android.content.Intent.ACTION_VIEW,
+                                        PRIVACY_POLICY_URL.toUri(),
+                                    ),
+                                )
+                            }.onFailure {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(externalLinkUnavailableMessage)
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.privacy_policy))
+                    }
+                    TextButton(
+                        onClick = {
+                            runCatching {
+                                context.startActivity(
+                                    android.content.Intent(
+                                        android.content.Intent.ACTION_SENDTO,
+                                        "mailto:$SUPPORT_EMAIL".toUri(),
+                                    ),
+                                )
+                            }.onFailure {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(externalLinkUnavailableMessage)
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.contact_support))
+                    }
                 }
             }
         }
@@ -559,6 +598,8 @@ private fun RewardedSupportSection(
 }
 
 private const val SUPPORTER_BADGE_POINTS = 5
+private const val PRIVACY_POLICY_URL = "https://axenvoir.github.io/"
+private const val SUPPORT_EMAIL = "axenvoir@yahoo.com"
 
 @Composable
 private fun AdProgressRow(messageRes: Int) {
