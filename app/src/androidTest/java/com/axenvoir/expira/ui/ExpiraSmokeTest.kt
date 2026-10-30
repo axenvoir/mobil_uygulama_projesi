@@ -66,6 +66,7 @@ class ExpiraSmokeTest {
             .performScrollTo()
             .assertIsDisplayed()
         rule.onNodeWithText(rule.activity.getString(R.string.palette_grove_name))
+            .performScrollTo()
             .assertIsDisplayed()
     }
 }
