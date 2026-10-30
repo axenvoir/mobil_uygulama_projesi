@@ -37,6 +37,7 @@
     <string name="use_date">Tarihi kullan</string>
     <string name="delete">Sil</string>
     <string name="cancel">Vazgeç</string>
+    <string name="back">Geri</string>
     <string name="note_title">Başlık</string>
     <string name="note_basic_info">Temel bilgiler</string>
     <string name="note_content">İçerik</string>

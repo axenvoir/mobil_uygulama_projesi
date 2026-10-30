@@ -45,7 +45,6 @@ fun ExpiraEmptyState(
     modifier: Modifier = Modifier,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
-    iconContentDescription: String? = null,
     reduceMotion: Boolean = false,
 ) {
     val systemReduceMotion = rememberSystemReduceMotion()
@@ -83,7 +82,7 @@ fun ExpiraEmptyState(
         ) {
             Icon(
                 imageVector = icon,
-                contentDescription = iconContentDescription ?: title,
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .size(80.dp)

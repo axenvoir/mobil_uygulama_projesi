@@ -126,7 +126,7 @@ fun ProductEditScreen(
                     IconButton(onClick = confirmBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.cancel),
+                            contentDescription = stringResource(R.string.back),
                         )
                     }
                 },
@@ -301,7 +301,7 @@ fun ProductEditScreen(
                                 "fridge" to R.string.location_fridge,
                                 "pantry" to R.string.location_pantry,
                                 "freezer" to R.string.location_freezer,
-                                "" to R.string.location_other,
+                                "other" to R.string.location_other,
                             ).forEach { (key, labelRes) ->
                                 ExpiraSelectChip(
                                     selected = uiState.storageLocation == key,

@@ -37,6 +37,7 @@
     <string name="use_date">Use date</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
+    <string name="back">Back</string>
     <string name="note_title">Title</string>
     <string name="note_basic_info">Basic information</string>
     <string name="note_content">Content</string>

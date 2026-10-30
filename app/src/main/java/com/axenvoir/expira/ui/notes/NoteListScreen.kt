@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.width
@@ -17,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -183,24 +185,28 @@ fun NoteListScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .horizontalScroll(rememberScrollState())
+                            .selectableGroup()
                             .padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         FilterChip(
                             selected = filter == NoteFilter.ALL,
                             onClick = { viewModel.setFilter(NoteFilter.ALL) },
+                            modifier = Modifier.heightIn(min = 48.dp),
                             label = { Text(stringResource(R.string.notes_filter_all)) },
                             colors = expiraChipColors(),
                         )
                         FilterChip(
                             selected = filter == NoteFilter.PINNED,
                             onClick = { viewModel.setFilter(NoteFilter.PINNED) },
+                            modifier = Modifier.heightIn(min = 48.dp),
                             label = { Text(stringResource(R.string.notes_filter_pinned)) },
                             colors = expiraChipColors(),
                         )
                         FilterChip(
                             selected = filter == NoteFilter.RECENT,
                             onClick = { viewModel.setFilter(NoteFilter.RECENT) },
+                            modifier = Modifier.heightIn(min = 48.dp),
                             label = { Text(stringResource(R.string.notes_filter_recent)) },
                             colors = expiraChipColors(),
                         )
@@ -248,7 +254,6 @@ fun NoteListScreen(
                             when {
                                 query.isNotBlank() -> ExpiraEmptyState(
                                     icon = Icons.Filled.Search,
-                                    iconContentDescription = stringResource(R.string.search_notes),
                                     title = stringResource(R.string.empty_notes_search),
                                     subtitle = stringResource(R.string.empty_notes_search_subtitle),
                                     actionLabel = stringResource(R.string.clear_notes_search),
@@ -257,28 +262,24 @@ fun NoteListScreen(
 
                                 !hasAnyNotes -> ExpiraEmptyState(
                                     icon = Icons.Filled.Edit,
-                                    iconContentDescription = stringResource(R.string.add_note),
                                     title = stringResource(R.string.empty_notes_title),
                                     subtitle = stringResource(R.string.empty_notes),
                                 )
 
                                 filter == NoteFilter.PINNED -> ExpiraEmptyState(
                                     icon = Icons.Filled.Star,
-                                    iconContentDescription = stringResource(R.string.notes_filter_pinned),
                                     title = stringResource(R.string.empty_pinned_notes_title),
                                     subtitle = stringResource(R.string.empty_pinned_notes),
                                 )
 
                                 filter == NoteFilter.RECENT -> ExpiraEmptyState(
                                     icon = Icons.Filled.Edit,
-                                    iconContentDescription = stringResource(R.string.notes_filter_recent),
                                     title = stringResource(R.string.empty_recent_notes_title),
                                     subtitle = stringResource(R.string.empty_recent_notes),
                                 )
 
                                 else -> ExpiraEmptyState(
                                     icon = Icons.Filled.Edit,
-                                    iconContentDescription = stringResource(R.string.add_note),
                                     title = stringResource(R.string.empty_notes_title),
                                     subtitle = stringResource(R.string.empty_notes),
                                 )

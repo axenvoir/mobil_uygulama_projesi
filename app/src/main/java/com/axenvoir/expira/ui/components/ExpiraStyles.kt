@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -83,6 +84,7 @@ fun ExpiraSelectChip(
     FilterChip(
         selected = selected,
         onClick = onClick,
+        modifier = Modifier.heightIn(min = 48.dp),
         label = { Text(label) },
         leadingIcon = if (selected) {
             {
