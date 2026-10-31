@@ -34,11 +34,11 @@ Run unit tests, Android lint, and a debug build locally with:
 ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
 ```
 
-To run the Room migration and Compose smoke tests on an attached Android device or emulator, use `./scripts/run_automated_tests.sh --connected`. GitHub Actions runs unit tests, lint, a debug APK build, and the instrumentation suite on an API 35 emulator for pull requests targeting `main`, pushes to `main`, `v*` tags, and manual runs. Signed release artifacts are generated only when release-signing and production AdMob secrets are configured. Dependabot checks Gradle and GitHub Actions dependencies weekly and opens update pull requests.
+To run the Room migration and Compose smoke tests on an attached Android device or emulator, use `./scripts/run_automated_tests.sh --connected`. GitHub Actions runs unit tests, lint, a debug APK build, and the instrumentation suite on an API 35 emulator for pull requests targeting `main` and pushes to `main`. Signed release artifacts are produced only through a manually dispatched release workflow on the matching `v<versionName>` tag, after the exact tag is confirmed and the protected `play-production` environment has the required signing and production AdMob secrets. Dependabot checks Gradle and GitHub Actions dependencies weekly and opens update pull requests.
 
 ## Release signing
 
-For local signing, copy `keystore.properties.example` to `keystore.properties`, fill in the private values, and keep the keystore and properties file out of Git. GitHub Actions can create signed APK and AAB artifacts on pushes to `main`, version tags, and manual runs when the signing secrets are configured.
+For local signing, copy `keystore.properties.example` to `keystore.properties`, fill in the private values, and keep the keystore and properties file out of Git. Ordinary pushes to `main` run verification but do not create signed release artifacts. GitHub Actions creates signed APK and AAB artifacts only through the gated manual release flow described above.
 
 ## Compatibility and data
 
